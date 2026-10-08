@@ -171,6 +171,56 @@ body[data-screen="play"] .stage{cursor:none}
 .toast{position:fixed;bottom:44px;left:50%;transform:translate(-50%,20px);opacity:0;z-index:60;background:var(--ink);color:var(--paper);padding:9px 14px;border-radius:var(--r);font-size:11.5px;transition:all .3s;pointer-events:none}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
+/* progression: upgrade picks, the Dry Dock, the title's kit line and pressure switches, the sea chart */
+body[data-screen="pick"] #ovPick,body[data-screen="dock"] #ovDock,body[data-screen="chart"] #ovChart{display:flex}
+body[data-screen="pick"] .hud.unit{display:block}
+#ovPick{background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--paper) 30%,transparent),color-mix(in srgb,var(--paper) 80%,transparent) 70%)}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.card{text-align:left;display:flex;flex-direction:column;gap:8px;padding:14px 14px 13px;transition:border-color .2s,transform .2s}
+.card:hover{border-color:var(--rule-strong);transform:translateY(-3px)}
+.card:hover::before,.card:hover::after{width:16px;height:16px;border-color:var(--pen-2)}
+.card canvas{width:100%;height:78px;display:block}
+.card .top{display:flex;justify-content:space-between;align-items:center}
+.card .nm{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.card p{margin:0;font-size:11.5px;color:var(--ink-2);line-height:1.45}
+.tag{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.tag.rare{color:var(--pen-4)}
+.dtabs{display:flex;gap:8px;align-items:center;margin:0 0 12px;flex-wrap:wrap}
+#ovDock .panel{max-height:100%;display:flex;flex-direction:column}
+#dkBody{overflow-y:auto;min-height:0;flex:1;padding:2px 4px 2px 2px;margin:0 -4px 0 -2px;scrollbar-width:thin;scrollbar-color:var(--rule-strong) transparent}
+.shop.c4 .item canvas{height:52px}
+.slotrow .item canvas{height:62px}
+.shop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.shop.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.item{display:flex;flex-direction:column;gap:6px;padding:10px 11px 11px;text-align:left}
+.item canvas{width:100%;height:80px;display:block}
+.item .nm{font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.item p{font-size:10.5px;color:var(--ink-3);line-height:1.4;margin:0;flex:1}
+.item.on{border-color:var(--pen-2)}
+.item.on::before,.item.on::after{width:14px;height:14px;border-color:var(--pen-2)}
+.item.locked canvas{opacity:.35}
+.btn.sm{height:25px;font-size:10.5px;padding:0 9px;align-self:flex-start}
+.btn[disabled]{opacity:.45;cursor:default}
+.slotrow{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:start;padding:10px 0;border-top:1px dotted var(--rule-strong)}
+.slotrow:first-child{border-top:0;padding-top:0}
+.slotrow .lbl{padding-top:6px}
+.slotrow .shop{grid-template-columns:repeat(3,minmax(0,1fr))}
+.salv{font-family:var(--mono);font-size:12px;color:var(--ink-2);display:flex;align-items:center;gap:6px}
+.salv b{color:var(--pen-4);font-size:16px;font-weight:600}
+.kitline{display:flex;gap:14px;align-items:center;margin-top:12px;font-size:11px;color:var(--ink-3);flex-wrap:wrap}
+.kitline b{color:var(--ink);font-weight:600}
+.kitline .r{margin-left:auto}
+.press{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:10px 0 0}
+.press .chip.lk{opacity:.5;cursor:default}
+.press .chip.on{border-color:var(--pen-1);color:var(--pen-1)}
+.press .mult{font-family:var(--mono);font-size:10.5px;color:var(--pen-1);margin-left:4px}
+.chartwrap{position:relative}
+#cvChart{width:100%;height:330px;display:block}
+.buildl{font-size:11px;color:var(--ink-3);line-height:1.55;margin-top:8px}
+.buildl b{color:var(--ink);font-weight:600}
+.buildl .lbl{margin-right:6px}
+.chartinfo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+
 @media (max-width:1180px){ .hud{width:200px}.big{font-size:38px}.gaugewrap{grid-template-columns:72px 1fr}.gaugewrap canvas{width:72px;height:64px}.hint.opt{display:none} }
 @media (prefers-reduced-motion:reduce){.rise{animation:none}}
 </style>
@@ -242,18 +292,60 @@ body[data-screen="play"] .stage{cursor:none}
             <div class="no">SELECT DIFFICULTY</div>
             <h1>Sonar Type <span>type the incoming words before they reach the core</span></h1>
           </div>
-          <div class="acts"><kbd>1</kbd>–<kbd>0</kbd> choose <kbd>Tab</kbd> mode <kbd>⏎</kbd> engage</div>
+          <div class="acts"><kbd>1</kbd>–<kbd>0</kbd> choose <kbd>Tab</kbd> mode <kbd>⏎</kbd> engage <button class="btn" id="btnDock" style="margin-left:8px">Dry Dock <kbd>D</kbd></button></div>
         </div>
         <div class="modebar">
           <span class="lbl">Mode</span>
           <button class="chip" data-game="sector">Sector · 3 waves + leviathan</button>
           <button class="chip" data-game="patrol">Patrol · endless</button>
+          <button class="chip" data-game="expedition">Expedition · sea chart</button>
         </div>
         <div class="tiles" id="tiles"></div>
+        <div class="press" id="pressBar"></div>
+        <div class="kitline" id="kitLine"></div>
         <div class="foot">
           <span><kbd>/</kbd> ping</span><span><kbd>Space</kbd> pulse</span><span><kbd>Tab</kbd> torpedo</span><span><kbd>hold ⏎</kbd> nuke</span><span><kbd>Esc</kbd> pause</span>
           <span class="r mono" id="runsNote"></span>
         </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="ovPick">
+      <div class="unit panel rise" style="width:min(780px,100%)">
+        <div class="th">
+          <div><div class="no good" id="pkNo">WAVE CLEARED · CHOOSE AN UPGRADE</div><h1>Refit <span>one module bolts onto the hull for the rest of the run</span></h1></div>
+          <div class="acts"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> choose</div>
+        </div>
+        <div class="cards" id="pkCards"></div>
+        <div class="foot"><span id="pkBuild"></span></div>
+      </div>
+    </div>
+
+    <div class="overlay" id="ovDock">
+      <div class="unit panel rise" style="width:min(920px,100%)">
+        <div class="th">
+          <div><div class="no warn">DRY DOCK</div><h1>Refit <span>every run banks salvage: a hundredth of its score</span></h1></div>
+          <div class="acts"><span class="salv">salvage <b id="dkSalv"></b></span></div>
+        </div>
+        <div class="dtabs" id="dkTabs"></div>
+        <div id="dkBody"></div>
+        <div class="foot">
+          <button class="btn pri" id="btnDockBack">Back <kbd>Esc</kbd></button>
+          <span><kbd>1</kbd>–<kbd>4</kbd> shelves</span>
+          <span class="r mono" id="dkNote"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="ovChart">
+      <div class="unit panel rise" style="width:min(900px,100%)">
+        <div class="th">
+          <div><div class="no good" id="chNo">SEA CHART</div><h1 id="chTitle">Plot a course <span id="chSub"></span></h1></div>
+          <div class="acts" id="chActs"></div>
+        </div>
+        <canvas id="cvChart"></canvas>
+        <div class="chartinfo" id="chOpts"></div>
+        <div class="foot"><span id="chHint"></span><span class="r mono" id="chNote"></span></div>
       </div>
     </div>
 
@@ -301,6 +393,8 @@ body[data-screen="play"] .stage{cursor:none}
             </div>
             <div class="sech"><span class="lbl">Kills per 10 s</span></div>
             <canvas id="cvTimeline"></canvas>
+            <div class="sech"><span class="lbl">Salvage</span></div>
+            <div id="dSalvage"></div>
           </div>
           <div>
             <div class="sech" style="margin-top:0"><span class="lbl">Score</span></div>
@@ -340,7 +434,7 @@ body[data-screen="play"] .stage{cursor:none}
    clean typing (pulse / torpedo / nuke), supply crates, and a
    sector mode that ends with a leviathan.
    ============================================================ */
-const VERSION = '3.4';
+const VERSION = '4.0';
 const TAU = Math.PI * 2;
 const $ = s => document.querySelector(s);
 const wrap = a => ((a % TAU) + TAU) % TAU;
@@ -358,7 +452,14 @@ const STORE = 'sonar-type.v2';
 const prefs = { theme: 'dark', sound: true, music: true, shake: true, diff: 1, game: 'sector', best: {}, medals: {}, runs: 0, seen: {} };
 try { Object.assign(prefs, JSON.parse(localStorage.getItem(STORE) || '{}')); } catch {}
 // v3.4 scores points; `best` keeps the old destroyed-count records, `hi` holds the point records per mode and level
-prefs.hi = Object.assign({ patrol: {}, sector: {} }, prefs.hi);
+prefs.hi = Object.assign({ patrol: {}, sector: {}, expedition: {} }, prefs.hi);
+// v4 progression: salvage, what has been bought, the chosen kit and the pressure switches
+prefs.salvage = prefs.salvage | 0; prefs.salvageTotal = prefs.salvageTotal | 0;
+prefs.owned = Object.assign({}, prefs.owned);
+prefs.loadout = Object.assign({ hull: 'skiff', torp: 'torpedo', pulse: 'pulse', nuke: 'nuke', tracer: 'hull' }, prefs.loadout);
+prefs.pressure = Object.assign({}, prefs.pressure);
+prefs.expeditions = prefs.expeditions | 0;
+prefs.expEnds = Object.assign({}, prefs.expEnds);
 function savePrefs() { try { localStorage.setItem(STORE, JSON.stringify(prefs)); } catch {} }
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const shakeOn = () => prefs.shake && !reducedMotion;
@@ -453,7 +554,7 @@ function wordBase(w) {
 // typing speed on the word itself, first keystroke to last: 30 wpm ×1, 60 ×1.5, 90 ×2, capped at ×2.5
 function speedFactor(w) {
   if (!w.typeDur || w.typeKeys - w.passes < 1) return 1;
-  return clamp(1 + ((w.typeKeys - w.passes) / w.typeDur * 12 - 30) / 60, .75, 2.5);
+  return clamp(1 + ((w.typeKeys - w.passes) / w.typeDur * 12 - 30) / 60, .75, G.mods.virtuoso ? 3 : 2.5);
 }
 // how far out it was when destroyed: the danger ring ×0.85, halfway ×1.04, the scope's edge ×1.5
 const distFactor = w => clamp(.571 + .929 * w.dist / S.R, .75, 1.65);
@@ -461,20 +562,128 @@ const distFactor = w => clamp(.571 + .929 * w.dist / S.R, .75, 1.65);
 const streakFactor = () => 1 + clamp(G.combo - 1, 0, 20) * .05;
 // wave and sector bonuses grow with the sector's difficulty so they stay worth chasing at the top
 const bonusScale = () => 1 + (G.diff - 1) * .25;
-function addPoints(n, part) { n = Math.round(n); G.points += n; G.ptsBy[part] = (G.ptsBy[part] || 0) + n; return n; }
+// pressure multiplies everything earned; its share is booked on its own line
+function addPoints(n, part) {
+  const base = Math.round(n), extra = Math.round(n * (G.pressMul - 1));
+  G.points += base + extra; G.ptsBy[part] = (G.ptsBy[part] || 0) + base;
+  if (extra) G.ptsBy.pressure = (G.ptsBy.pressure || 0) + extra;
+  return base + extra;
+}
 const fmtPts = n => n >= 100000 ? Math.round(n / 1000) + 'k' : n.toLocaleString('en-US');
 // a typed contact pays its letters, scaled by typing speed, the range it died at and the clean streak;
 // each step's share is booked separately so the debrief can show where the score came from
 function typedPoints(w, clean, mul = 1) {
   const sp = speedFactor(w), di = distFactor(w), st = clean ? streakFactor() : 1;
-  const b = wordBase(w) * mul, r = [b, b * sp, b * sp * di, b * sp * di * st].map(Math.round);
-  addPoints(r[0], 'words'); addPoints(r[1] - r[0], 'speed'); addPoints(r[2] - r[1], 'range'); addPoints(r[3] - r[2], 'streak');
+  const b = wordBase(w) * mul * (G.pingT > 0 && G.kit.pingBonus ? 1 + G.kit.pingBonus : 1), r = [b, b * sp, b * sp * di, b * sp * di * st].map(Math.round);
   const x = v => '×' + v.toFixed(1), tags = [];
   if (sp >= 1.1) tags.push('FAST ' + x(sp)); else if (sp <= .92) tags.push('SLOW ' + x(sp));
   if (di >= 1.1) tags.push('FAR ' + x(di)); else if (di <= .92) tags.push('CLOSE ' + x(di));
   if (st >= 1.1) tags.push('STREAK ' + x(st));
-  if (!G.bestWord || r[3] > G.bestWord.pts) G.bestWord = { text: shown(w), pts: r[3] };
-  return { pts: r[3], sub: tags.join(' · ') };
+  if (G.pingT > 0 && G.kit.pingBonus) tags.push(`PINGED ×${(1 + G.kit.pingBonus).toFixed(1)}`);
+  const pts = addPoints(r[0], 'words') + addPoints(r[1] - r[0], 'speed') + addPoints(r[2] - r[1], 'range') + addPoints(r[3] - r[2], 'streak');
+  if (!G.bestWord || pts > G.bestWord.pts) G.bestWord = { text: shown(w), pts };
+  return { pts, sub: tags.join(' · ') };
+}
+
+/* ------------------------------------------------------------ progression */
+// Every run banks salvage (score ÷ 100), spent in the Dry Dock on hulls, arsenal variants, rare upgrade cards
+// and tracer styles. Unlocks widen the choices rather than adding raw power: a better typist is still the
+// real progression. Pressure switches make a run harder and multiply its score.
+const HULLS = {
+  skiff:   { name: 'Skiff', cost: 0, hull: 100, tracer: 'standard', blurb: 'Balanced. The hull you know.', kill: [1, 'triangle'] },
+  bastion: { name: 'Bastion', cost: 400, hull: 100, tracer: 'slug', iron: true, chargeRate: .8, blurb: 'Starts with all six iron plates. Charge builds 20% slower.', kill: [.5, 'square'] },
+  wraith:  { name: 'Wraith', cost: 600, hull: 70, tracer: 'ghost', phase: true, blurb: 'Starts behind a phase shield, but carries only 70 hull.', kill: [1, 'sine'] },
+  lancer:  { name: 'Lancer', cost: 800, hull: 100, tracer: 'needle', torp: 1, straight: true, blurb: 'Starts with a torpedo. Tracers fly straight and fast.', kill: [1.5, 'triangle'] },
+  choir:   { name: 'Choir', cost: 1000, hull: 100, tracer: 'sine', pingRate: 2, pingBonus: .2, blurb: 'Ping recharges twice as fast, and kills during a ping score +20%.', kill: [1, 'sine'] },
+};
+const GEAR = {
+  torp: {
+    torpedo: { name: 'Torpedo', cost: 0, blurb: 'Finishes off the word you are locked on, or the nearest one.' },
+    swarm:   { name: 'Swarm', cost: 500, blurb: 'Three small homing torpedoes, each stripping four letters from one of the nearest contacts.' },
+    harpoon: { name: 'Harpoon', cost: 450, blurb: 'Hooks a word and drags it back out to the edge of the scope. Pairs with the range bonus.' },
+  },
+  pulse: {
+    pulse:   { name: 'Pulse', cost: 0, blurb: 'Slows every contact to half speed for 5 seconds.' },
+    freeze:  { name: 'Freeze', cost: 450, blurb: 'Ice spreads across the scope and holds every contact at 20% speed for 3 seconds.' },
+    shock:   { name: 'Shockwave', cost: 400, blurb: 'Pushes every contact 15% further out.' },
+  },
+  nuke: {
+    nuke:    { name: 'Nuke', cost: 0, blurb: 'Destroys every word on the scope. Its crate arrives at 50 charge.' },
+    depth:   { name: 'Depth charge', cost: 600, blurb: 'Clears only the inner half of the scope, but its crate arrives at 35 charge.' },
+  },
+};
+const SLOT_NAMES = { torp: 'Torpedo slot · Tab', pulse: 'Pulse slot · Space', nuke: 'Nuke slot · hold ⏎' };
+const TRACERS = {
+  standard: { name: 'Standard', from: 'skiff' },
+  slug:     { name: 'Slug', from: 'bastion' },
+  ghost:    { name: 'Ghost', from: 'wraith' },
+  needle:   { name: 'Needle', from: 'lancer' },
+  sine:     { name: 'Sine wave', from: 'choir' },
+  comet:    { name: 'Comet', feat: () => golds() >= 1, req: 'win a gold medal' },
+  bubbles:  { name: 'Bubble chain', feat: () => clears() >= 5, req: 'clear five different sectors' },
+};
+// upgrade cards are offered three at a time after each wave; rare ones must be bought in the Dry Dock first
+const CARDS = {
+  pierce:     { name: 'Piercing tracers', col: 'pen-2', blurb: 'A destroyed word’s last tracer flies on and knocks a letter off the nearest contact.' },
+  forge:      { name: 'Fast forge', col: 'pen-3', blurb: 'The phase shield recharges twice as fast, and sooner after a hit.' },
+  steady:     { name: 'Steady hands', col: 'ink-2', blurb: 'Misses no longer drain charge.' },
+  sweep:      { name: 'Long sweep', col: 'pen-3', blurb: 'Silent contacts show from further out, and their echoes linger.' },
+  cap:        { name: 'Ping capacitor', col: 'pen-3', blurb: 'Ping recharges in 9 seconds instead of 14.' },
+  magnet:     { name: 'Salvage magnet', col: 'pen-4', blurb: 'Supply crates drift 40% slower and score double.' },
+  riveter:    { name: 'Riveter', col: 'ink-2', blurb: 'One iron plate regrows with every wave.' },
+  bounty:     { name: 'Bounty', col: 'pen-2', blurb: 'Kills in the outer fifth of the scope add a point of charge.' },
+  keeper:     { name: 'Streak keeper', col: 'pen-2', blurb: 'Every 10 clean words bank one forgiven miss: the streak and the charge survive it.' },
+  demo:       { name: 'Demolition', col: 'pen-6', blurb: 'Mine blasts reach 50% further.' },
+  stand:      { name: 'Last stand', col: 'pen-1', blurb: 'Below 25 hull, every contact moves 20% slower.' },
+  overcharge: { name: 'Overcharge', col: 'pen-4', rare: 250, blurb: 'Clean words build charge 25% faster.' },
+  second:     { name: 'Second wind', col: 'pen-1', rare: 350, blurb: 'The first blow that would sink you leaves 20 hull instead.' },
+  salvager:   { name: 'Salvager', col: 'pen-4', rare: 200, blurb: 'This run banks 50% more salvage.' },
+  reserves:   { name: 'Deep reserves', col: 'pen-3', rare: 300, blurb: 'Every new wave starts with a free pulse.' },
+  virtuoso:   { name: 'Virtuoso', col: 'pen-2', rare: 400, blurb: 'The speed bonus can reach ×3.0 instead of ×2.5.' },
+};
+const PRESSURE = {
+  deep:     { name: 'Deep water', mul: 1.2, blurb: 'Contacts move 15% faster.', req: 'clear any sector', ok: () => clears() >= 1 },
+  fragile:  { name: 'Fragile', mul: 1.15, blurb: 'The hull holds only 60% of its usual strength.', req: 'clear sector 03 or higher', ok: () => maxClear() >= 3 },
+  typo:     { name: 'Typo tax', mul: 1.25, blurb: 'Every miss costs 2 hull.', req: 'win a gold medal', ok: () => golds() >= 1 },
+  blackout: { name: 'Blackout', mul: 1.3, blurb: 'The scope shows only its inner 60%. Ping to see further.', req: 'clear sector 05 or higher', ok: () => maxClear() >= 5 },
+  bare:     { name: 'Bare hull', mul: 1.4, blurb: 'Charge earns no weapons. Ping still works.', req: 'clear sector 07 or higher', ok: () => maxClear() >= 7 },
+};
+const clears = () => Object.keys(prefs.medals).length;
+const maxClear = () => Math.max(0, ...Object.keys(prefs.medals).map(Number));
+const golds = () => Object.values(prefs.medals).filter(m => m === 'gold').length;
+function owns(kind, key) {
+  if (kind === 'hull') return !!HULLS[key] && (!HULLS[key].cost || !!prefs.owned['hull:' + key]);
+  if (kind === 'card') return !!CARDS[key] && (!CARDS[key].rare || !!prefs.owned['card:' + key]);
+  if (kind === 'tracer') { const t = TRACERS[key]; return !!t && (t.from ? owns('hull', t.from) : t.feat()); }
+  const g = GEAR[kind] && GEAR[kind][key];
+  return !!g && (!g.cost || !!prefs.owned[kind + ':' + key]);
+}
+// the run's kit: the hull and arsenal chosen in the Dry Dock, and any pressure switched on (real runs only)
+function applyKit(mode) {
+  const lo = prefs.loadout, hk = owns('hull', lo.hull) ? lo.hull : 'skiff', h = HULLS[hk];
+  const press = mode === 'play' ? Object.keys(PRESSURE).filter(k => prefs.pressure[k] && PRESSURE[k].ok()) : [];
+  G.hullType = hk; G.kit = h;
+  G.gear = {};
+  for (const slot of Object.keys(GEAR)) G.gear[slot] = owns(slot, lo[slot]) ? lo[slot] : Object.keys(GEAR[slot])[0];
+  G.tracer = lo.tracer && lo.tracer !== 'hull' && owns('tracer', lo.tracer) ? lo.tracer : h.tracer;
+  G.press = Object.fromEntries(press.map(k => [k, true]));
+  G.pressMul = press.reduce((m, k) => m * PRESSURE[k].mul, 1);
+  G.hullMax = Math.round(h.hull * (G.press.fragile ? .6 : 1)); G.hull = G.hullMax;
+  G.chargeMax = G.gear.nuke === 'depth' ? 35 : 50;
+  G.ticks = TICKS.map(t => t[1] === 'nuke' ? [G.chargeMax, ...t.slice(1)] : t);
+  G.mods = {}; G.cards = []; G.cardAt = {}; G.secondUsed = false; G.forgive = 0; G.cleanRun = 0; G.chargeAcc = 0; G.pickQ = 0; G.offer = null;
+  if (h.iron) { G.iron = G.iron.map(() => true); G.ironForge = G.ironForge.map(() => 0); }
+  if (h.phase) Object.assign(G.phase, { on: true, charge: PHASE_MAX, lastHit: -99, forge: 0 });
+  if (h.torp && !G.press.bare) G.arsenal.torp = h.torp;
+}
+const phaseDelay = () => G.mods.forge ? 4 : 8;
+const pingCooldown = () => (G.mods.cap ? 9 : PING_CD) / (G.kit.pingRate || 1);
+const mineR = () => MINE_R * (G.mods.demo ? 1.5 : 1);
+// clean words feed the charge meter; a slow-charging hull or Overcharge changes the rate, so it accumulates in fractions
+function earnCharge(n) {
+  G.chargeAcc += n * (G.kit.chargeRate || 1) * (G.mods.overcharge ? 1.25 : 1);
+  const whole = Math.floor(G.chargeAcc + 1e-9);
+  if (whole) { G.chargeAcc -= whole; addCharge(whole); }
 }
 
 /* ------------------------------------------------------------ audio */
@@ -571,7 +780,10 @@ const sfx = {
     tone('sine', 150, 42, .5, .3, 0, { pan: p });
     noise(.45, .2, 1800, 0, 'bandpass', { pan: p, f1: 300, q: 1.5, wet: .35 });
     noise(.3, .05, 7000, .02, 'highpass', { pan: p, wet: .5 });
-    for (const [m, d] of [[1, 0], [1.5, .05], [2, .1]]) tone('triangle', f * m, f * m, .8, .035, d, { pan: p, wet: .6, attack: .02 });
+    // the chord's timbre belongs to the hull: a Bastion clanks low, a Wraith rings, a Choir adds a fourth voice
+    const k = G.kit, wave = k.kill[1], vol = wave === 'square' ? .016 : .035, wet = k === HULLS.wraith ? .9 : .6;
+    const notes = k === HULLS.choir ? [[1, 0], [1.25, .04], [1.5, .08], [2, .12]] : [[1, 0], [1.5, .05], [2, .1]];
+    for (const [m, d] of notes) tone(wave, f * m, f * m, .8, vol, d, { pan: p, wet, attack: .02, filter: wave === 'square' ? 'lowpass' : null, ff: 1400 });
   },
   streak:  n => { const lift = Math.min(3, Math.floor(n / 10)); for (let i = 0; i < 4; i++) tone('triangle', noteFor(5 + i + lift), noteFor(5 + i + lift), .5, .04, i * .07, { wet: .7 }); },
   miss:    () => { tone('sawtooth', 150, 80, .14, .1, 0, { filter: 'lowpass', ff: 700 }); tone('square', 159, 85, .1, .04); },
@@ -592,6 +804,20 @@ const sfx = {
   },
   forge:   () => { tone('triangle', 330, 330, .2, .05, 0, { wet: .5 }); tone('triangle', 495, 495, .2, .05, .1, { wet: .5 }); tone('square', 990, 980, .1, .025, .2, { wet: .6 }); },
   pulse:   () => { tone('sine', 320, 110, 1.3, .22, 0, { lfo: 6, wet: .5 }); tone('sine', 640, 220, 1, .05, .05, { lfo: 6, wet: .6 }); noise(1.2, .06, 600, 0, 'lowpass', { f1: 150, wet: .5 }); },
+  // ice: glassy high partials that crackle and settle
+  freeze:  () => {
+    for (const [f, d] of [[2637, 0], [3136, .05], [3951, .1], [2093, .16]]) tone('sine', f, f * .97, 1.4, .025, d, { wet: .9, attack: .01 });
+    for (let i = 0; i < 12; i++) noise(.03, .05, 7000, Math.random() * .7, 'highpass', { pan: rnd(-.8, .8), wet: .5 });
+    tone('sine', 140, 90, 1.2, .14, 0, { wet: .4 });
+  },
+  shock:   () => { tone('sine', 90, 30, .8, .4); noise(.5, .3, 600, 0, 'lowpass', { f1: 90, wet: .5 }); tone('square', 160, 60, .25, .06, 0, { filter: 'lowpass', ff: 800 }); },
+  harpoon: () => { tone('sawtooth', 240, 1200, .18, .05, 0, { filter: 'lowpass', ff: 2600 }); noise(.15, .08, 3000, 0, 'bandpass', { q: 3 }); },
+  reel:    p => {
+    tone('square', 420, 380, .1, .05, 0, { pan: p, filter: 'bandpass', ff: 1400, q: 3 });
+    for (let i = 0; i < 8; i++) tone('square', 900, 880, .03, .02, .08 + i * .07, { pan: p, filter: 'bandpass', ff: 1800, q: 4 });
+  },
+  card:    () => [659, 880, 1175].forEach((f, i) => tone('triangle', f, f, .5, .05, i * .06, { wet: .6, force: true })),
+  buy:     () => { [523, 784, 1046, 1568].forEach((f, i) => tone('triangle', f, f, .6, .05, i * .07, { wet: .6, force: true })); noise(.3, .04, 5000, .1, 'highpass', { force: true, wet: .6 }); },
   torpGo:  d => { tone('sawtooth', 160, 900, d, .03, 0, { filter: 'lowpass', ff: 1500 }); noise(d, .05, 900, 0, 'bandpass', { f1: 2400 }); },
   bubble:  (p, when = 0) => tone('sine', 380 + Math.random() * 300, 900 + Math.random() * 500, .045, .03, when, { pan: p, wet: .3 }),
   torpHit: p => {
@@ -615,6 +841,12 @@ const sfx = {
     tone('sine', 78, 55, 2.4, .22, 0, { pan: p, lfo: 4.5, depth: .05, wet: .8, attack: .4 });
     tone('sawtooth', 156, 110, 2.2, .035, .1, { pan: p, filter: 'lowpass', ff: 420, wet: .8, attack: .5 });
     tone('sine', 52, 70, 1.6, .15, 1.2, { pan: p, lfo: 3, depth: .06, wet: .8, attack: .3 });
+  },
+  // the Siren's call: a high, wavering glissando that climbs and falls back
+  sirenCall: p => {
+    tone('sine', 660, 990, 1.2, .07, 0, { pan: p, lfo: 7, depth: .03, wet: .9, attack: .3 });
+    tone('sine', 990, 520, 1.6, .06, 1.1, { pan: p, lfo: 6, depth: .04, wet: .9, attack: .2 });
+    tone('triangle', 330, 330, 2.4, .025, .2, { pan: p, wet: .9, attack: .6 });
   },
   win:     () => [523, 659, 784, 1046, 1318].forEach((f, i) => tone('triangle', f, f, .9, .06, i * .12, { wet: .7 })),
   sonarPing: () => { tone('sine', 1480, 1400, 1.8, .13, 0, { wet: .7 }); tone('sine', 1480, 1420, 1.3, .05, .42, { wet: .8 }); tone('sine', 1480, 1440, 1, .025, .84, { wet: .9 }); tone('sine', 95, 50, .3, .18); },
@@ -686,7 +918,8 @@ function resize() {
 new ResizeObserver(resize).observe(stage);
 
 /* ------------------------------------------------------------ game state */
-const G = { mode: 'demo', game: 'patrol', diff: 4, level: 4, words: [], tracers: [], torps: [], fx: [], sweep: 0, prevSweep: 0, shake: 0, sim: true, flash: 0, hull: HULL_MAX, iron: [], ironForge: [], phase: { on: false }, ripples: [], hurt: 0, combo: 0 };
+const G = { mode: 'demo', game: 'patrol', diff: 4, level: 4, words: [], tracers: [], torps: [], fx: [], sweep: 0, prevSweep: 0, shake: 0, sim: true, flash: 0, hull: HULL_MAX, hullMax: HULL_MAX, iron: [], ironForge: [], phase: { on: false }, ripples: [], hurt: 0, combo: 0,
+  kit: HULLS.skiff, hullType: 'skiff', gear: { torp: 'torpedo', pulse: 'pulse', nuke: 'nuke' }, tracer: 'standard', mods: {}, cards: [], press: {}, pressMul: 1, chargeMax: 50, ticks: TICKS };
 function newGame(diff, mode, game) {
   Object.assign(G, {
     mode, game, diff, level: diff, kills: 0, points: 0, ptsBy: {}, bestWord: null, words: [], tracers: [], torps: [], fx: [], lock: null, boss: null,
@@ -699,10 +932,11 @@ function newGame(diff, mode, game) {
     combo: 0, ripples: [], hurt: 0,
     kills5: Array(24).fill(0), k5T: 0, killsRun: [0], kRunT: 0, keyTimes: [], peakWpm: 0, recent: [], longest: '', last: '',
     stats: { hullDmg: 0, hullHits: 0, phaseAbs: 0, ironHits: 0, hardest: null, used: { pulse: 0, torp: 0, nuke: 0, ping: 0 }, earned: { pulse: 0, torp: 0, nuke: 0 }, crates: { got: 0, seen: 0 }, mines: 0, decoys: 0 },
-    sec: { wave: 1, quota: 0, spawned: 0, stage: 'intro', t: 0 },
+    sec: { wave: 1, quota: 0, spawned: 0, stage: 'intro', t: 0 }, exp: null, freezeT: 0, aimS: null,
   });
   G.sec.quota = quotaFor(1, diff);
   if (game === 'sector') G.level = sectorLevel(1);
+  applyKit(mode);
 }
 const enemies = () => G.words.filter(w => w.kind === 'enemy').length;
 const threats = () => G.words.filter(w => w.kind !== 'crate' && w.trait !== 'decoy');
@@ -722,7 +956,9 @@ const inStorm = w => !!G.storm && w.dist > S.R * .3 && angGap(angOf(w), G.storm.
 const inThermo = w => !!G.thermo && w.dist > G.thermo.f0 * S.R && w.dist < G.thermo.f1 * S.R;
 // what the scope shows of a contact: 'clear', 'echo' (a silent contact's last-seen position) or 'hidden'
 function sight(w) {
-  if (pinging() || w.dist < S.R * .3) return 'clear';
+  if (pinging() || w.dist < S.R * (G.mods.sweep ? .45 : .3)) return 'clear';
+  // Blackout: beyond 60% of the scope nothing shows unless pinged (supply crates excepted)
+  if (G.press.blackout && w.kind !== 'crate' && w.dist > S.R * .6) return 'hidden';
   if (inStorm(w)) return 'hidden';
   if (w.silent) return w.echo > .02 ? 'echo' : 'hidden';
   return 'clear';
@@ -796,13 +1032,20 @@ function spawnCrate(ctype) {
   G.stats.crates.seen++;
   tip('crate');
 }
-function spawnBoss() {
+// the Leviathan; on an expedition the route may end at the Siren (layers typed backwards, one tier shorter)
+// or the Ironback (every layer plated and typed twice, one layer fewer, a little slower)
+function spawnBoss(type = 'leviathan') {
   // layers are one tier longer than the longest words of the final wave; the last layer one more
-  const wts = LEVEL_WEIGHTS[sectorLevel(3) - 1], top = wts.reduce((m, w, k) => w > 0 ? k : m, 0);
-  const n = 3 + Math.floor(G.diff / 2), layers = [];
-  for (let i = 0; i < n; i++) layers.push(pickFromTier(Math.min(4, top + 1 + (i === n - 1 ? 1 : 0))));
+  const lv = G.game === 'expedition' ? G.level : sectorLevel(3);
+  const wts = LEVEL_WEIGHTS[lv - 1], top = wts.reduce((m, w, k) => w > 0 ? k : m, 0);
+  const n = Math.max(2, 3 + Math.floor(G.diff / 2) - (type === 'ironback' ? 1 : 0));
+  let layers = [];
+  for (let i = 0; i < n; i++) layers.push(pickFromTier(clamp(top + 1 + (i === n - 1 ? 1 : 0) - (type === 'siren' ? 1 : 0), 0, 4)));
+  const extra = { layers, layerTotal: n, speed: (12 + G.diff * 1.9) * (type === 'ironback' ? .85 : 1), escortT: 2, btype: type };
+  if (type === 'siren') { extra.rev = true; extra.layers = layers = layers.map(t => [...t].reverse().join('')); }
+  if (type === 'ironback') extra.armour = 1;
   const a = bestBearing(), d = edgeDist(a) + 50;
-  G.boss = mk('boss', layers[0], Math.cos(a) * d, Math.sin(a) * d, { layers, layerTotal: n, speed: 12 + G.diff * 1.9, escortT: 2 });
+  G.boss = mk('boss', layers[0], Math.cos(a) * d, Math.sin(a) * d, extra);
   G.words.push(G.boss);
   G.boss.callT = .6; G.boss.wakeT = 0;
   tip('boss');
@@ -828,20 +1071,50 @@ function fire(w) {
   G.correct++; G.keyTimes.push(G.t);
   const p = pos(w), a = Math.atan2(p.y - S.cy, p.x - S.cx);
   const sx = S.cx + Math.cos(a) * 14, sy = S.cy + Math.sin(a) * 14;
-  G.tracers.push({ w, idx, layerNo: w.layerNo, sx, sy, tx: p.x, ty: p.y, kick: (Math.random() < .5 ? -1 : 1) * (.16 + Math.random() * .2), t: 0, dur: .12 + w.dist / 2800, ch: w.text[idx] });
+  // a Lancer fires straight and fast; every other hull curves its tracers
+  const straight = G.kit.straight;
+  G.tracers.push({ w, idx, layerNo: w.layerNo, sx, sy, tx: p.x, ty: p.y, kick: straight ? 0 : (Math.random() < .5 ? -1 : 1) * (.16 + Math.random() * .2), t: 0, dur: (.12 + w.dist / 2800) * (straight ? .6 : 1), ch: w.text[idx] });
+  G.aim = a;
   for (let i = 0; i < 5; i++) {
     const b = a + (Math.random() - .5) * 1.1, v = rnd(90, 250);
-    G.fx.push({ k: 'dot', x: sx, y: sy, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: 1.3, col: C['pen-2'], life: .18, max: .18, drag: 6 });
+    G.fx.push({ k: 'dot', x: sx, y: sy, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: 1.3, col: tracerCol(), life: .18, max: .18, drag: 6 });
   }
   bump(1); sfx.fire(panAt(p.x), noteFor(idx + Math.min(4, Math.floor(G.combo / 3))));
 }
 function miss() {
   G.miss++;
-  if (G.lock) { G.lock.missT = .28; G.lock.missed = true; }
-  G.charge = Math.max(0, G.charge - MISS_COST); G.combo = 0;
-  G.fx.push({ k: 'x', x: S.cx, y: S.cy - 74, life: .45, max: .45 });
+  // Streak keeper spends a banked miss: the word stays clean, and the streak and charge survive
+  if (G.mods.keeper && G.forgive > 0) {
+    G.forgive--;
+    if (G.lock) G.lock.missT = .28;
+    G.fx.push({ k: 'stamp', x: S.cx, y: S.cy - 74, text: 'FORGIVEN', col: C['pen-2'], life: .9, max: .9 });
+    sfx.drop();
+  } else {
+    if (G.lock) { G.lock.missT = .28; G.lock.missed = true; }
+    if (!G.mods.steady) G.charge = Math.max(0, G.charge - MISS_COST);
+    G.combo = 0; G.cleanRun = 0;
+    G.fx.push({ k: 'x', x: S.cx, y: S.cy - 74, life: .45, max: .45 });
+    sfx.miss();
+  }
   flashUnit('uCore', 'bad', 260);
-  bump(1.5); sfx.miss();
+  bump(1.5);
+  if (G.press.typo && G.mode === 'play') {
+    G.hull -= 2; G.stats.hullDmg += 2; G.stats.typo = (G.stats.typo || 0) + 2; G.hurt = Math.max(G.hurt, .4);
+    G.fx.push({ k: 'stamp', x: S.cx, y: S.cy + 64, text: '-2 TYPO TAX', col: C['pen-1'], life: .9, max: .9 });
+    if (G.hull <= 0) sink('hull');
+  }
+}
+// the hull is gone: Second wind saves the run once, otherwise it is over
+function sink(kind) {
+  if (G.mods.second && !G.secondUsed && G.mode === 'play') {
+    G.secondUsed = true; G.hull = 20;
+    banner('SECOND WIND', 'the hull holds at 20', C['pen-1']);
+    for (let i = 0; i < 2; i++) G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 20, r1: 130 + i * 50, n: 56, col: C['pen-1'], life: .9, max: .9, delay: i * .15 });
+    sfx.forge();
+    return;
+  }
+  G.hull = 0;
+  if (G.mode === 'play') gameOver(kind); else G.hull = G.hullMax;
 }
 function bump(n) { if (shakeOn()) G.shake = Math.min(G.shake + n, 14); }
 function bez(tr, s) {
@@ -850,17 +1123,18 @@ function bez(tr, s) {
   return { x: u * u * tr.sx + 2 * u * s * cx + s * s * tr.tx, y: u * u * tr.sy + 2 * u * s * cy + s * s * tr.ty };
 }
 function impact(tr) {
-  const w = tr.w;
+  const w = tr.w, tc = tracerCol(tr.pierce ? 'standard' : G.tracer);
   const n = Math.max(6, Math.floor(Math.hypot(tr.tx - tr.sx, tr.ty - tr.sy) / 10));
   for (let i = 1; i < n; i++) {
     const q = bez(tr, i / n);
-    G.fx.push({ k: 'dot', x: q.x, y: q.y, vx: 0, vy: 0, r: .95, col: C['pen-2'], life: .55 * (i / n) + .15, max: .7, a0: .55 });
+    G.fx.push({ k: 'dot', x: q.x, y: q.y, vx: 0, vy: 0, r: .95, col: tc, life: .55 * (i / n) + .15, max: .7, a0: .55 });
   }
   if (!live(w) || tr.layerNo !== w.layerNo || w.landed >= w.text.length) return;
+  if (tr.pierce) { stripTail(w, 1, C['pen-2'], 'torp'); ripple(tr.tx, tr.ty, 3, 300, .5); sfx.hit(panAt(tr.tx)); return; }
   w.landed++; w.hitT = .22;
   const dir = Math.atan2(tr.ty - tr.sy, tr.tx - tr.sx);
   G.fx.push({ k: 'glyph', x: tr.tx, y: tr.ty, ch: tr.ch, vx: Math.cos(dir) * 40, vy: Math.sin(dir) * 40 - 30, life: .5, max: .5, big: w.kind === 'boss' });
-  G.fx.push({ k: 'ring', x: tr.tx, y: tr.ty, r0: 3, r1: 22, col: C['pen-2'], life: .3, max: .3 });
+  G.fx.push({ k: 'ring', x: tr.tx, y: tr.ty, r0: 3, r1: 22, col: tc, life: .3, max: .3 });
   for (let i = 0; i < 11; i++) {
     const b = dir + (Math.random() - .5) * 2.4, v = rnd(80, 300);
     G.fx.push({ k: 'dot', x: tr.tx, y: tr.ty, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(.9, 2.1), col: Math.random() < .3 ? C.ink : C['pen-2'], life: rnd(.25, .55), max: .55, drag: 5 });
@@ -906,8 +1180,8 @@ function detonateMine(w) {
   G.kills++; G.stats.mines++; G.kills5[G.kills5.length - 1]++; G.killsRun[G.killsRun.length - 1]++;
   const sc = typedPoints(w, !w.missed);
   G.fx.push({ k: 'stamp', x: p.x, y: p.y - 26, text: `+${sc.pts}  ${shown(w)}`, sub: sc.sub, col: C['pen-6'], life: 1.3, max: 1.3 });
-  G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 8, r1: MINE_R, n: 64, col: C['pen-6'], life: .6, max: .6 });
-  G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 4, r1: MINE_R * .6, n: 36, col: C.ink, life: .8, max: .8 });
+  G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 8, r1: mineR(), n: 64, col: C['pen-6'], life: .6, max: .6 });
+  G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 4, r1: mineR() * .6, n: 36, col: C.ink, life: .8, max: .8 });
   for (let i = 0; i < 40; i++) {
     const b = Math.random() * TAU, v = rnd(100, 460);
     G.fx.push({ k: 'dot', x: p.x, y: p.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(1, 2.8), col: Math.random() < .4 ? C.ink : C['pen-6'], life: rnd(.4, .9), max: .9, drag: 3 });
@@ -917,17 +1191,23 @@ function detonateMine(w) {
   for (const o of [...G.words]) {
     if (o.kind === 'crate' || !live(o)) continue;
     const q = pos(o);
-    if (Math.hypot(q.x - p.x, q.y - p.y) > MINE_R) continue;
-    const k = Math.min(MINE_STRIP, o.text.length - o.fired);
-    if (k <= 0) continue;
-    for (let i = o.text.length - k; i < o.text.length; i++) {
-      const lp = letterPos(o, i);
-      G.fx.push({ k: 'glyph', x: lp.x, y: lp.y, ch: o.text[i], vx: rnd(-80, 80), vy: rnd(-90, -20), life: .6, max: .6, col: C['pen-6'], big: o.kind === 'boss' });
-    }
-    o.orig = o.orig || o.text; o.text = o.text.slice(0, o.text.length - k); o.hitT = .4;
-    if (o.landed >= o.text.length) complete(o, 'mine');
+    if (Math.hypot(q.x - p.x, q.y - p.y) > mineR()) continue;
+    stripTail(o, MINE_STRIP, C['pen-6'], 'mine');
   }
   G.last = 'mine detonated';
+}
+// knock up to k untyped letters off the end of a contact (mines, swarm torpedoes, piercing tracers);
+// typing order is untouched, so a word the player is halfway through stays typeable
+function stripTail(o, k, col, how) {
+  k = Math.min(k, o.text.length - o.fired);
+  if (k <= 0) return 0;
+  for (let i = o.text.length - k; i < o.text.length; i++) {
+    const lp = letterPos(o, i);
+    G.fx.push({ k: 'glyph', x: lp.x, y: lp.y, ch: o.text[i], vx: rnd(-80, 80), vy: rnd(-90, -20), life: .6, max: .6, col, big: o.kind === 'boss' });
+  }
+  o.orig = o.orig || o.text; o.text = o.text.slice(0, o.text.length - k); o.hitT = .4;
+  if (o.landed >= o.text.length) complete(o, how);
+  return k;
 }
 function springDecoy(w) {
   const p = pos(w), a = angOf(w);
@@ -984,22 +1264,65 @@ function kill(w, how) {
     bubbles(p.x, p.y, 7);
     ripple(p.x, p.y, 6, 360, .9);
     bump(5);
-    if (how === 'type') sfx.kill(panAt(p.x), noteFor(2 + Math.min(6, Math.floor(G.combo / 3))));
+    if (how === 'type') sfx.kill(panAt(p.x), noteFor(2 + Math.min(6, Math.floor(G.combo / 3))) * G.kit.kill[0]);
     if (clean && G.combo % 10 === 0) streakFlourish();
   }
   if (w.trait === 'splitter' && how !== 'nuke') splitInto(w);
-  if (clean) { addCharge(1); repair(1.5); }
+  if (clean) { earnCharge(1); repair(1.5); cleanWord(); }
+  if (how === 'type' && G.mods.bounty && w.dist > S.R * .8) { addCharge(1); G.fx.push({ k: 'stamp', x: p.x, y: p.y + 24, text: 'BOUNTY +1', col: C['pen-4'], life: 1, max: 1 }); }
+  if (how === 'type' && G.mods.pierce) pierceFrom(p, w);
   G.last = `${shown(w)} ${how === 'nuke' ? 'vaporised' : how === 'torp' ? 'torpedoed' : how === 'mine' ? 'caught in a mine blast' : 'splashed'}`;
   flashUnit('uScore', 'ok', 420);
-  if (G.game === 'patrol') { const lv = rampLevel(); if (lv > G.level) levelUp(lv); }
+  if (G.game === 'patrol') {
+    const lv = rampLevel(); if (lv > G.level) levelUp(lv);
+    if (G.mods.riveter && G.kills % 15 === 0) regrowPlate();
+  }
 }
 function levelUp(lv) {
   G.level = lv;
   G.fx.push({ k: 'stamp', x: S.cx, y: S.cy - 92, text: `THREAT ${pad(lv)}`, col: C['pen-4'], life: 1.6, max: 1.6, big: true });
   flashUnit('uThreat', 'warn', 900);
   sfx.wave();
+  // in patrol every threat level is a "wave": it offers an upgrade card and tops up Deep reserves
+  if (G.mode === 'play' && G.game === 'patrol') { G.pickQ++; newWaveMods(); }
 }
-function repair(n) { G.hull = Math.min(HULL_MAX, G.hull + n); }
+// Streak keeper banks a forgiven miss every 10 clean words
+function cleanWord() {
+  G.cleanRun++;
+  if (G.mods.keeper && G.cleanRun % 10 === 0 && G.forgive < 3) {
+    G.forgive++;
+    coreStamp('MISS BANKED', C['pen-2'], 1.4);
+  }
+}
+// Piercing tracers: the killing tracer flies on into the nearest other contact and knocks its last letter off
+function pierceFrom(p, dead) {
+  let t = null, best = Infinity;
+  for (const o of threats()) {
+    if (o === dead || o.text.length - o.fired < 2) continue;
+    const q = pos(o), d = Math.hypot(q.x - p.x, q.y - p.y);
+    if (d < best && d < S.R * .9) { best = d; t = o; }
+  }
+  if (!t) return;
+  const q = letterPos(t, t.text.length - 1);
+  G.tracers.push({ w: t, pierce: true, idx: t.text.length - 1, layerNo: t.layerNo, sx: p.x, sy: p.y, tx: q.x, ty: q.y, kick: 0, t: 0, dur: .1 + best / 3200, ch: t.text[t.text.length - 1] });
+}
+// announcements under the core stack downwards instead of printing over each other
+function coreStamp(text, col, life = 1.6) {
+  const n = G.fx.filter(f => f.core && f.life > .25).length;
+  G.fx.push({ k: 'stamp', core: true, x: S.cx, y: S.cy + 84 + n * 18, text, col, life, max: life, big: true });
+}
+function regrowPlate() {
+  const gone = [0, 1, 2, 3, 4, 5].filter(i => !G.iron[i]);
+  if (!gone.length) return;
+  const i = pick(gone); G.iron[i] = true; G.ironForge[i] = 0;
+  coreStamp('PLATE REGROWN', C['ink-2'], 1.4);
+  sfx.forge();
+}
+// things that happen at the start of every new wave (or threat level in patrol)
+function newWaveMods() {
+  if (G.mods.reserves && !G.press.bare) { G.arsenal.pulse = Math.min(3, G.arsenal.pulse + 1); coreStamp('RESERVE PULSE', C['pen-3']); }
+}
+function repair(n) { G.hull = Math.min(G.hullMax, G.hull + n); }
 function banner(title, sub, col) { G.fx.push({ k: 'banner', title, sub, col, life: 2.6, max: 2.6 }); }
 // a ring of displacement travelling through the scope's dot lattice, like a pressure wave in water
 function ripple(x, y, amp, speed = 420, life = 1.1) {
@@ -1029,17 +1352,20 @@ function cracks(n) {
 
 function addCharge(n) {
   const before = G.charge;
-  G.charge = Math.min(CHARGE_MAX, G.charge + n);
-  for (const [th, award] of TICKS) if (before < th && G.charge >= th) grant(award);
-  if (G.charge >= CHARGE_MAX) G.charge = 0;
+  G.charge = Math.min(G.chargeMax, G.charge + n);
+  for (const [th, award] of G.ticks) if (before < th && G.charge >= th) grant(award);
+  if (G.charge >= G.chargeMax) G.charge = 0;
 }
 function grant(award) {
-  const at = (text, col) => G.fx.push({ k: 'stamp', x: S.cx, y: S.cy + 84, text, col, life: 1.8, max: 1.8, big: true });
-  if (award === 'pulse') { G.arsenal.pulse = Math.min(3, G.arsenal.pulse + 1); G.stats.earned.pulse++; at('PULSE READY', C['pen-3']); tip('pulse'); }
-  else if (award === 'torp') { G.arsenal.torp = Math.min(3, G.arsenal.torp + 1); G.stats.earned.torp++; at('TORPEDO READY', C['pen-2']); tip('torp'); }
+  const at = (text, col) => coreStamp(text, col, 1.8);
+  // Bare hull: charge still brings supply crates, but never a weapon
+  if (G.press.bare && award !== 'crate') { if (award === 'nuke') { spawnCrate(pick(['iron', 'phase', 'repair'])); at('SUPPLY INBOUND', C['pen-4']); } return; }
+  const nm = slot => GEAR[slot][G.gear[slot]].name.toUpperCase();
+  if (award === 'pulse') { G.arsenal.pulse = Math.min(3, G.arsenal.pulse + 1); G.stats.earned.pulse++; at(nm('pulse') + ' READY', C['pen-3']); tip('pulse'); }
+  else if (award === 'torp') { G.arsenal.torp = Math.min(3, G.arsenal.torp + 1); G.stats.earned.torp++; at(nm('torp') + ' READY', C['pen-2']); tip('torp'); }
   else if (award === 'crate') { spawnCrate(pick(['iron', 'phase', 'repair'])); at('SUPPLY INBOUND', C['pen-4']); }
   else if (award === 'nuke') {
-    if (!G.arsenal.nuke && !G.words.some(w => w.ctype === 'nuke')) { spawnCrate('nuke'); at('NUKE CRATE INBOUND', C['pen-1']); }
+    if (!G.arsenal.nuke && !G.words.some(w => w.ctype === 'nuke')) { spawnCrate('nuke'); at(nm('nuke') + ' CRATE INBOUND', C['pen-1']); }
     else { spawnCrate(pick(['iron', 'phase', 'repair'])); at('SUPPLY INBOUND', C['pen-4']); }
   }
   flashUnit('uArsenal', 'ok', 700);
@@ -1050,9 +1376,9 @@ function collect(w) {
   const p = pos(w);
   remove(w);
   G.stats.crates.got++;
-  const pts = addPoints(wordBase(w) * speedFactor(w), 'crates');
+  const pts = addPoints(wordBase(w) * speedFactor(w) * (G.mods.magnet ? 2 : 1), 'crates');
   G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 6, r1: 90, n: 36, col: w.ctype === 'nuke' ? C['pen-1'] : C['pen-4'], life: .7, max: .7 });
-  G.fx.push({ k: 'stamp', x: p.x, y: p.y - 28, text: `+ ${w.ctype.toUpperCase()}`, sub: `+${pts} pts`, col: w.ctype === 'nuke' ? C['pen-1'] : C['pen-4'], life: 1.4, max: 1.4, big: true });
+  G.fx.push({ k: 'stamp', x: p.x, y: p.y - 28, text: `+ ${w.ctype === 'nuke' ? GEAR.nuke[G.gear.nuke].name.toUpperCase() : w.ctype.toUpperCase()}`, sub: `+${pts} pts`, col: w.ctype === 'nuke' ? C['pen-1'] : C['pen-4'], life: 1.4, max: 1.4, big: true });
   // a ring of supply dots streams into the core
   G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 120, r1: 30, n: 30, col: C['pen-4'], life: .6, max: .6, delay: .1 });
   if (w.ctype === 'iron') {
@@ -1080,7 +1406,7 @@ function coreHit(w) {
     G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 30, r1: S.R, n: 72, col: C['pen-1'], life: 1, max: 1 });
     burstLetters(w, C['pen-1'], 120);
     G.hull = 0; G.hurt = 1; cracks(8); ripple(S.cx, S.cy, 16, 520, 1.4); bump(20); sfx.breach();
-    if (G.mode === 'play') gameOver('rammed'); else { G.hull = HULL_MAX; G.boss = null; }
+    if (G.mode === 'play') gameOver('rammed'); else { G.hull = G.hullMax; G.boss = null; }
     return;
   }
   let dmg = hitDamage(w), by = 'hull';
@@ -1123,7 +1449,7 @@ function coreHit(w) {
     flashUnit('uCore', by === 'iron' ? 'warn' : 'good', 500);
     G.last = `${shown(w)} stopped by ${by === 'iron' ? 'iron' : 'phase'}`;
   }
-  if (G.hull <= 0) { G.hull = 0; if (G.mode === 'play') gameOver('hull'); else G.hull = HULL_MAX; }
+  if (G.hull <= 0) sink('hull');
 }
 function ironBreakFx(i) {
   const a0 = PLATE0 + i * TAU / 6, a1 = a0 + TAU / 6;
@@ -1147,29 +1473,87 @@ function phasePopFx() {
 }
 
 /* ------------------------------------------------------------ weapons */
+// the pulse slot holds one of three tools: Pulse (slow), Freeze (hold) or Shockwave (push back)
 function usePulse() {
-  if (!G.arsenal.pulse || G.slowT > 0) return;
-  G.arsenal.pulse--; G.stats.used.pulse++; G.slowT = 5;
-  for (let i = 0; i < 3; i++) G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 20, r1: S.R * 1.05, n: 96, col: C['pen-3'], life: 1.1, max: 1.1, delay: i * .18 });
-  sfx.pulse(); G.last = 'pulse: contacts slowed';
+  if (!G.arsenal.pulse || G.slowT > 0 || G.freezeT > 0) return;
+  G.arsenal.pulse--; G.stats.used.pulse++;
+  const kind = G.gear.pulse;
+  if (kind === 'freeze') {
+    G.freezeT = 3;
+    // ice crystals bloom outward from the core and grip the scope
+    for (let i = 0; i < 54; i++) {
+      const a = Math.random() * TAU, r = Math.sqrt(Math.random()) * S.R;
+      G.fx.push({ k: 'ice', x: S.cx + Math.cos(a) * r, y: S.cy + Math.sin(a) * r, s: rnd(4, 11), rot: Math.random() * TAU, life: 3.3, max: 3.3, delay: r / S.R * .45 });
+    }
+    G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 20, r1: S.R * 1.05, n: 120, col: C['pen-2'], life: .9, max: .9 });
+    ripple(S.cx, S.cy, 4, 500, 1); sfx.freeze(); G.last = 'freeze: contacts held';
+  } else if (kind === 'shock') {
+    for (const w of G.words) {
+      if (w.kind === 'crate') continue;
+      w.haul = { t: 0, from: w.dist, to: Math.min(w.dist + S.R * .15, Math.max(w.dist, S.R * 1.02)), dur: .35, stun: .25 };
+    }
+    for (let i = 0; i < 3; i++) G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 30, r1: S.R * 1.1, n: 110, col: i ? C['ink-2'] : C.ink, life: .55, max: .55, delay: i * .07 });
+    ripple(S.cx, S.cy, 18, 900, 1.2); bump(10); sfx.shock(); G.last = 'shockwave: contacts pushed back';
+  } else {
+    G.slowT = 5;
+    for (let i = 0; i < 3; i++) G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 20, r1: S.R * 1.05, n: 96, col: C['pen-3'], life: 1.1, max: 1.1, delay: i * .18 });
+    sfx.pulse(); G.last = 'pulse: contacts slowed';
+  }
 }
+// the torpedo slot: Torpedo (finish one word), Swarm (three minis that strip letters) or Harpoon (drag a word back)
 function useTorp(target) {
   if (!G.arsenal.torp) return;
   let t = target || (G.lock && live(G.lock) && G.lock.fired < G.lock.text.length ? G.lock : null);
   if (!t) for (const w of threats()) if (w.fired < w.text.length && (!t || w.dist < t.dist)) t = w;
   if (!t) return;
   G.arsenal.torp--; G.stats.used.torp++;
-  t.fired = t.text.length;
-  if (G.lock === t) G.lock = null;
-  const p = pos(t), a = Math.atan2(p.y - S.cy, p.x - S.cx), side = Math.random() < .5 ? 1 : -1;
+  const kind = G.gear.torp;
+  if (kind === 'swarm') {
+    const near = threats().filter(w => w !== t && w.fired < w.text.length).sort((a, b) => a.dist - b.dist);
+    const aims = [t, ...near].slice(0, 3);
+    while (aims.length < 3) aims.push(aims[aims.length % aims.length]);
+    aims.forEach((w, i) => launchTorp(w, { mini: true, side: i - 1 }));
+    sfx.torpGo(.6); G.last = 'swarm away';
+  } else if (kind === 'harpoon') {
+    launchTorp(t, { harpoon: true }); sfx.harpoon(); G.last = `harpoon away: ${shown(t)}`;
+  } else {
+    t.fired = t.text.length;
+    if (G.lock === t) G.lock = null;
+    launchTorp(t, {}); sfx.torpGo(.9); G.last = `torpedo away: ${shown(t)}`;
+  }
+}
+function launchTorp(t, o) {
+  const p = pos(t), a = Math.atan2(p.y - S.cy, p.x - S.cx), side = o.side ?? (Math.random() < .5 ? 1 : -1);
+  const v = o.harpoon ? 900 : 60, swing = o.harpoon ? 0 : side * .9 || .25;
   G.torps.push({ w: t, layerNo: t.layerNo, x: S.cx + Math.cos(a) * 16, y: S.cy + Math.sin(a) * 16, tx: p.x, ty: p.y,
-    vx: Math.cos(a + side * .9) * 60, vy: Math.sin(a + side * .9) * 60, t: 0, bub: 0 });
-  sfx.torpGo(.9); G.last = `torpedo away: ${shown(t)}`;
+    vx: Math.cos(a + swing) * v, vy: Math.sin(a + swing) * v, t: 0, bub: 0, mini: !!o.mini, harpoon: !!o.harpoon });
+}
+// a swarm mini-torpedo strips four letters off the end of its target
+function miniImpact(tp) {
+  G.fx.push({ k: 'dring', x: tp.x, y: tp.y, r0: 4, r1: 58, n: 26, col: C['pen-2'], life: .55, max: .55 });
+  for (let i = 0; i < 14; i++) {
+    const b = Math.random() * TAU, v = rnd(60, 260);
+    G.fx.push({ k: 'dot', x: tp.x, y: tp.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(.9, 2), col: Math.random() < .3 ? C.ink : C['pen-2'], life: rnd(.3, .7), max: .7, drag: 3 });
+  }
+  bubbles(tp.x, tp.y, 5); ripple(tp.x, tp.y, 5, 360, .7); bump(4); sfx.torpHit(panAt(tp.x));
+  const w = tp.w;
+  if (live(w) && w.layerNo === tp.layerNo) stripTail(w, 4, C['pen-2'], 'torp');
+}
+// the harpoon hooks its target and reels it back out towards the edge, where it pays the most range bonus
+function harpoonHit(tp) {
+  const w = tp.w;
+  if (!live(w)) return;
+  const to = w.kind === 'boss' ? Math.min(S.R * .95, w.dist + S.R * .25) : Math.max(w.dist, S.R * .95);
+  w.haul = { t: 0, from: w.dist, to, dur: .7, stun: 1.2 };
+  G.fx.push({ k: 'cable', w, life: 1.9, max: 1.9 });
+  G.fx.push({ k: 'dring', x: tp.x, y: tp.y, r0: 4, r1: 40, n: 22, col: C['pen-2'], life: .5, max: .5 });
+  G.fx.push({ k: 'stamp', x: tp.x, y: tp.y - 26, text: 'HOOKED', col: C['pen-2'], life: 1, max: 1 });
+  ripple(tp.x, tp.y, 6, 360, .8); bump(5); sfx.reel(panAt(tp.x));
 }
 // active ping: everything shows for a few seconds, but every contact hears it and speeds up
 function usePing() {
   if (G.pingCd > 0) return;
-  G.pingCd = PING_CD; G.pingT = PING_SHOW; G.alertT = PING_ALERT; G.pingGlow = 1; G.stats.used.ping++;
+  G.pingCd = pingCooldown(); G.pingT = PING_SHOW; G.alertT = PING_ALERT; G.pingGlow = 1; G.stats.used.ping++;
   G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 20, r1: S.R * 1.08, n: 140, col: C['pen-3'], life: .9, max: .9 });
   ripple(S.cx, S.cy, 6, S.R * 1.2, .9);
   for (const w of G.words) {
@@ -1212,18 +1596,23 @@ function torpImpact(tp) {
 }
 function detonate() {
   G.arsenal.nuke = 0; G.armHeld = false; G.arm = 0; G.stats.used.nuke++;
-  G.nuke = { t: 0, r: 0, id: Math.random() };
-  G.flash = 1; G.spawnHold = 3; bump(14);
+  // a depth charge's blast stops at half the scope
+  const depth = G.gear.nuke === 'depth';
+  G.nuke = { t: 0, r: 0, id: Math.random(), maxR: depth ? S.R * .5 : Infinity, col: depth ? C['pen-6'] : C['pen-1'] };
+  G.flash = depth ? .45 : 1; G.spawnHold = depth ? 1.5 : 3; bump(depth ? 10 : 14);
   ripple(S.cx, S.cy, 20, 820, 1.7);
-  sfx.nuke(); G.last = 'nuke detonated';
+  if (depth) { bubbles(S.cx, S.cy, 40, 70); G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 10, r1: S.R * .5, n: 90, col: C['pen-6'], life: 1, max: 1, delay: .3 }); }
+  sfx.nuke(); G.last = depth ? 'depth charge detonated' : 'nuke detonated';
 }
 
 /* ------------------------------------------------------------ leviathan */
 function bossLayer(w, how) {
+  // the Ironback's plating comes off first, then the same layer has to be typed again
+  if (w.armour > 0 && how === 'type') { breakArmour(w); w.missed = false; return; }
   const p = pos(w), cleared = w.layerTotal - w.layers.length + 1;
   G.kills++; G.killsRun[G.killsRun.length - 1]++; G.kills5[G.kills5.length - 1]++;
   // every leviathan layer pays double; each layer's typing speed is timed on its own
-  const sc = how === 'type' ? typedPoints(w, !w.missed, 2) : { pts: addPoints(how === 'nuke' ? 5 : wordBase(w), 'weapons'), sub: 'WEAPON' };
+  const sc = how === 'type' ? typedPoints(w, !w.missed, 2 * (w.btype === 'ironback' ? 2 : w.btype === 'siren' ? 1.5 : 1)) : { pts: addPoints(how === 'nuke' ? 5 : wordBase(w), 'weapons'), sub: 'WEAPON' };
   w.typeDur = w.typeKeys = w.passes = 0;
   G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 10, r1: 150, n: 60, col: C['pen-1'], life: .8, max: .8 });
   G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 6, r1: 100, n: 36, col: C['ink-2'], life: 1, max: 1 });
@@ -1234,10 +1623,11 @@ function bossLayer(w, how) {
   G.fx.push({ k: 'stamp', x: p.x, y: p.y - 40, text: `+${sc.pts}  LAYER ${cleared}/${w.layerTotal}`, sub: sc.sub, col: C['pen-1'], life: 1.5, max: 1.5, big: true });
   ripple(p.x, p.y, 12, 380, 1.2); bubbles(p.x, p.y, 14, 40);
   bump(10); sfx.bossHit(panAt(p.x)); flashUnit('uThreat', 'bad', 700);
-  if (!w.missed && how === 'type') addCharge(1);
+  if (!w.missed && how === 'type') earnCharge(1);
   w.layers.shift();
   if (!w.layers.length) { bossKilled(w); return; }
   w.text = w.layers[0]; w.fired = 0; w.landed = 0; w.layerNo++; w.missed = false; w.hitT = .5;
+  if (w.btype === 'ironback') w.armour = 1;
   if (G.lock === w) G.lock = null;
   const d = w.dist || 1; w.rx += w.rx / d * 34; w.ry += w.ry / d * 34;
   G.last = `leviathan layer ${cleared} destroyed`;
@@ -1252,8 +1642,8 @@ function bossKilled(w) {
   }
   for (const e of G.words.filter(o => o.kind === 'enemy')) { burstLetters(e, C['pen-3']); complete(e, 'nuke'); }
   G.flash = .6; bump(16); sfx.win();
-  const bonus = addPoints((500 + Math.ceil(G.hull) * 5) * bonusScale(), 'bonus');
-  banner('LEVIATHAN DESTROYED', `sector ${pad(G.diff)} clear · +${fmtPts(bonus)} pts`, C['pen-3']);
+  const exp = G.game === 'expedition', bonus = addPoints((500 + Math.ceil(G.hull) * 5) * bonusScale() * (exp ? 2 : 1), 'bonus');
+  banner(`${(BOSSES[w.btype] || BOSSES.leviathan).name.toUpperCase()} DESTROYED`, `${exp ? 'expedition complete' : 'sector ' + pad(G.diff) + ' clear'} · +${fmtPts(bonus)} pts`, C['pen-3']);
   G.sec.stage = 'won'; G.sec.t = 0; G.spawnHold = 99;
 }
 
@@ -1271,26 +1661,33 @@ function sectorTick(dt) {
       spawnEnemy(); s.spawned++; G.spawnT = sectorGap(G.level) * workLoad(G.level) * rnd(.75, 1.25);
     }
     if (s.spawned >= s.quota && !enemies()) {
-      s.stage = 'break'; s.t = 0; repair(30);
-      const bonus = addPoints(100 * s.wave * bonusScale(), 'bonus');
-      banner('WAVE CLEARED', `+${bonus} pts · +30 hull · wave ${s.wave}/3`, C['pen-3']); sfx.wave();
+      const exp = G.game === 'expedition', heal = exp ? 15 : 30;
+      s.stage = 'break'; s.t = 0; repair(heal);
+      if (G.mods.riveter) regrowPlate();
+      if (G.mode === 'play') G.pickQ++;
+      const bonus = addPoints(100 * (exp ? G.exp.col + 1 : s.wave) * bonusScale(), 'bonus');
+      banner('WAVE CLEARED', `+${bonus} pts · +${heal} hull · wave ${s.wave}/${wavesTotal()}`, C['pen-3']); sfx.wave();
     }
   } else if (s.stage === 'break') {
+    // the upgrade pick comes once the wave-cleared banner has been read
+    if (G.pickQ && s.t > 1.3) { openPick(); return; }
     if (s.t > 3.6) {
-      if (s.wave < 3) {
-        s.wave++; s.quota = quotaFor(s.wave, G.diff); s.spawned = 0; G.level = sectorLevel(s.wave); s.stage = 'wave'; s.t = 0;
-        banner(`WAVE ${s.wave}/3`, `sector ${pad(G.diff)} · threat ${pad(G.level)}`, C['pen-2']);
-      } else {
+      if (s.wave < wavesTotal()) {
+        s.wave++; s.quota = waveQuota(s.wave); s.spawned = 0; G.level = waveLevel(s.wave); s.stage = 'wave'; s.t = 0;
+        newWaveMods();
+        banner(`WAVE ${s.wave}/${wavesTotal()}`, `${G.game === 'expedition' ? G.exp.node.name.toLowerCase() : 'sector ' + pad(G.diff)} · threat ${pad(G.level)}`, C['pen-2']);
+      } else if (G.game === 'expedition') { endLeg(); return; }
+      else {
         s.stage = 'warn'; s.t = 0;
         banner('LEVIATHAN APPROACHING', 'destroy every layer before it reaches the core', C['pen-1']); sfx.siren();
       }
     }
-  } else if (s.stage === 'warn') { if (s.t > 2.8) { spawnBoss(); s.stage = 'boss'; s.t = 0; } }
+  } else if (s.stage === 'warn') { if (s.t > 2.8) { spawnBoss(G.game === 'expedition' ? G.exp.boss : 'leviathan'); s.stage = 'boss'; s.t = 0; } }
   else if (s.stage === 'boss') {
     if (G.boss) {
       G.boss.escortT -= dt;
       G.boss.callT -= dt;
-      if (G.boss.callT <= 0) { G.boss.callT = rnd(5, 8); sfx.bossCall(panAt(pos(G.boss).x)); ripple(pos(G.boss).x, pos(G.boss).y, 5, 260, 1.4); }
+      if (G.boss.callT <= 0) { G.boss.callT = rnd(5, 8); (G.boss.btype === 'siren' ? sfx.sirenCall : sfx.bossCall)(panAt(pos(G.boss).x)); ripple(pos(G.boss).x, pos(G.boss).y, 5, 260, 1.4); }
       G.boss.wakeT -= dt;
       if (G.boss.wakeT <= 0) { G.boss.wakeT = .12; const q = pos(G.boss); bubbles(q.x + rnd(-50, 50), q.y + rnd(-10, 14), 1, 4); }
       if (G.boss.escortT <= 0 && enemies() < 4) { spawnEnemy({ tier: Math.random() < .5 ? 0 : 1 }); G.boss.escortT = Math.max(2, 5.5 - G.diff * .35); }
@@ -1357,25 +1754,28 @@ function update(dt) {
   G.kRunT += dt; if (G.kRunT >= 10) { G.kRunT = 0; G.killsRun.push(0); }
   while (G.keyTimes.length && G.keyTimes[0] < G.t - 15) G.keyTimes.shift();
   if (G.t > 15) G.peakWpm = Math.max(G.peakWpm, G.keyTimes.length / 5 * 4);
-  G.slowT = Math.max(0, G.slowT - dt);
+  G.slowT = Math.max(0, G.slowT - dt); G.freezeT = Math.max(0, (G.freezeT || 0) - dt);
+  // patrol offers its upgrade card the moment the threat level rises
+  if (G.pickQ && G.game === 'patrol' && G.mode === 'play' && screen === 'play') { openPick(); return; }
   G.spawnHold = Math.max(0, G.spawnHold - dt);
   G.pingCd = Math.max(0, G.pingCd - dt); G.pingT = Math.max(0, G.pingT - dt);
   G.alertT = Math.max(0, G.alertT - dt); G.pingGlow = Math.max(0, G.pingGlow - dt * 1.4);
 
   // sea conditions: a thermocline band from level 3, drifting noise storms from level 5
-  if (G.level >= 3) {
+  const stormy = legType() === 'storm';
+  if (G.level >= 3 || stormy) {
     G.thermoT -= dt;
     if (G.thermoT <= 0) { if (G.thermo) { G.thermo = null; G.thermoT = rnd(30, 50); } else { startThermo(); G.thermoT = rnd(25, 35); } }
   }
-  if (G.level >= 5) {
+  if (G.level >= 5 || stormy) {
     G.stormT -= dt;
-    if (G.stormT <= 0) { if (G.storm) { G.storm = null; G.stormT = rnd(30, 50); } else { startStorm(); G.stormT = rnd(15, 20); } }
+    if (G.stormT <= 0) { if (G.storm) { G.storm = null; G.stormT = stormy ? rnd(4, 8) : rnd(30, 50); } else { startStorm(); G.stormT = stormy ? rnd(22, 30) : rnd(15, 20); } }
   }
   if (G.storm) G.storm.a = wrap(G.storm.a + G.storm.drift * dt);
 
   // shields
   const ph = G.phase;
-  if (ph.on && ph.charge < PHASE_MAX && G.t - ph.lastHit > 8) ph.charge = Math.min(PHASE_MAX, ph.charge + 5 * dt);
+  if (ph.on && ph.charge < PHASE_MAX && G.t - ph.lastHit > phaseDelay()) ph.charge = Math.min(PHASE_MAX, ph.charge + (G.mods.forge ? 10 : 5) * dt);
   ph.forge = Math.min(1, ph.forge + dt / .6);
   for (const rp of ph.ripples) rp.t += dt;
   ph.ripples = ph.ripples.filter(rp => rp.t < .7);
@@ -1390,38 +1790,48 @@ function update(dt) {
   if (G.nuke) {
     G.nuke.t += dt; G.nuke.r = Math.max(0, G.nuke.t - .35) * 820;
     for (const w of [...G.words]) {
-      if (!live(w) || w.kind === 'crate' || w.dist > G.nuke.r) continue;
-      if (w.kind === 'boss') { if (w.nukeId !== G.nuke.id) { w.nukeId = G.nuke.id; burstLetters(w, C['pen-1'], 120); bossLayer(w, 'nuke'); } continue; }
-      burstLetters(w, C['pen-1'], 80);
+      if (!live(w) || w.kind === 'crate' || w.dist > G.nuke.r || w.dist > G.nuke.maxR) continue;
+      if (w.kind === 'boss') { if (w.nukeId !== G.nuke.id) { w.nukeId = G.nuke.id; burstLetters(w, G.nuke.col, 120); bossLayer(w, 'nuke'); } continue; }
+      burstLetters(w, G.nuke.col, 80);
       const p = pos(w);
-      G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 4, r1: 60, n: 26, col: C['pen-1'], life: .6, max: .6 });
+      G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 4, r1: 60, n: 26, col: G.nuke.col, life: .6, max: .6 });
       complete(w, 'nuke');
     }
-    if (G.nuke.r > Math.hypot(S.w, S.h) / 2 + 80) G.nuke = null;
+    if (G.nuke.r > Math.min(G.nuke.maxR + 60, Math.hypot(S.w, S.h) / 2 + 80)) G.nuke = null;
   }
 
-  if (G.game === 'sector') sectorTick(dt); else patrolTick(dt);
+  if (G.game === 'patrol') patrolTick(dt); else sectorTick(dt);
   if (!G.sim) return;
   G.crateT -= dt;
   if (G.crateT <= 0 && !G.spawnHold && G.words.filter(w => w.kind === 'crate').length < 2) {
-    spawnCrate(pick(['iron', 'iron', 'phase', 'phase', 'repair'])); G.crateT = rnd(40, 60);
+    spawnCrate(pick(['iron', 'iron', 'phase', 'phase', 'repair'])); G.crateT = legType() === 'wreck' ? rnd(12, 18) : rnd(40, 60);
   }
 
-  const slow = G.slowT > 0 ? .45 : 1, alert = G.alertT > 0 ? 1.3 : 1;
+  // speed: pulse halves it, freeze holds it at a fifth, a ping alerts, Deep water and Last stand push it either way
+  const slow = G.freezeT > 0 ? .2 : G.slowT > 0 ? .45 : 1, alert = G.alertT > 0 ? 1.3 : 1;
+  const pace = (G.press.deep ? 1.15 : 1) * (G.mods.stand && G.hull < 25 ? .8 : 1);
   for (const w of [...G.words]) {
     if (!live(w)) continue;
-    if (w.kind === 'crate') {
-      w.rx += w.vx * dt * slow; w.ry += w.vy * dt * slow;
+    if (w.haul) {
+      // hauled outward by a harpoon or a shockwave, then briefly stunned
+      const h = w.haul; h.t = Math.min(1, h.t + dt / h.dur);
+      const d0 = Math.hypot(w.rx, w.ry) || 1, d1 = h.from + (h.to - h.from) * easeOut(h.t);
+      w.rx *= d1 / d0; w.ry *= d1 / d0;
+      if (h.t >= 1) { w.stunT = h.stun || 0; w.haul = null; }
+    } else if (w.kind === 'crate') {
+      const mg = G.mods.magnet ? .6 : 1;
+      w.rx += w.vx * dt * slow * mg; w.ry += w.vy * dt * slow * mg;
       const inside = Math.abs(w.rx) < S.w / 2 - 20 && Math.abs(w.ry) < S.h / 2 - 20;
       if (inside) w.entered = true;
       else if (w.entered && (Math.abs(w.rx) > S.w / 2 + 90 || Math.abs(w.ry) > S.h / 2 + 90)) { remove(w); G.last = `supply lost: ${w.ctype}`; continue; }
-    } else if (w.fired < w.text.length) {
-      const d = Math.hypot(w.rx, w.ry) || 1, step = w.speed * slow * alert * dt;
+    } else if (w.stunT > 0) w.stunT -= dt;
+    else if (w.fired < w.text.length) {
+      const d = Math.hypot(w.rx, w.ry) || 1, step = w.speed * slow * alert * pace * dt;
       w.rx -= w.rx / d * step; w.ry -= w.ry / d * step;
     }
     w.dist = Math.hypot(w.rx, w.ry);
     w.hitT = Math.max(0, w.hitT - dt); w.missT = Math.max(0, w.missT - dt);
-    if (w.silent) w.echo = Math.max(0, w.echo - dt / 2.4);
+    if (w.silent) w.echo = Math.max(0, w.echo - dt / (G.mods.sweep ? 4 : 2.4));
     w.trailT -= dt;
     if (w.trailT <= 0) { w.trailT = .32; w.trail.unshift(pos(w)); if (w.trail.length > 9) w.trail.pop(); }
     const b = wrap(angOf(w)), p0 = G.prevSweep, p1 = G.sweep;
@@ -1452,20 +1862,22 @@ function update(dt) {
     tp.t += dt;
     if (live(tp.w)) { const p = pos(tp.w); tp.tx = p.x; tp.ty = p.y; }
     const dx = tp.tx - tp.x, dy = tp.ty - tp.y, d = Math.hypot(dx, dy) || 1;
-    const spd = Math.min(950, 50 + 1400 * tp.t * tp.t), turn = Math.min(1, dt * (2 + tp.t * 10));
+    // a harpoon flies flat and fast; swarm minis are quicker and nimbler than a full torpedo
+    const spd = tp.harpoon ? 1300 : Math.min(tp.mini ? 1100 : 950, 50 + (tp.mini ? 1900 : 1400) * tp.t * tp.t);
+    const turn = tp.harpoon ? 1 : Math.min(1, dt * (2 + tp.t * (tp.mini ? 14 : 10)));
     tp.vx += (dx / d * spd - tp.vx) * turn; tp.vy += (dy / d * spd - tp.vy) * turn;
     tp.x += tp.vx * dt; tp.y += tp.vy * dt;
     tp.bub -= dt;
-    if (tp.bub <= 0) {
-      tp.bub = .025;
+    if (tp.bub <= 0 && !tp.harpoon) {
+      tp.bub = tp.mini ? .05 : .025;
       G.fx.push({ k: 'bubble', x: tp.x, y: tp.y, vx: rnd(-12, 12), vy: rnd(-22, -6), r: rnd(1.2, 3), life: .7, max: .7 });
       // V-shaped wake spreading out from either side of the hull
       const sp = Math.hypot(tp.vx, tp.vy) || 1, nx = -tp.vy / sp, ny = tp.vx / sp;
       for (const s of [-1, 1]) G.fx.push({ k: 'dot', x: tp.x + nx * s * 3, y: tp.y + ny * s * 3, vx: nx * s * 38 - tp.vx * .04, vy: ny * s * 38 - tp.vy * .04, r: .9, col: C['pen-2'], life: .8, max: .8, a0: .55, drag: 1.5 });
     }
     tp.snd = (tp.snd || 0) - dt;
-    if (tp.snd <= 0) { tp.snd = .09; sfx.bubble(panAt(tp.x)); }
-    if (d < 16 || tp.t > 4) { tp.done = true; torpImpact(tp); }
+    if (tp.snd <= 0 && !tp.harpoon) { tp.snd = tp.mini ? .16 : .09; sfx.bubble(panAt(tp.x)); }
+    if (d < (tp.harpoon ? 22 : 16) || tp.t > 4) { tp.done = true; tp.harpoon ? harpoonHit(tp) : tp.mini ? miniImpact(tp) : torpImpact(tp); }
   }
   G.torps = G.torps.filter(t => !t.done);
 
@@ -1483,7 +1895,7 @@ function dottedCircle(c, cx, cy, r, spacing, dr, col, alpha) {
 }
 const hash = n => { const s = Math.sin(n * 12.9898) * 43758.5453; return s - Math.floor(s); };
 function drawScope(c) {
-  const { cx, cy, R } = S, shock = G.nuke ? G.nuke.r : -1;
+  const { cx, cy, R } = S, shock = G.nuke && G.nuke.r < G.nuke.maxR + 30 ? G.nuke.r : -1;
   const pingR = G.pingGlow > 0 ? R * 1.08 * easeOut(1 - G.pingGlow) : -1;
   c.globalAlpha = dark ? 1 : .9; c.fillStyle = C['ink-4']; c.beginPath();
   const buckets = [[], [], [], [], [], []], blast = [], pinged = [], rip = G.ripples;
@@ -1514,7 +1926,7 @@ function drawScope(c) {
     for (const p of b) dotPath(c, p.x, p.y, .9 + i * .2);
     c.fill();
   });
-  if (blast.length) { c.globalAlpha = 1; c.fillStyle = C['pen-1']; c.beginPath(); for (const p of blast) dotPath(c, p.x, p.y, 1.8); c.fill(); }
+  if (blast.length) { c.globalAlpha = 1; c.fillStyle = G.nuke.col; c.beginPath(); for (const p of blast) dotPath(c, p.x, p.y, 1.8); c.fill(); }
   if (pinged.length) { c.globalAlpha = 1; c.fillStyle = C['pen-3']; c.beginPath(); for (const p of pinged) dotPath(c, p.x, p.y, 1.7); c.fill(); }
 
   // marine snow, only inside the scope
@@ -1572,6 +1984,14 @@ function drawScope(c) {
   c.beginPath(); c.moveTo(cx, cy); c.lineTo(ex, ey); c.stroke();
   c.globalAlpha = 1; c.fillStyle = C['pen-3']; c.beginPath(); dotPath(c, ex, ey, 2.4); c.fill();
   c.shadowBlur = 0;
+  // Blackout: the outer 40% of the scope is shrouded unless a ping is showing
+  if (G.press.blackout && !pinging()) {
+    c.globalAlpha = dark ? .7 : .6; c.fillStyle = C.paper; c.beginPath();
+    c.arc(cx, cy, R + 2, 0, TAU); c.arc(cx, cy, R * .6, 0, TAU, true); c.fill('evenodd');
+    dottedCircle(c, cx, cy, R * .6, 5, .8, C['pen-1'], .5);
+    c.globalAlpha = .8; c.fillStyle = C['pen-1']; c.font = S.fontSm; c.textAlign = 'center'; c.textBaseline = 'bottom';
+    c.fillText('BLACKOUT', cx, cy - R * .6 - 4);
+  }
   // plate sectors are marked on the bezel so you can see which bearings are armoured
   for (let i = 0; i < 6; i++) {
     if (!G.iron[i]) continue;
@@ -1616,7 +2036,7 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
     c.fillStyle = slowed ? C['pen-3'] : C['ink-3'];
     w.trail.forEach((q, i) => { c.globalAlpha = mul * (.55 - i * .055); c.beginPath(); dotPath(c, q.x, q.y, 1.1); c.fill(); });
   }
-  if (mine && !legend) dottedCircle(c, p.x, p.y, MINE_R, 7, 1, C['pen-6'], .45 * mul);
+  if (mine && !legend) dottedCircle(c, p.x, p.y, mineR(), 7, 1, C['pen-6'], .45 * mul);
 
   if (boss) for (let k = w.layers.length - 1; k >= 1; k--) {
     const o = k * 5;
@@ -1638,6 +2058,11 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
   } else {
     c.strokeStyle = boss ? C['ink-2'] : mine ? C['pen-6'] : rev ? purple : isLock ? C['ink-3'] : C['rule-strong'];
     c.lineWidth = boss ? 2 : rev ? 1.6 : 1; c.strokeRect(x, y, chipW, chipH);
+  }
+  if (!legend && !crate && (G.freezeT > 0 || w.stunT > 0)) {
+    // frozen by Freeze, or stunned on a harpoon line: a frosty dashed frame
+    c.globalAlpha = mul * .7; c.strokeStyle = C['pen-2']; c.lineWidth = 1; c.setLineDash([2, 2]);
+    c.strokeRect(x - 3, y - 3, chipW + 6, chipH + 6); c.setLineDash([]); c.globalAlpha = mul;
   }
   if (armoured) {
     // a heavy riveted frame and a solid ×2 badge: this one has to be typed twice
@@ -1725,7 +2150,7 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
   c.font = S.fontSm; c.textAlign = 'left'; c.textBaseline = 'top';
   let meta, mcol;
   if (crate) { meta = `SUPPLY · ${w.ctype.toUpperCase()}`; mcol = accent; }
-  else if (boss) { meta = `LEVIATHAN · ${w.layers.length}/${w.layerTotal} LAYERS · R ${(w.dist / S.R).toFixed(2)}`; mcol = C['pen-1']; }
+  else if (boss) { meta = `${(BOSSES[w.btype] || BOSSES.leviathan).name.toUpperCase()} · ${w.layers.length}/${w.layerTotal} LAYERS · R ${(w.dist / S.R).toFixed(2)}`; mcol = C['pen-1']; }
   else {
     const label = w.trait ? `  ${TRAIT_LABEL[w.trait]}${armoured ? ' ×2' : w.trait === 'armour' ? ' · BROKEN' : ''}` : '';
     meta = `TK·${pad(w.id, 3)}  ${pad(bearing(w), 3)}°` + (isLock || danger ? `  R ${(w.dist / S.R).toFixed(2)}` : '') + label
@@ -1734,24 +2159,63 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
   }
   c.fillStyle = mcol; c.fillText(meta, x, y + chipH + (armoured ? 8 : 5));
 }
-function drawTracer(c, tr) {
-  const e = Math.pow(Math.min(1, tr.t), 1.35), e0 = Math.max(0, e - .34), N = 12;
-  let prev = bez(tr, e0);
-  c.strokeStyle = C['pen-2']; c.lineCap = 'round';
-  for (let i = 1; i <= N; i++) {
-    const q = bez(tr, e0 + (e - e0) * i / N), k = i / N;
-    c.globalAlpha = .15 + .85 * k; c.lineWidth = .4 + 2.6 * k;
-    c.beginPath(); c.moveTo(prev.x, prev.y); c.lineTo(q.x, q.y); c.stroke();
-    prev = q;
+// tracer styles: each hull brings its own, and any unlocked style can be worn in the Dry Dock
+const TRACER_PEN = { standard: 'pen-2', slug: 'ink-2', ghost: 'pen-3', needle: 'pen-2', sine: 'pen-3', comet: 'pen-4', bubbles: 'pen-2' };
+const tracerCol = (style = G.tracer) => C[TRACER_PEN[style] || 'pen-2'];
+function drawTracer(c, tr, style = tr.pierce ? 'standard' : G.tracer) {
+  const col = tracerCol(style), e = Math.pow(Math.min(1, tr.t), 1.35), N = 14;
+  const tail = { slug: .2, needle: .6, comet: .5, sine: .42, bubbles: .5, ghost: .48 }[style] ?? .34, e0 = Math.max(0, e - tail);
+  const pts = [];
+  for (let i = 0; i <= N; i++) pts.push(bez(tr, e0 + (e - e0) * i / N));
+  if (style === 'sine') {
+    // the sine style wavers either side of its path
+    for (let i = 1; i < N; i++) {
+      const a = pts[i - 1], b = pts[i + 1], d = Math.hypot(b.x - a.x, b.y - a.y) || 1, w = Math.sin(i * 1.3 - tr.t * 26) * 4.5 * (i / N);
+      pts[i] = { x: pts[i].x - (b.y - a.y) / d * w, y: pts[i].y + (b.x - a.x) / d * w };
+    }
+  }
+  c.lineCap = 'round'; c.strokeStyle = col; c.fillStyle = col;
+  const head = pts[N];
+  if (style === 'ghost' || style === 'bubbles') {
+    for (let i = 1; i <= N; i++) {
+      const k = i / N, q = pts[i]; c.globalAlpha = .1 + .8 * k; c.beginPath();
+      if (style === 'ghost') { dotPath(c, q.x, q.y, .6 + 1.5 * k); c.fill(); }
+      else { c.lineWidth = 1; c.arc(q.x, q.y, 1 + 2.4 * k, 0, TAU); c.stroke(); }
+    }
+  } else {
+    const wid = { slug: [1.2, 4.6], needle: [.4, 1.4], comet: [.3, 3.8] }[style] || [.4, 2.6];
+    if (style === 'slug') c.strokeStyle = C.ink;
+    for (let i = 1; i <= N; i++) {
+      const k = i / N; c.globalAlpha = .15 + .85 * k; c.lineWidth = wid[0] + (wid[1] - wid[0]) * k;
+      c.beginPath(); c.moveTo(pts[i - 1].x, pts[i - 1].y); c.lineTo(pts[i].x, pts[i].y); c.stroke();
+    }
+    if (style === 'comet') {
+      // sparks shed from the comet's tail
+      c.globalAlpha = .8; c.beginPath();
+      for (let i = 0; i < 8; i++) { const q = pts[Math.floor(hash(i + tr.idx) * N)]; dotPath(c, q.x + (hash(i * 3.3 + tr.t) - .5) * 9, q.y + (hash(i * 7.1 + tr.t) - .5) * 9, .8); }
+      c.fill();
+    }
   }
   c.globalAlpha = 1;
-  if (dark) { c.shadowColor = C['pen-2']; c.shadowBlur = 12; }
-  c.fillStyle = dark ? '#fff' : C['pen-2']; c.beginPath(); dotPath(c, prev.x, prev.y, 2.6); c.fill();
+  if (dark) { c.shadowColor = col; c.shadowBlur = style === 'needle' ? 6 : 12; }
+  c.fillStyle = dark ? '#fff' : col; c.beginPath();
+  if (style === 'slug') c.rect(head.x - 3, head.y - 3, 6, 6); else dotPath(c, head.x, head.y, style === 'needle' ? 1.8 : style === 'comet' ? 3.4 : 2.6);
+  c.fill();
   c.shadowBlur = 0;
 }
 function drawTorp(c, tp) {
   const a = Math.atan2(tp.vy, tp.vx);
+  if (tp.harpoon) {
+    // a barbed harpoon trailing its cable from the core
+    drawDottedLine(c, S.cx, S.cy, tp.x, tp.y, 4, C['ink-2'], .85, .8);
+    c.save(); c.translate(tp.x, tp.y); c.rotate(a);
+    c.globalAlpha = 1; c.strokeStyle = C['pen-2']; c.lineWidth = 2; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(-9, 0); c.lineTo(7, 0); c.moveTo(7, 0); c.lineTo(1, -5); c.moveTo(7, 0); c.lineTo(1, 5); c.stroke();
+    c.restore();
+    return;
+  }
   c.save(); c.translate(tp.x, tp.y); c.rotate(a);
+  if (tp.mini) c.scale(.62, .62);
   c.globalAlpha = 1;
   if (dark) { c.shadowColor = C['pen-2']; c.shadowBlur = 14; }
   c.fillStyle = C['pen-2'];
@@ -1829,6 +2293,19 @@ function drawFx(c) {
       // bioluminescent motes: flicker, then fade
       c.globalAlpha = (1 - t) * (.45 + .55 * Math.abs(Math.sin(t * 26 + f.seed))); c.fillStyle = C['pen-3'];
       c.beginPath(); dotPath(c, f.x, f.y, 1.5); c.fill();
+    } else if (f.k === 'ice') {
+      // six-armed ice crystals that grow fast, hold, then thaw
+      const a = Math.min(1, t * 8) * (t > .82 ? (1 - t) / .18 : 1), s = f.s * easeOut(Math.min(1, t * 5));
+      c.globalAlpha = a * .75; c.strokeStyle = C['pen-2']; c.lineWidth = 1; c.lineCap = 'round'; c.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const b = f.rot + i * TAU / 6, mx = f.x + Math.cos(b) * s * .6, my = f.y + Math.sin(b) * s * .6;
+        c.moveTo(f.x, f.y); c.lineTo(f.x + Math.cos(b) * s, f.y + Math.sin(b) * s);
+        for (const d of [-.7, .7]) { c.moveTo(mx, my); c.lineTo(mx + Math.cos(b + d) * s * .32, my + Math.sin(b + d) * s * .32); }
+      }
+      c.stroke();
+    } else if (f.k === 'cable') {
+      // the harpoon line, slack and fading once the haul is done
+      if (live(f.w)) { const p = pos(f.w); drawDottedLine(c, S.cx, S.cy, p.x, p.y, 4, C['ink-2'], Math.min(1, f.life / .5) * .8, .8); }
     } else if (f.k === 'echoArc') {
       // a ping's return: a small arc travelling from the contact back to the core
       const e = easeOut(t), x = f.x0 + (S.cx - f.x0) * e * .9, y = f.y0 + (S.cy - f.y0) * e * .9, a = Math.atan2(S.cy - y, S.cx - x);
@@ -1853,6 +2330,82 @@ function drawFx(c) {
     }
   }
   c.globalAlpha = 1;
+}
+// the hull at the centre of the scope. s scales it up for the Dry Dock's previews.
+function drawHull(c, x, y, type, s = 1, o = {}) {
+  const now = performance.now() / 1000, glow = o.low ? C['pen-1'] : C['pen-3'];
+  c.save(); c.translate(x, y); c.scale(s, s); c.lineCap = 'round'; c.lineJoin = 'round';
+  const core = (r, a = 1) => { c.globalAlpha = a; c.fillStyle = C.ink; if (dark) { c.shadowColor = glow; c.shadowBlur = 14; } c.beginPath(); dotPath(c, 0, 0, r); c.fill(); c.shadowBlur = 0; };
+  if (type === 'bastion') {
+    // heavy hexagonal plating with rivets
+    const hex = r => { c.beginPath(); for (let i = 0; i < 6; i++) { const a = -Math.PI / 2 + i * TAU / 6; c[i ? 'lineTo' : 'moveTo'](Math.cos(a) * r, Math.sin(a) * r); } c.closePath(); };
+    c.globalAlpha = 1; c.strokeStyle = C['ink-2']; c.lineWidth = 3.4; hex(15); c.stroke();
+    c.globalAlpha = .7; c.lineWidth = 1; hex(9); c.stroke();
+    c.globalAlpha = 1; c.fillStyle = C.paper; c.beginPath();
+    for (let i = 0; i < 6; i++) { const a = -Math.PI / 2 + i * TAU / 6; dotPath(c, Math.cos(a) * 15, Math.sin(a) * 15, 1.1); }
+    c.fill();
+    core(4.2);
+  } else if (type === 'wraith') {
+    // three counter-turning rings of flickering dots around a half-there core
+    c.fillStyle = C['pen-3'];
+    for (const [r, n, sp] of [[8, 14, .6], [13, 22, -.4], [18, 30, .25]]) {
+      for (let i = 0; i < n; i++) {
+        const a = i / n * TAU + now * sp;
+        c.globalAlpha = .2 + .5 * (.5 + .5 * Math.sin(now * 3 + i * 1.7 + r)); c.beginPath(); dotPath(c, Math.cos(a) * r, Math.sin(a) * r, .95); c.fill();
+      }
+    }
+    core(4.6, .55 + .3 * Math.sin(now * 2.2));
+  } else if (type === 'lancer') {
+    // a long capsule with twin tubes, turned towards the target
+    c.rotate(o.aim ?? -Math.PI / 2);
+    c.globalAlpha = 1; c.strokeStyle = C['ink-2']; c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(-8, -5); c.lineTo(8, -5); c.arc(8, 0, 5, -Math.PI / 2, Math.PI / 2); c.lineTo(-8, 5); c.arc(-8, 0, 5, Math.PI / 2, Math.PI * 1.5); c.stroke();
+    c.lineWidth = 2.4; c.beginPath(); c.moveTo(3, -8.5); c.lineTo(19, -8.5); c.moveTo(3, 8.5); c.lineTo(19, 8.5); c.stroke();
+    c.fillStyle = C['pen-2']; c.beginPath(); dotPath(c, 19.5, -8.5, 1.4); dotPath(c, 19.5, 8.5, 1.4); c.fill();
+    core(4.2);
+  } else if (type === 'choir') {
+    // a slowly turning ring of listening dishes
+    for (let i = 0; i < 6; i++) {
+      const a = i / 6 * TAU + now * .3;
+      c.save(); c.translate(Math.cos(a) * 14, Math.sin(a) * 14); c.rotate(a);
+      c.globalAlpha = .95; c.strokeStyle = C['pen-3']; c.lineWidth = 1.4;
+      c.beginPath(); c.arc(-1, 0, 4.2, -1.15, 1.15); c.stroke();
+      c.beginPath(); c.moveTo(-6, 0); c.lineTo(-1.5, 0); c.stroke();
+      c.restore();
+    }
+    c.globalAlpha = .6; c.strokeStyle = C['ink-3']; c.lineWidth = 1; c.beginPath(); c.arc(0, 0, 7, 0, TAU); c.stroke();
+    core(4);
+  } else {
+    c.globalAlpha = .6; c.strokeStyle = C['ink-3']; c.lineWidth = 1; c.beginPath(); c.arc(0, 0, 10, 0, TAU); c.stroke();
+    core(4.6);
+  }
+  c.restore();
+}
+// where card modules sit around the hull, in the order they were taken
+const MOD_SLOTS = [-.75, -Math.PI + .75, .75, Math.PI - .75, 0, Math.PI, Math.PI / 2, -Math.PI / 2];
+// a small glyph per upgrade card, pointing outward from the hull
+function drawModule(c, key, x, y, ang, s = 1) {
+  const col = C[CARDS[key].col];
+  c.save(); c.translate(x, y); c.rotate(ang); c.scale(s, s);
+  c.globalAlpha = 1; c.strokeStyle = col; c.fillStyle = col; c.lineWidth = 1.4; c.lineCap = 'round'; c.lineJoin = 'round';
+  const P = () => c.beginPath();
+  if (key === 'pierce') { P(); c.moveTo(-3, -4); c.lineTo(5.5, 0); c.lineTo(-3, 4); c.closePath(); c.fill(); }
+  else if (key === 'forge') { P(); c.arc(0, 0, 4.2, 0, TAU); c.stroke(); P(); for (let i = 0; i < 3; i++) dotPath(c, Math.cos(i * TAU / 3) * 1.8, Math.sin(i * TAU / 3) * 1.8, 1); c.fill(); }
+  else if (key === 'steady') { c.fillRect(-3.5, -3.5, 7, 7); c.fillStyle = C.paper; P(); dotPath(c, 0, 0, 1.3); c.fill(); }
+  else if (key === 'sweep') { P(); c.moveTo(-4, 0); c.lineTo(3, 0); c.stroke(); P(); c.arc(1, 0, 4.5, -1.1, 1.1); c.stroke(); P(); dotPath(c, 3, 0, 1.2); c.fill(); }
+  else if (key === 'cap') { c.lineWidth = 1.2; c.strokeRect(-4, -2.8, 7, 5.6); c.fillRect(3, -1.3, 1.8, 2.6); c.fillRect(-2.7, -1.4, 3.6, 2.8); }
+  else if (key === 'magnet') { c.lineWidth = 2.4; P(); c.arc(0, 0, 3.6, Math.PI / 2, Math.PI * 1.5); c.stroke(); P(); c.moveTo(0, -3.6); c.lineTo(3.5, -3.6); c.moveTo(0, 3.6); c.lineTo(3.5, 3.6); c.stroke(); }
+  else if (key === 'riveter') { P(); for (let i = 0; i < 6; i++) { const a = i * TAU / 6; c[i ? 'lineTo' : 'moveTo'](Math.cos(a) * 4.3, Math.sin(a) * 4.3); } c.closePath(); c.stroke(); P(); dotPath(c, 0, 0, 1.3); c.fill(); }
+  else if (key === 'bounty') { P(); c.arc(0, 0, 3.4, 0, TAU); c.moveTo(-5.5, 0); c.lineTo(-2, 0); c.moveTo(2, 0); c.lineTo(5.5, 0); c.moveTo(0, -5.5); c.lineTo(0, -2); c.moveTo(0, 2); c.lineTo(0, 5.5); c.stroke(); }
+  else if (key === 'keeper') { P(); c.arc(0, 0, 4.2, 0, TAU); c.stroke(); P(); dotPath(c, 0, 0, 1.7); c.fill(); }
+  else if (key === 'demo') { P(); for (let i = 0; i < 7; i++) { const a = i * TAU / 7; c.moveTo(Math.cos(a) * 1.5, Math.sin(a) * 1.5); c.lineTo(Math.cos(a) * 5.2, Math.sin(a) * 5.2); } c.stroke(); P(); dotPath(c, 0, 0, 2); c.fill(); }
+  else if (key === 'stand') { P(); c.moveTo(-4.5, 0); c.lineTo(4, -4.5); c.lineTo(4, 4.5); c.closePath(); c.stroke(); }
+  else if (key === 'overcharge') { c.lineWidth = 1.7; P(); c.moveTo(-4.5, -3); c.lineTo(.5, -.5); c.lineTo(-1, 1); c.lineTo(4.5, 3.5); c.stroke(); }
+  else if (key === 'second') { P(); dotPath(c, 0, -2.4, 1.9); dotPath(c, 0, 2.4, 1.9); c.fill(); P(); c.arc(0, 0, 5, -.9, .9); c.stroke(); }
+  else if (key === 'salvager') { P(); c.moveTo(0, -4.8); c.lineTo(4.2, 0); c.lineTo(0, 4.8); c.lineTo(-4.2, 0); c.closePath(); c.fill(); }
+  else if (key === 'reserves') { P(); for (const d of [-3.6, 0, 3.6]) dotPath(c, 0, d, 1.5); c.fill(); }
+  else if (key === 'virtuoso') { P(); for (let i = 0; i < 8; i++) { const a = i * TAU / 8, r = i % 2 ? 1.7 : 5.4; c[i ? 'lineTo' : 'moveTo'](Math.cos(a) * r, Math.sin(a) * r); } c.closePath(); c.fill(); }
+  c.restore();
 }
 function drawDefences(c) {
   const { cx, cy } = S, now = performance.now() / 1000;
@@ -1880,24 +2433,33 @@ function drawDefences(c) {
       c.globalAlpha = (.18 + .72 * f) * (.75 + .25 * Math.sin(now * 3 + i * .7));
       c.beginPath(); dotPath(c, cx + Math.cos(a) * r, cy + Math.sin(a) * r, 1.15); c.fill();
     }
-    if (G.phase.charge < PHASE_MAX && G.t - G.phase.lastHit > 8) {
+    if (G.phase.charge < PHASE_MAX && G.t - G.phase.lastHit > phaseDelay()) {
       const a = now * 4; c.globalAlpha = .95;
       c.beginPath(); dotPath(c, cx + Math.cos(a) * R_PHASE, cy + Math.sin(a) * R_PHASE, 2.3); c.fill();
     }
   }
   // hull: 40 dots, lost ones stay visible
-  const N = 40, lit = Math.ceil(G.hull / HULL_MAX * N), low = G.hull < 25;
+  const N = 40, lit = Math.ceil(G.hull / G.hullMax * N), low = G.hull < 25;
   const lowPulse = low ? .55 + .45 * Math.sin(now * 6) : 1;
   for (let i = 0; i < N; i++) {
     const a = -Math.PI / 2 + i / N * TAU, on = i < lit;
     c.globalAlpha = on ? lowPulse : 1; c.fillStyle = on ? (low ? C['pen-1'] : C['ink-2']) : C['ink-4'];
     c.beginPath(); dotPath(c, cx + Math.cos(a) * R_HULL, cy + Math.sin(a) * R_HULL, on ? 1.6 : 1); c.fill();
   }
-  c.globalAlpha = .6; c.strokeStyle = C['ink-3']; c.lineWidth = 1;
-  c.beginPath(); c.arc(cx, cy, 10, 0, TAU); c.stroke();
-  c.globalAlpha = 1; c.fillStyle = C.ink;
-  if (dark) { c.shadowColor = low ? C['pen-1'] : C['pen-3']; c.shadowBlur = 14; }
-  c.beginPath(); dotPath(c, cx, cy, 4.6); c.fill(); c.shadowBlur = 0;
+  // the Lancer's tubes swing towards whatever it is fighting
+  if (G.hullType === 'lancer') {
+    let tgt = G.lock && live(G.lock) ? G.lock : null;
+    if (!tgt) for (const w of threats()) if (!tgt || w.dist < tgt.dist) tgt = w;
+    const want = tgt ? angOf(tgt) : (G.aimS ?? -Math.PI / 2);
+    G.aimS = G.aimS == null ? want : G.aimS + (wrap(want - G.aimS + Math.PI) - Math.PI) * .18;
+  }
+  drawHull(c, cx, cy, G.hullType, 1, { low, aim: G.aimS });
+  // each upgrade card taken this run bolts a small module onto the hull
+  G.cards.forEach((k, i) => {
+    const a = MOD_SLOTS[i % MOD_SLOTS.length], age = (G.t - (G.cardAt[k] || -9)) / .5, s = age < 1 ? 1 + (1 - easeOut(age)) * 1.6 : 1;
+    drawDottedLine(c, cx + Math.cos(a) * (R_IRON + 4), cy + Math.sin(a) * (R_IRON + 4), cx + Math.cos(a) * 54, cy + Math.sin(a) * 54, 3, C['ink-3'], .8, .7);
+    drawModule(c, k, cx + Math.cos(a) * 60, cy + Math.sin(a) * 60, a, s);
+  });
   // nuke arming ring
   if (G.arm > 0) {
     const n = 48;
@@ -1990,10 +2552,10 @@ function dotBar(frac, n = 10, pen = 'var(--ink)', r = 2) {
   return s + '</svg>';
 }
 function chargeSvg(v) {
-  const n = CHARGE_MAX, gap = Math.min(6.8, 204 / n), r = Math.min(2.1, gap * .34);
+  const n = G.chargeMax, gap = Math.min(6.8, 204 / n), r = Math.min(2.1, gap * .34);
   let s = `<svg width="${n * gap}" height="22" aria-hidden="true">`;
   for (let i = 0; i < n; i++) {
-    const tick = TICKS.find(t => t[0] === i + 1), on = i < v, x = i * gap + r + 1;
+    const tick = G.ticks.find(t => t[0] === i + 1), on = i < v, x = i * gap + r + 1;
     const col = tick ? `var(${tick[3]})` : 'var(--ink)';
     s += on ? `<circle cx="${x}" cy="${r + 1}" r="${r}" style="fill:${col}"/>`
             : tick ? `<circle cx="${x}" cy="${r + 1}" r="${r - .4}" style="fill:none;stroke:${col};stroke-width:1"/>`
@@ -2027,7 +2589,7 @@ const dash = '<span style="color:var(--ink-3)">–</span>';
 function hud(dt) {
   hudT -= dt; if (hudT > 0) return; hudT = .1;
   chrome();
-  if (screen !== 'play' && screen !== 'paused') return;
+  if (screen !== 'play' && screen !== 'paused' && screen !== 'pick') return;
   $('#score').innerHTML = padN(G.points, 6);
   { const b = prefs.hi[G.game][G.diff], m = G.game === 'sector' && prefs.medals[G.diff];
     $('#mBest').innerHTML = (m ? medalSvg(m, 11) + ' ' : '') + (b == null ? 'first run' : `best <b>${fmtPts(b)}</b>`); }
@@ -2036,17 +2598,17 @@ function hud(dt) {
   $('#capStreak').innerHTML = G.combo >= 2 ? `streak <b style="color:var(--pen-2)">${G.combo}</b>${G.combo >= 2 ? ` ×${(1 + Math.min(20, G.combo) * .05).toFixed(2)}` : ''}` : 'streak –';
 
   const th = threats().filter(w => w.kind !== 'boss');
-  if (G.game === 'sector') {
-    const s = G.sec;
+  if (G.game !== 'patrol') {
+    const s = G.sec, exp = G.game === 'expedition' && G.exp && G.exp.node;
     if (G.boss) {
-      $('#tHead').textContent = 'Leviathan';
+      $('#tHead').textContent = (BOSSES[G.boss.btype] || BOSSES.leviathan).name;
       $('#mFloor').innerHTML = `<b>${G.boss.layers.length}</b>/${G.boss.layerTotal} layers`;
       dotArc($('#cvGauge'), 1 - G.boss.layers.length / G.boss.layerTotal, pad(G.boss.layers.length), 'LAYERS', C['pen-1']);
     } else {
-      $('#tHead').textContent = `Sector ${pad(G.diff)}`;
-      $('#mFloor').innerHTML = `threat <b>${pad(G.level)}</b>`;
+      $('#tHead').textContent = exp ? exp.name : `Sector ${pad(G.diff)}`;
+      $('#mFloor').innerHTML = exp ? `leg <b>${G.exp.col + 1}</b>/${CHART_COLS} · threat <b>${pad(G.level)}</b>` : `threat <b>${pad(G.level)}</b>`;
       const prog = s.stage === 'wave' ? clamp((s.spawned - enemies()) / s.quota, 0, 1) : s.stage === 'intro' ? 0 : 1;
-      dotArc($('#cvGauge'), prog, `${s.wave}/3`, s.stage === 'warn' ? 'LEVIATHAN' : 'WAVE', C['pen-2']);
+      dotArc($('#cvGauge'), prog, `${s.wave}/${wavesTotal()}`, s.stage === 'warn' ? 'LAIR' : 'WAVE', C['pen-2']);
     }
   } else {
     $('#tHead').textContent = 'Threat';
@@ -2059,17 +2621,18 @@ function hud(dt) {
 
   const low = G.hull < 25;
   $('#vHull').innerHTML = `<span style="color:${low ? 'var(--pen-1)' : 'inherit'}">${Math.ceil(G.hull)}</span>`;
-  $('#sHull').innerHTML = dotBar(G.hull / HULL_MAX, 10, low ? 'var(--pen-1)' : 'var(--ink)', 1.8);
+  $('#sHull').innerHTML = dotBar(G.hull / G.hullMax, 10, low ? 'var(--pen-1)' : 'var(--ink)', 1.8);
   $('#vPhase').innerHTML = G.phase.on ? Math.round(G.phase.charge) : dash;
   $('#sPhase').innerHTML = G.phase.on ? dotBar(G.phase.charge / PHASE_MAX, 8, 'var(--pen-3)', 1.8) : 'none';
   const plates = G.iron.filter(Boolean).length;
   $('#vIron').innerHTML = plates ? `${plates}<small class="u">/6</small>` : dash;
   $('#sIron').innerHTML = plates ? ironSvg() : 'none';
   $('#mCore').innerHTML = low ? '<span style="color:var(--pen-1)">hull critical</span>'
-    : G.phase.on && G.phase.charge < PHASE_MAX && G.t - G.phase.lastHit > 8 ? 'phase recharging'
+    : G.phase.on && G.phase.charge < PHASE_MAX && G.t - G.phase.lastHit > phaseDelay() ? 'phase recharging'
+    : G.mods.keeper && G.forgive ? `<span style="color:var(--pen-2)">${G.forgive} miss${G.forgive === 1 ? '' : 'es'} banked</span>`
     : `accuracy ${accuracy() == null ? '–' : fmtAcc(accuracy()) + '%'}`;
 
-  $('#mCharge').innerHTML = `charge <b>${G.charge}</b>/${CHARGE_MAX}`;
+  $('#mCharge').innerHTML = `charge <b>${G.charge}</b>/${G.chargeMax}`;
   $('#chargeBar').innerHTML = chargeSvg(G.charge);
   const row = (id, n, max, extra) => {
     const el = $(id); el.classList.toggle('ready', n > 0); el.classList.toggle('active', !!extra);
@@ -2078,22 +2641,34 @@ function hud(dt) {
   const pr = $('#wPing');
   pr.classList.toggle('ready', !G.pingCd); pr.classList.toggle('active', G.pingT > 0);
   pr.querySelector('.wc').textContent = G.pingT > 0 ? `reveal ${G.pingT.toFixed(1)} s` : G.pingCd ? `${Math.ceil(G.pingCd)} s` : 'ready';
-  row('#wPulse', G.arsenal.pulse, 3, G.slowT > 0 ? `slow ${G.slowT.toFixed(1)} s` : '');
-  row('#wTorp', G.arsenal.torp, 3, G.torps.length ? 'running' : '');
-  row('#wNuke', G.arsenal.nuke, 1, G.arm > 0 ? `arming ${Math.round(G.arm * 100)}%` : '');
+  for (const [id, slot] of [['#wTorp', 'torp'], ['#wPulse', 'pulse'], ['#wNuke', 'nuke']]) {
+    const el = $(id + ' .wn'), nm = GEAR[slot][G.gear[slot]].name;
+    if (el.textContent !== nm) el.textContent = nm;
+  }
+  const off = G.press.bare ? 'offline' : '';
+  row('#wPulse', G.arsenal.pulse, 3, off || (G.freezeT > 0 ? `frozen ${G.freezeT.toFixed(1)} s` : G.slowT > 0 ? `slow ${G.slowT.toFixed(1)} s` : ''));
+  row('#wTorp', G.arsenal.torp, 3, off || (G.torps.length ? 'running' : ''));
+  row('#wNuke', G.arsenal.nuke, 1, off || (G.arm > 0 ? `arming ${Math.round(G.arm * 100)}%` : ''));
 }
 function chrome() {
   const lk = G.lock && live(G.lock) ? G.lock : null, name = DIFF_NAMES[G.diff - 1];
-  const where = G.game === 'sector' ? `sector <b>${pad(G.diff)}</b> ${name} · wave <b>${G.sec.wave}/3</b>` : `patrol · difficulty <b>${pad(G.diff)}</b> ${name} · threat <b>${pad(G.level)}</b>`;
-  const crumb = { title: 'standing by · choose a mode and difficulty', play: `engaged · ${where}`, paused: `paused · ${where}`, over: `debrief · run <b>${prefs.runs}</b>` }[screen];
+  const en = G.exp && G.exp.node;
+  const where = G.game === 'sector' ? `sector <b>${pad(G.diff)}</b> ${name} · wave <b>${G.sec.wave}/3</b>`
+    : G.game === 'expedition' ? `expedition <b>${pad(G.diff)}</b>${en ? ` · leg <b>${G.exp.col + 1}/${CHART_COLS}</b> ${en.name}${en.waves ? ` · wave <b>${G.sec.wave}/${en.waves}</b>` : ''}` : ''}`
+    : `patrol · difficulty <b>${pad(G.diff)}</b> ${name} · threat <b>${pad(G.level)}</b>`;
+  const pr = G.pressMul > 1 && G.mode === 'play' ? ` · pressure <b>×${G.pressMul.toFixed(2)}</b>` : '';
+  const crumb = {
+    title: 'standing by · choose a mode and difficulty', dock: `dry dock · salvage <b>${prefs.salvage.toLocaleString('en-US')}</b>`,
+    pick: `upgrade · ${where}`, chart: `sea chart · ${where}`, play: `engaged · ${where}${pr}`, paused: `paused · ${where}${pr}`, over: `debrief · run <b>${prefs.runs}</b>`,
+  }[screen];
   if ($('#crumb').innerHTML !== crumb) $('#crumb').innerHTML = crumb;
   const hint = screen === 'play' ? '<kbd>/</kbd> ping <kbd>Space</kbd> pulse <kbd>Tab</kbd> torpedo <kbd>hold ⏎</kbd> nuke <kbd>Esc</kbd> pause' : '<kbd>M</kbd> sound <kbd>U</kbd> music <kbd>T</kbd> theme';
   if ($('#hint').innerHTML !== hint) $('#hint').innerHTML = hint;
-  const st = { title: ['STANDBY', 'var(--ink-3)'], play: ['SONAR ACTIVE', 'var(--pen-3)'], paused: ['PAUSED', 'var(--pen-4)'], over: ['SIGNAL LOST', 'var(--pen-1)'] }[screen];
+  const st = { title: ['STANDBY', 'var(--ink-3)'], dock: ['DRY DOCK', 'var(--pen-4)'], pick: ['REFIT', 'var(--pen-2)'], chart: ['SEA CHART', 'var(--pen-3)'], play: ['SONAR ACTIVE', 'var(--pen-3)'], paused: ['PAUSED', 'var(--pen-4)'], over: ['SIGNAL LOST', 'var(--pen-1)'] }[screen];
   $('#sbState').textContent = st[0]; $('#led').style.background = st[1];
-  const inRun = screen !== 'title';
+  const inRun = screen !== 'title' && screen !== 'dock';
   $('#sbTracked').innerHTML = inRun ? `tracked <b>${threats().length}</b>` : '';
-  $('#sbLock').innerHTML = inRun ? (lk ? `lock <b>${lk.kind === 'crate' ? 'SUPPLY' : lk.kind === 'boss' ? 'LEVIATHAN' : 'TK·' + pad(lk.id, 3)}</b> ${esc(shown(lk))}` : 'no lock') : '';
+  $('#sbLock').innerHTML = inRun ? (lk ? `lock <b>${lk.kind === 'crate' ? 'SUPPLY' : lk.kind === 'boss' ? (BOSSES[lk.btype] || BOSSES.leviathan).name.toUpperCase() : 'TK·' + pad(lk.id, 3)}</b> ${esc(shown(lk))}` : 'no lock') : '';
   $('#sbLast').innerHTML = inRun && G.last ? `last <b>${esc(G.last)}</b>` : '';
   const marks = document.querySelectorAll('#mark i'), seg = Math.floor(G.sweep / TAU * 8), ring = [0, 1, 2, 5, 8, 7, 6, 3];
   marks.forEach((m, i) => m.classList.toggle('on', i === 4 || ring[seg] === i));
@@ -2136,7 +2711,7 @@ function tipTick(dt) {
 let screen = 'title', sel = clamp(prefs.diff | 0 || 1, 1, 10), inputGuard = 0;
 function setScreen(s) {
   screen = s; document.body.dataset.screen = s;
-  G.sim = s === 'title' || s === 'play';
+  G.sim = s === 'title' || s === 'play' || s === 'dock';
   if (s === 'title') buildTiles();
   hudT = 0;
 }
@@ -2146,6 +2721,12 @@ function buildTiles() {
     const d = i + 1, avg = avgLen(d);
     let st;
     if (prefs.game === 'sector') { const m = prefs.medals[d]; st = m ? `${medalSvg(m)}<b>${m}</b>` : 'not cleared'; }
+    else if (prefs.game === 'expedition') {
+      // one medal dot per leviathan beaten from this difficulty
+      const ends = prefs.expEnds[d] || {}, beaten = Object.keys(BOSSES).filter(k => ends[k]);
+      st = beaten.length ? beaten.map(k => medalSvg(ends[k], 11)).join('') + `<b>${beaten.length}/3</b>` : 'uncharted';
+      if (prefs.hi.expedition[d] != null) st += ` <span class="hi">${fmtPts(prefs.hi.expedition[d])}</span>`;
+    }
     else st = prefs.hi.patrol[d] != null ? `best <b>${fmtPts(prefs.hi.patrol[d])}</b>`
       : prefs.best[d] != null ? `old best <b>${prefs.best[d]}</b> kills` : 'no run yet';
     if (prefs.game === 'sector' && prefs.hi.sector[d] != null) st += ` <span class="hi">${fmtPts(prefs.hi.sector[d])}</span>`;
@@ -2161,6 +2742,7 @@ function buildTiles() {
     t.onmouseenter = () => { if (sel !== +t.dataset.d) sfx.ui(); select(+t.dataset.d); };
     t.onclick = () => startRun(+t.dataset.d, prefs.game);
   });
+  buildKitLine(); buildPress();
   const medals = Object.keys(prefs.medals).length;
   $('#runsNote').textContent = `${prefs.runs} run${prefs.runs === 1 ? '' : 's'} · ${medals} sector${medals === 1 ? '' : 's'} cleared`;
 }
@@ -2170,12 +2752,15 @@ function select(d) {
   G.diff = d; G.level = d;
 }
 function setGame(g) { prefs.game = g; savePrefs(); buildTiles(); }
+const GAMES = ['sector', 'patrol', 'expedition'];
+const wavesTotal = () => G.game === 'expedition' && G.exp && G.exp.node ? G.exp.node.waves : 3;
 function startRun(d, game) {
   ensureAudio(); sfx.engage();
   sel = d; prefs.diff = d; savePrefs();
   newGame(d, 'play', game);
   bot.fresh = null; bot.armRelease = null;
   setScreen('play');
+  if (game === 'expedition') { G.exp = makeChart(d); openChart(); return; }
   if (game === 'sector') banner(`SECTOR ${pad(d)} · WAVE 1/3`, `${DIFF_NAMES[d - 1].toLowerCase()} · three waves, then the leviathan`, C['pen-2']);
 }
 function pause() { if (screen === 'play') { G.armHeld = false; setScreen('paused'); syncToggles(); requestAnimationFrame(drawKey); } }
@@ -2208,27 +2793,38 @@ function quitToTitle() { newGame(sel, 'demo', 'patrol'); setScreen('title'); }
 
 function gameOver(kind) {
   const acc = accuracy() ?? 0, name = DIFF_NAMES[G.diff - 1];
-  const medal = kind === 'cleared' ? (acc >= 97 && G.hull >= 50 ? 'gold' : acc >= 92 ? 'silver' : 'bronze') : null;
+  const medal = kind === 'cleared' ? (acc >= 97 && G.hull >= G.hullMax / 2 ? 'gold' : acc >= 92 ? 'silver' : 'bronze') : null;
   const rank = { bronze: 1, silver: 2, gold: 3 };
-  const hi = prefs.hi[G.game], prevBest = hi[G.diff], prevMedal = prefs.medals[G.diff];
+  const hi = prefs.hi[G.game], prevBest = hi[G.diff], exp = G.game === 'expedition' ? G.exp : null;
+  // sector medals live per difficulty; expedition medals per difficulty and per leviathan beaten
+  const ends = exp ? (prefs.expEnds[G.diff] = prefs.expEnds[G.diff] || {}) : null;
+  const prevMedal = exp ? ends[exp.boss] : prefs.medals[G.diff];
   let isNew = false;
   if (G.points > 0 && (prevBest == null || G.points > prevBest)) { hi[G.diff] = G.points; isNew = true; }
-  if (medal && (!prevMedal || rank[medal] > rank[prevMedal])) { prefs.medals[G.diff] = medal; isNew = true; }
+  if (medal && (!prevMedal || rank[medal] > rank[prevMedal])) { if (exp) ends[exp.boss] = medal; else prefs.medals[G.diff] = medal; isNew = true; }
+  // salvage: a hundredth of the score, plus a medal bonus, plus what rich expedition legs paid on top
+  const affordBefore = new Set(shopList().filter(i => i.cost <= prefs.salvage).map(i => i.kind + i.key));
+  const salv = Math.max(0, Math.round(G.points / 100 * (G.mods.salvager ? 1.5 : 1)) + (medal ? { bronze: 10, silver: 20, gold: 40 }[medal] * (exp ? 2 : 1) : 0) + (exp ? exp.bonusSalv : 0));
+  prefs.salvage += salv; prefs.salvageTotal += salv;
+  const newlyAffordable = shopList().filter(i => i.cost <= prefs.salvage && !affordBefore.has(i.kind + i.key));
+  if (exp && kind === 'cleared') prefs.expeditions++;
   prefs.runs++; savePrefs();
   G.result = { kind, medal };
   G.lock = null; G.armHeld = false;
   setScreen('over');
   inputGuard = performance.now() + 900;
 
-  const no = $('#dNo');
+  const no = $('#dNo'), bossName = exp ? BOSSES[exp.boss].name.toUpperCase() : 'LEVIATHAN';
   no.className = 'no ' + (kind === 'cleared' ? 'good' : 'bad');
-  no.textContent = kind === 'cleared' ? `SECTOR ${pad(G.diff)} CLEARED · LEVIATHAN DESTROYED`
-    : kind === 'rammed' ? 'SIGNAL LOST · THE LEVIATHAN REACHED THE CORE'
-    : G.game === 'sector' ? `SIGNAL LOST · HULL BREACHED · WAVE ${G.sec.wave}/3` : 'SIGNAL LOST · HULL BREACHED';
-  $('#dTitle').textContent = kind === 'cleared' ? 'Sector cleared' : 'Debrief';
-  $('#dSub').textContent = `${G.game} · difficulty ${pad(G.diff)} · ${name} · ${Math.floor(G.t / 60)} m ${Math.floor(G.t % 60)} s`;
+  no.textContent = kind === 'cleared' ? (exp ? `EXPEDITION COMPLETE · ${bossName} DESTROYED` : `SECTOR ${pad(G.diff)} CLEARED · LEVIATHAN DESTROYED`)
+    : kind === 'rammed' ? `SIGNAL LOST · THE ${bossName} REACHED THE CORE`
+    : G.game === 'sector' ? `SIGNAL LOST · HULL BREACHED · WAVE ${G.sec.wave}/3`
+    : exp ? `SIGNAL LOST · HULL BREACHED · LEG ${exp.col + 1}/${CHART_COLS}` : 'SIGNAL LOST · HULL BREACHED';
+  $('#dTitle').textContent = kind === 'cleared' ? (exp ? 'Expedition complete' : 'Sector cleared') : 'Debrief';
+  $('#dSub').textContent = `${G.game} · difficulty ${pad(G.diff)} · ${name} · ${Math.floor(G.t / 60)} m ${Math.floor(G.t % 60)} s${G.pressMul > 1 ? ` · pressure ×${G.pressMul.toFixed(2)}` : ''}`;
   $('#dActs').innerHTML = (medal ? `<span class="chip medal" style="color:${{ gold: 'var(--pen-4)', silver: 'var(--ink-2)', bronze: 'var(--pen-6)' }[medal]};border-color:currentColor">${medalSvg(medal, 16)} ${medal.toUpperCase()}</span>` : '')
-    + (isNew ? '<span class="chip" style="color:var(--pen-2);border-color:var(--pen-2)">● new best</span>' : '');
+    + (isNew ? '<span class="chip" style="color:var(--pen-2);border-color:var(--pen-2)">● new best</span>' : '')
+    + (newlyAffordable.length ? '<span class="chip" style="color:var(--pen-4);border-color:var(--pen-4)">● new in the Dry Dock <kbd>D</kbd></span>' : '');
   const w = wpm();
   $('#dScore').textContent = fmtPts(G.points);
   $('#dScoreS').textContent = prevBest == null ? 'first run here' : isNew && G.points > prevBest ? `was ${fmtPts(prevBest)}` : `best ${fmtPts(prevBest)}`;
@@ -2239,11 +2835,12 @@ function gameOver(kind) {
   $('#dKills').textContent = G.kills;
   $('#dKillsS').textContent = G.game === 'sector'
     ? (kind === 'cleared' ? 'all 3 waves + boss' : G.sec.stage === 'boss' || kind === 'rammed' ? 'reached the boss' : `reached wave ${G.sec.wave}/3`)
+    : exp ? (kind === 'cleared' ? `all ${CHART_COLS} legs` : `reached leg ${exp.col + 1}/${CHART_COLS}`)
     : `reached threat ${pad(G.level)}`;
   $('#dLong').textContent = G.bestWord ? G.bestWord.text : '–';
   $('#dLongS').textContent = G.bestWord ? `+${fmtPts(G.bestWord.pts)} pts` : 'none typed';
   $('#dHull').innerHTML = Math.ceil(G.hull);
-  $('#dHullS').textContent = medal && medal !== 'gold' ? 'gold: 97%, 50 hull' : 'of 100';
+  $('#dHullS').textContent = medal && medal !== 'gold' ? 'gold: 97%, half hull' : 'of ' + G.hullMax;
   const st = G.stats, r = (dot, nm, val) => `<div class="row"><span class="nm">${dot ? `<i class="p" style="background:${dot}"></i>` : ''}${nm}</span><span class="val">${val}</span></div>`;
   $('#dDamage').innerHTML =
     r('var(--pen-1)', 'Hull took', `${st.hullDmg} <small class="u">in ${st.hullHits} hit${st.hullHits === 1 ? '' : 's'}</small>`) +
@@ -2260,7 +2857,13 @@ function gameOver(kind) {
     ['var(--pen-1)', 'Weapon kills', 'weapons', 'half value, no speed'],
     ['var(--pen-4)', 'Supply crates', 'crates', ''],
     ['var(--pen-3)', 'Wave & sector bonus', 'bonus', ''],
+    ['var(--pen-1)', 'Pressure', 'pressure', `×${G.pressMul.toFixed(2)} on everything`],
   ].filter(([, , k], i) => i < 4 || pb[k]).map(([dot, nm, k, why]) => r(dot, why ? `${nm} <small class="u">${why}</small>` : nm, sgn(pb[k] || 0))).join('');
+  const nx = shopList()[0];
+  $('#dSalvage').innerHTML = r('var(--pen-4)', `Banked this run <small class="u">score ÷ 100${medal ? ' + medal' : ''}${exp && exp.bonusSalv ? ' + rich legs' : ''}${G.mods.salvager ? ' · Salvager ×1.5' : ''}</small>`, `+${salv}`)
+    + r('', 'In the Dry Dock', `<b>${prefs.salvage.toLocaleString('en-US')}</b>`)
+    + (nx ? r('', `Next up: <b>${esc(nx.name)}</b>`, prefs.salvage >= nx.cost ? '<span style="color:var(--pen-4)">affordable now</span>' : `${nx.cost - prefs.salvage} to go`) : '')
+    + `<div class="buildl"><span class="lbl">Build</span> ${buildLine()}</div>`;
   $('#dArsenal').innerHTML =
     r('var(--pen-2)', 'Weapons used', `${st.used.pulse} pulse · ${st.used.torp} torp · ${st.used.nuke} nuke`) +
     r('var(--pen-4)', 'Supply crates', `${st.crates.got} <small class="u">of ${st.crates.seen}</small>`) +
@@ -2272,7 +2875,8 @@ function gameOver(kind) {
 }
 function copyResult() {
   const acc = accuracy(), w = wpm(), res = G.result || {};
-  const outcome = res.kind === 'cleared' ? `cleared with ${res.medal}` : G.game === 'sector' ? `lost on ${G.sec.stage === 'boss' || res.kind === 'rammed' ? 'the leviathan' : 'wave ' + G.sec.wave + '/3'}` : `${G.kills} destroyed`;
+  const outcome = res.kind === 'cleared' ? `${G.exp ? 'beat the ' + BOSSES[G.exp.boss].name : 'cleared'} with ${res.medal}`
+    : G.exp ? `lost on leg ${G.exp.col + 1}/${CHART_COLS}` : G.game === 'sector' ? `lost on ${G.sec.stage === 'boss' || res.kind === 'rammed' ? 'the leviathan' : 'wave ' + G.sec.wave + '/3'}` : `${G.kills} destroyed`;
   const text = `Sonar Type · ${G.game} ${pad(G.diff)} (${DIFF_NAMES[G.diff - 1]}): ${fmtPts(G.points)} points, ${outcome}, ` +
     `${w ?? '–'} wpm, ${acc == null ? '–' : fmtAcc(acc) + '%'} accuracy, ${fmtClock(G.t)}.`;
   const done = () => toast('Result copied');
@@ -2290,6 +2894,343 @@ function toast(msg) {
 function toggleFull() {
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   else document.documentElement.requestFullscreen().catch(() => {});
+}
+
+/* ------------------------------------------------------------ expedition: the sea chart */
+// One long run across a chart: four legs chosen from branching routes, then the lair at the route's end.
+// Hull, arsenal, charge and upgrade cards carry from leg to leg.
+const CHART_COLS = 5;
+const BOSSES = {
+  siren:     { name: 'Siren', row: 0, blurb: 'It sings backwards: every layer must be typed in reverse.' },
+  leviathan: { name: 'Leviathan', row: 1, blurb: 'The classic: stacked layers and a growing escort.' },
+  ironback:  { name: 'Ironback', row: 2, blurb: 'Plated: every layer must be typed twice.' },
+};
+const LEGS = {
+  open:    { name: 'Open water', blurb: 'An ordinary leg.', lv: 0, salv: 1 },
+  calm:    { name: 'Calm passage', blurb: 'Easier water, thinner salvage.', lv: -1, salv: .75 },
+  danger:  { name: 'Dangerous route', blurb: 'Harder contacts, richer salvage.', lv: 1, salv: 1.6 },
+  wreck:   { name: 'Wreck field', blurb: 'Supply crates drift through all leg long.', lv: 0, salv: 1 },
+  storm:   { name: 'Storm front', blurb: 'Noise storms and thermoclines all leg. Salvage ×1.3.', lv: 0, salv: 1.3 },
+  harbour: { name: 'Harbour', blurb: 'No fighting: repair 40 hull and take a free refit.', lv: 0, salv: 1, rest: true },
+};
+function makeChart(d) {
+  const cols = [];
+  for (let col = 0; col < CHART_COLS - 1; col++) {
+    const rows = Math.random() < .45 ? [0, 1, 2] : pick([[0, 1], [1, 2], [0, 2]]);
+    cols.push(rows.map(row => ({ col, row, type: pick(col === 0 ? ['open', 'open', 'calm', 'danger', 'wreck'] : ['open', 'calm', 'danger', 'danger', 'wreck', 'storm']) })));
+  }
+  // one harbour, somewhere in the middle of the voyage
+  const mid = cols[pick([1, 2])]; mid[Math.floor(Math.random() * mid.length)].type = 'harbour';
+  // the lair: which leviathan you meet depends on which side of the chart you arrive from
+  cols.push(Object.entries(BOSSES).map(([k, b]) => ({ col: CHART_COLS - 1, row: b.row, type: 'boss', boss: k })));
+  cols.forEach((nodes, col) => nodes.forEach(n => {
+    const L = LEGS[n.type];
+    n.level = clamp(d + Math.floor(col / 2) + (L ? L.lv : 1), 1, 12);
+    n.waves = L && !L.rest ? 2 : 0;
+    n.name = L ? L.name : BOSSES[n.boss].name;
+    n.blurb = L ? L.blurb : BOSSES[n.boss].blurb;
+    n.salv = L ? L.salv : 1;
+    n.links = col < CHART_COLS - 1 ? cols[col + 1].filter(m => Math.abs(m.row - n.row) <= 1).map(m => m.row) : [];
+  }));
+  return { d, cols, col: -1, at: null, path: [], node: null, bonusSalv: 0, legStart: 0, boss: null, afterPick: false };
+}
+const legType = () => G.game === 'expedition' && G.exp && G.exp.node ? G.exp.node.type : null;
+const reachable = () => { const e = G.exp; return e.col < 0 ? e.cols[0] : e.col >= CHART_COLS - 1 ? [] : e.cols[e.col + 1].filter(n => e.at.links.includes(n.row)); };
+const waveLevel = wave => G.game === 'expedition' ? clamp(G.exp.node.level + wave - 1, 1, 12) : sectorLevel(wave);
+const waveQuota = wave => G.game === 'expedition' ? Math.round(quotaFor(wave, G.diff) * .75) : quotaFor(wave, G.diff);
+function openChart() {
+  G.lock = null; G.armHeld = false; G.words = []; G.tracers = []; G.torps = []; G.boss = null; G.thermo = null; G.storm = null;
+  setScreen('chart'); renderChart(); inputGuard = performance.now() + 400;
+}
+function renderChart() {
+  const e = G.exp, opts = reachable();
+  $('#chNo').textContent = e.col < 0 ? `EXPEDITION · DIFFICULTY ${pad(e.d)}` : `LEG ${e.col + 1} DONE · ${e.at.name.toUpperCase()}`;
+  $('#chSub').textContent = e.col < 0 ? 'four legs, then whatever waits at the end of your route'
+    : `hull ${Math.ceil(G.hull)}/${G.hullMax} · score ${fmtPts(G.points)}${G.cards.length ? ' · ' + G.cards.length + ' module' + (G.cards.length === 1 ? '' : 's') : ''}`;
+  $('#chActs').innerHTML = `<kbd>1</kbd>–<kbd>${opts.length}</kbd> choose <kbd>Q</kbd> abandon`;
+  $('#chOpts').innerHTML = opts.map((n, i) => {
+    const meta = n.type === 'boss' ? `the end of the route · threat ${pad(n.level)}` : n.type === 'harbour' ? 'rest stop' : `threat ${pad(n.level)} · ${n.waves} waves${n.salv !== 1 ? ` · salvage ×${n.salv}` : ''}`;
+    return `<button class="unit card" data-node="${i}"><div class="top"><kbd>${i + 1}</kbd><span class="tag ${n.type === 'boss' || n.type === 'danger' ? 'rare' : ''}">${meta}</span></div>
+      <div class="nm">${n.name}</div><p>${n.blurb}</p></button>`;
+  }).join('');
+  document.querySelectorAll('#chOpts [data-node]').forEach(b => b.onclick = () => chooseNode(+b.dataset.node));
+  $('#chHint').innerHTML = 'Routes only join neighbouring lanes, so the side of the chart you sail decides which leviathan you meet.';
+  $('#chNote').textContent = `${e.path.length}/${CHART_COLS} legs`;
+  drawChart();
+}
+const chartXY = (w, col, row) => ({ x: 92 + col * (w - 150) / (CHART_COLS - 1), y: 52 + row * 108 });
+function drawChart() {
+  const el = $('#cvChart'), { c, w, h } = fitCanvas(el); if (!w) return;
+  const e = G.exp, now = performance.now() / 1000, opts = reachable(), port = { x: 26, y: 52 + 108 };
+  const P = n => chartXY(w, n.col, n.row);
+  // routes: dotted where you could sail, solid where you have sailed
+  for (const n of e.cols[0]) drawDottedLine(c, port.x, port.y, P(n).x, P(n).y, 6, C['ink-4'], 1, .9);
+  e.cols.forEach((nodes, col) => { if (col < CHART_COLS - 1) for (const n of nodes) for (const m of e.cols[col + 1].filter(m => n.links.includes(m.row))) drawDottedLine(c, P(n).x, P(n).y, P(m).x, P(m).y, 6, C['ink-4'], 1, .9); });
+  let prev = port;
+  c.strokeStyle = C.ink; c.lineWidth = 2; c.globalAlpha = 1;
+  for (const n of e.path) { const q = P(n); c.beginPath(); c.moveTo(prev.x, prev.y); c.lineTo(q.x, q.y); c.stroke(); prev = q; }
+  c.fillStyle = C['ink-3']; c.font = `600 8.5px ${MONO}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText('PORT', port.x, port.y + 20); c.beginPath(); dotPath(c, port.x, port.y, 3); c.fill();
+  const cols = { open: C['ink-2'], calm: C['pen-3'], danger: C['pen-1'], wreck: C['pen-4'], storm: C['pen-6'], harbour: C['pen-3'], boss: C['pen-1'] };
+  e.cols.flat().forEach(n => {
+    const q = P(n), col = cols[n.type], done = e.path.includes(n), oi = opts.indexOf(n), r = n.type === 'boss' ? 19 : 13;
+    c.globalAlpha = done || oi >= 0 || e.path.length === 0 ? 1 : .45;
+    if (oi >= 0) dottedCircle(c, q.x, q.y, r + 6 + Math.sin(now * 4) * 2, 4, 1, C['pen-2'], .9);
+    c.globalAlpha = done || oi >= 0 ? 1 : .55;
+    c.fillStyle = done ? col : C.paper; c.strokeStyle = col; c.lineWidth = n.type === 'boss' ? 2 : 1.5;
+    c.beginPath(); c.arc(q.x, q.y, r, 0, TAU); c.fill(); c.stroke();
+    // a tiny emblem per leg type
+    const ink = done ? C.paper : col; c.fillStyle = ink; c.strokeStyle = ink; c.lineWidth = 1.3;
+    if (n.type === 'danger') { c.fillRect(q.x - 1, q.y - 6, 2, 7); c.beginPath(); dotPath(c, q.x, q.y + 4.5, 1.2); c.fill(); }
+    else if (n.type === 'wreck') c.strokeRect(q.x - 5, q.y - 4, 10, 8);
+    else if (n.type === 'storm') { c.beginPath(); for (let i = 0; i < 9; i++) dotPath(c, q.x + (hash(i * 2.3) - .5) * 14, q.y + (hash(i * 5.1) - .5) * 12, .9); c.fill(); }
+    else if (n.type === 'calm') { c.beginPath(); for (let x = -6; x <= 6; x++) c[x === -6 ? 'moveTo' : 'lineTo'](q.x + x, q.y + Math.sin(x * .9) * 2); c.stroke(); }
+    else if (n.type === 'harbour') { c.beginPath(); c.moveTo(q.x, q.y - 6); c.lineTo(q.x, q.y + 5); c.moveTo(q.x - 5, q.y - 2); c.lineTo(q.x + 5, q.y - 2); c.arc(q.x, q.y + 1, 5, 0, Math.PI); c.stroke(); }
+    else if (n.type === 'boss') { for (let k = 2; k >= 0; k--) { c.strokeRect(q.x - 9 + k * 2, q.y - 4 - k * 2, 14, 7); } }
+    else { c.beginPath(); dotPath(c, q.x, q.y, 2.4); c.fill(); }
+    c.globalAlpha = done || oi >= 0 ? 1 : .6; c.fillStyle = n.type === 'boss' ? C['pen-1'] : C['ink-2']; c.font = `600 9px ${MONO}`;
+    c.fillText(n.name.toUpperCase(), q.x, q.y + r + 12);
+    if (n.type !== 'harbour') { c.fillStyle = C['ink-3']; c.font = `500 8.5px ${MONO}`; c.fillText(n.type === 'boss' ? 'LAIR' : `THR ${pad(n.level)}`, q.x, q.y + r + 23); }
+    if (oi >= 0) { c.fillStyle = C['pen-2']; c.font = `700 11px ${MONO}`; c.fillText(String(oi + 1), q.x, q.y - r - 12); }
+  });
+  // your hull, sitting where the voyage has reached
+  const at = e.at ? P(e.at) : port;
+  drawHull(c, at.x, at.y - (e.at ? 0 : 0), G.hullType, .55, { aim: 0 });
+  c.globalAlpha = 1;
+}
+function chartKey(e) {
+  if (performance.now() < inputGuard) return;
+  if (/^[1-3]$/.test(e.key)) chooseNode(+e.key - 1);
+  else if (e.key.toLowerCase() === 'q') quitToTitle();
+}
+function chooseNode(i) {
+  const n = reachable()[i], e = G.exp;
+  if (!n || performance.now() < inputGuard) return;
+  e.col = n.col; e.at = n; e.node = n; e.path.push(n);
+  ensureAudio(); sfx.engage();
+  if (n.type === 'harbour') {
+    repair(40); G.ironForge = G.ironForge.map(() => 1);
+    e.afterPick = true; G.pickQ++; openPick();
+    if (screen !== 'pick') { e.afterPick = false; openChart(); }
+    return;
+  }
+  beginLeg(n);
+  setScreen('play');
+}
+function beginLeg(n) {
+  const e = G.exp;
+  e.legStart = G.points; G.level = n.level; G.spawnT = 1.2;
+  if (n.type === 'boss') {
+    e.boss = n.boss;
+    G.sec = { wave: 1, quota: 0, spawned: 0, stage: 'warn', t: 0 };
+    banner(`${n.name.toUpperCase()} APPROACHING`, n.blurb.toLowerCase(), C['pen-1']); sfx.siren();
+    return;
+  }
+  G.sec = { wave: 1, quota: waveQuota(1), spawned: 0, stage: 'intro', t: 0 };
+  banner(`${n.name.toUpperCase()} · LEG ${n.col + 1}/${CHART_COLS}`, `${n.blurb.toLowerCase()} · wave 1/${n.waves}`, C['pen-2']);
+  if (n.type === 'storm') { G.thermoT = 2; G.stormT = 3; }
+  if (n.type === 'wreck') G.crateT = 4;
+  newWaveMods();
+}
+// a finished leg pays its route's salvage rate on top of the usual score ÷ 100
+function endLeg() {
+  const e = G.exp, n = e.node;
+  if (n && n.salv !== 1) e.bonusSalv += Math.round((G.points - e.legStart) / 100 * (n.salv - 1));
+  openChart();
+}
+
+/* ------------------------------------------------------------ upgrade picks */
+function openPick() {
+  G.pickQ = Math.max(0, G.pickQ - 1);
+  const pool = Object.keys(CARDS).filter(k => owns('card', k) && !G.mods[k]), offer = [];
+  // three cards, drawn without repeats; rare ones turn up a little less often
+  while (offer.length < 3 && pool.length) {
+    const wts = pool.map(k => CARDS[k].rare ? .55 : 1);
+    let r = Math.random() * wts.reduce((a, b) => a + b, 0), i = 0;
+    while (r > wts[i] && i < pool.length - 1) { r -= wts[i]; i++; }
+    offer.push(pool.splice(i, 1)[0]);
+  }
+  if (!offer.length) return;
+  G.offer = offer; G.armHeld = false;
+  $('#pkNo').textContent = G.exp && G.exp.afterPick ? 'HARBOUR · 40 HULL REPAIRED · CHOOSE AN UPGRADE' : G.game === 'patrol' ? `THREAT ${pad(G.level)} · CHOOSE AN UPGRADE`
+    : `${G.game === 'expedition' ? G.exp.node.name.toUpperCase() + ' · ' : ''}WAVE ${G.sec.wave}/${wavesTotal()} CLEARED · CHOOSE AN UPGRADE`;
+  $('#pkCards').innerHTML = offer.map((k, i) => `<button class="unit card" data-card="${i}">
+    <div class="top"><kbd>${i + 1}</kbd><span class="tag ${CARDS[k].rare ? 'rare' : ''}">${CARDS[k].rare ? 'rare module' : 'module'}</span></div>
+    <canvas></canvas><div class="nm">${CARDS[k].name}</div><p>${CARDS[k].blurb}</p></button>`).join('');
+  document.querySelectorAll('#pkCards .card').forEach(b => b.onclick = () => takeCard(+b.dataset.card));
+  $('#pkBuild').innerHTML = `build: ${buildLine()}`;
+  setScreen('pick'); inputGuard = performance.now() + 450; sfx.card();
+  requestAnimationFrame(() => document.querySelectorAll('#pkCards canvas').forEach((el, i) => {
+    const { c, w, h } = fitCanvas(el); if (!w) return;
+    dottedCircle(c, w / 2, h / 2, 31, 5, .8, C['ink-3'], .6); drawModule(c, offer[i], w / 2, h / 2, 0, 4);
+  }));
+}
+function takeCard(i) {
+  const k = G.offer && G.offer[i];
+  if (!k || performance.now() < inputGuard) return;
+  G.mods[k] = true; G.cards.push(k); G.cardAt[k] = G.t; G.offer = null;
+  if (k === 'cap') G.pingCd = Math.min(G.pingCd, pingCooldown());
+  if (G.exp && G.exp.afterPick) { G.exp.afterPick = false; sfx.card(); openChart(); return; }
+  setScreen('play');
+  coreStamp(CARDS[k].name.toUpperCase() + ' FITTED', C[CARDS[k].col], 1.8);
+  G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 90, r1: 40, n: 36, col: C[CARDS[k].col], life: .5, max: .5 });
+  sfx.forge();
+}
+// the run's build in words: hull, the arsenal in its slots, and the cards taken
+function buildLine() {
+  const gear = Object.keys(GEAR).map(s => GEAR[s][G.gear[s]].name).join(' · ');
+  return `<b>${HULLS[G.hullType].name}</b> · ${gear}${G.cards.length ? ' · ' + G.cards.map(k => CARDS[k].name).join(' · ') : ''}`;
+}
+
+/* ------------------------------------------------------------ the Dry Dock */
+const DOCK_TABS = [['hulls', 'Hulls'], ['arsenal', 'Arsenal'], ['cards', 'Upgrade cards'], ['tracers', 'Tracers']];
+let dockTab = 'hulls';
+function itemOf(kind, key) { return kind === 'hull' ? HULLS[key] : kind === 'card' ? CARDS[key] : kind === 'tracer' ? TRACERS[key] : GEAR[kind][key]; }
+const priceOf = (kind, key) => kind === 'card' ? CARDS[key].rare || 0 : kind === 'tracer' ? 0 : itemOf(kind, key).cost;
+// everything that can be bought and is not owned yet, cheapest first
+function shopList() {
+  const out = [];
+  for (const k of Object.keys(HULLS)) if (!owns('hull', k)) out.push(['hull', k]);
+  for (const s of Object.keys(GEAR)) for (const k of Object.keys(GEAR[s])) if (!owns(s, k)) out.push([s, k]);
+  for (const k of Object.keys(CARDS)) if (!owns('card', k)) out.push(['card', k]);
+  return out.map(([kind, key]) => ({ kind, key, name: itemOf(kind, key).name, cost: priceOf(kind, key) })).sort((a, b) => a.cost - b.cost);
+}
+function openDock(tab) { if (tab) dockTab = tab; ensureAudio(); setScreen('dock'); renderDock(); sfx.ui(); }
+function closeDock() { setScreen('title'); }
+function dockItems() {
+  const lo = prefs.loadout;
+  if (dockTab === 'hulls') return Object.keys(HULLS).map(k => ({ kind: 'hull', key: k, owned: owns('hull', k), on: lo.hull === k, prev: 'hull:' + k }));
+  if (dockTab === 'cards') return Object.keys(CARDS).map(k => ({ kind: 'card', key: k, owned: owns('card', k), pool: true, prev: 'card:' + k }));
+  if (dockTab === 'tracers') return [{ kind: 'tracer', key: 'hull', name: 'Match the hull', blurb: 'Wear whichever style the fitted hull brings.', owned: true, on: lo.tracer === 'hull', prev: 'tracer:hull' }]
+    .concat(Object.keys(TRACERS).map(k => ({ kind: 'tracer', key: k, owned: owns('tracer', k), on: lo.tracer === k, prev: 'tracer:' + k })));
+  return [];
+}
+function itemHtml(it) {
+  const base = it.key === 'hull' && it.kind === 'tracer' ? it : itemOf(it.kind, it.key), cost = it.key === 'hull' && it.kind === 'tracer' ? 0 : priceOf(it.kind, it.key);
+  let act;
+  if (it.owned && it.pool) act = `<span class="tag" style="color:var(--pen-3)">● in the card pool</span>`;
+  else if (it.owned && it.on) act = `<span class="tag" style="color:var(--pen-2)">● fitted</span>`;
+  else if (it.owned) act = `<button class="btn sm" data-equip>Fit</button>`;
+  else if (cost) act = prefs.salvage >= cost ? `<button class="btn sm" data-buy>Buy · ${cost}</button>` : `<button class="btn sm" disabled>Buy · ${cost}</button><span class="tag">${cost - prefs.salvage} more salvage</span>`;
+  else act = `<span class="tag">locked · ${base.from ? 'comes with the ' + HULLS[base.from].name : base.req}</span>`;
+  const tag = it.kind === 'card' ? (base.rare ? '<span class="tag rare">rare</span>' : '<span class="tag">starter</span>') : '';
+  const blurb = base.blurb || (base.from ? `The ${HULLS[base.from].name}’s own tracer.` : `Earned: ${base.req}.`);
+  return `<div class="unit item ${it.on ? 'on' : ''} ${it.owned ? '' : 'locked'}" data-kind="${it.kind}" data-key="${it.key}">
+    <canvas data-prev="${it.prev}"></canvas><div class="nm"><span>${base.name}</span>${tag}</div><p>${blurb}</p>${act}</div>`;
+}
+function renderDock() {
+  $('#dkSalv').textContent = prefs.salvage.toLocaleString('en-US');
+  $('#dkTabs').innerHTML = DOCK_TABS.map(([k, nm], i) => `<button class="chip ${k === dockTab ? 'on' : ''}" data-tab="${k}"><kbd>${i + 1}</kbd> ${nm}</button>`).join('');
+  document.querySelectorAll('#dkTabs [data-tab]').forEach(b => b.onclick = () => { dockTab = b.dataset.tab; renderDock(); sfx.ui(); });
+  if (dockTab === 'arsenal') {
+    $('#dkBody').innerHTML = Object.keys(GEAR).map(slot => `<div class="slotrow"><span class="lbl">${SLOT_NAMES[slot]}</span><div class="shop">${
+      Object.keys(GEAR[slot]).map(k => itemHtml({ kind: slot, key: k, owned: owns(slot, k), on: prefs.loadout[slot] === k, prev: `gear:${slot}:${k}` })).join('')}</div></div>`).join('');
+  } else $('#dkBody').innerHTML = `<div class="shop ${dockTab === 'cards' ? 'c4' : ''}">${dockItems().map(itemHtml).join('')}</div>`;
+  document.querySelectorAll('#dkBody .item').forEach(el => {
+    const kind = el.dataset.kind, key = el.dataset.key;
+    const b = el.querySelector('[data-buy]'), e = el.querySelector('[data-equip]');
+    if (b) b.onclick = () => buy(kind, key);
+    if (e) e.onclick = () => equip(kind, key);
+  });
+  const nx = shopList()[0];
+  $('#dkNote').innerHTML = `banked over all runs <b>${prefs.salvageTotal.toLocaleString('en-US')}</b>${nx ? ` · cheapest next: ${nx.name} (${nx.cost})` : ' · everything bought'}`;
+  drawDock();
+}
+function buy(kind, key) {
+  const cost = priceOf(kind, key);
+  if (!cost || prefs.salvage < cost || owns(kind, key)) return;
+  prefs.salvage -= cost; prefs.owned[kind + ':' + key] = true;
+  if (kind !== 'card') equip(kind, key, true);
+  savePrefs(); sfx.buy();
+  toast(`${itemOf(kind, key).name} ${kind === 'card' ? 'joins the card pool' : 'bought and fitted'}`);
+  renderDock();
+}
+function equip(kind, key, quiet) {
+  if (kind === 'hull') prefs.loadout.hull = key;
+  else if (kind === 'tracer') prefs.loadout.tracer = key;
+  else if (GEAR[kind]) prefs.loadout[kind] = key;
+  else return;
+  savePrefs();
+  // the attract loop behind the panel wears the new kit straight away
+  if (G.mode === 'demo') applyKit('demo');
+  if (!quiet) { sfx.ui(); renderDock(); }
+}
+// previews in the Dry Dock, redrawn every frame so hulls and tracers move
+function drawDock() {
+  const now = performance.now() / 1000;
+  document.querySelectorAll('#dkBody canvas[data-prev]').forEach(el => {
+    const { c, w, h } = fitCanvas(el); if (!w) return;
+    const [type, a, b] = el.dataset.prev.split(':'), x = w / 2, y = h / 2;
+    if (type === 'hull') { dottedCircle(c, x, y, R_HULL * 1.45, 4, .8, C['ink-4'], 1); drawHull(c, x, y, a, 1.45, { aim: -Math.PI / 4 + Math.sin(now) * .4 }); }
+    else if (type === 'card') { dottedCircle(c, x, y, 26, 5, .8, C['ink-3'], .5); drawModule(c, a, x, y, 0, 3.4); }
+    else if (type === 'gear') drawGearIcon(c, a, b, x, y, now);
+    else if (type === 'tracer') {
+      const style = a === 'hull' ? HULLS[owns('hull', prefs.loadout.hull) ? prefs.loadout.hull : 'skiff'].tracer : a;
+      const tr = { sx: 14, sy: h - 12, tx: w - 18, ty: 16, kick: .22, t: .25 + ((now * .55) % 1) * .75, idx: 0 };
+      for (let i = 0; i <= 24; i++) { const q = bez(tr, i / 24); c.globalAlpha = .35; c.fillStyle = C['ink-4']; c.beginPath(); dotPath(c, q.x, q.y, .8); c.fill(); }
+      drawTracer(c, tr, style);
+    }
+    c.globalAlpha = 1;
+  });
+}
+// a small picture of each arsenal option
+function drawGearIcon(c, slot, key, x, y, now) {
+  c.save(); c.lineCap = 'round';
+  const torp = (tx, ty, a, s) => {
+    c.save(); c.translate(tx, ty); c.rotate(a); c.scale(s, s); c.fillStyle = C['pen-2']; c.globalAlpha = 1;
+    c.beginPath(); c.moveTo(-11, -3); c.lineTo(6, -3); c.arc(6, 0, 3, -Math.PI / 2, Math.PI / 2); c.lineTo(-11, 3); c.closePath(); c.fill();
+    c.strokeStyle = C['pen-2']; c.lineWidth = 1.2; c.beginPath(); c.moveTo(-11, -3); c.lineTo(-15, -6); c.moveTo(-11, 3); c.lineTo(-15, 6); c.stroke();
+    c.restore();
+  };
+  if (key === 'torpedo') { drawDottedLine(c, x - 60, y + 10, x - 18, y + 2, 5, C['pen-2'], .5); torp(x, y, -.2, 2); }
+  else if (key === 'swarm') { for (const [dx, dy, a] of [[-14, -16, -.5], [4, 2, -.15], [-12, 20, .25]]) torp(x + dx, y + dy, a, 1.2); }
+  else if (key === 'harpoon') {
+    drawDottedLine(c, x - 60, y + 12, x + 8, y - 4, 4, C['ink-2'], .8);
+    c.translate(x + 10, y - 4); c.rotate(-.23); c.strokeStyle = C['pen-2']; c.lineWidth = 2.6;
+    c.beginPath(); c.moveTo(-14, 0); c.lineTo(12, 0); c.moveTo(12, 0); c.lineTo(4, -7); c.moveTo(12, 0); c.lineTo(4, 7); c.stroke();
+  } else if (key === 'pulse') { for (let i = 0; i < 3; i++) dottedCircle(c, x, y, 10 + ((now * 14 + i * 11) % 33), 5, 1, C['pen-3'], .9 - i * .2); }
+  else if (key === 'freeze') {
+    c.strokeStyle = C['pen-2']; c.lineWidth = 1.5;
+    for (const [dx, dy, s] of [[0, 0, 24], [-40, 14, 9], [38, -16, 11]]) {
+      c.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const b = i * TAU / 6 + .3, cx2 = x + dx, cy2 = y + dy, mx = cx2 + Math.cos(b) * s * .6, my = cy2 + Math.sin(b) * s * .6;
+        c.moveTo(cx2, cy2); c.lineTo(cx2 + Math.cos(b) * s, cy2 + Math.sin(b) * s);
+        for (const d of [-.7, .7]) { c.moveTo(mx, my); c.lineTo(mx + Math.cos(b + d) * s * .32, my + Math.sin(b + d) * s * .32); }
+      }
+      c.stroke();
+    }
+  } else if (key === 'shock') { for (let i = 0; i < 3; i++) dottedCircle(c, x, y, 12 + i * 11, 4, 1.4 - i * .3, i ? C['ink-2'] : C.ink, 1 - i * .25); }
+  else if (key === 'nuke') { dottedCircle(c, x, y, 34, 5, 1.3, C['pen-1'], .9); dottedCircle(c, x, y, 20, 5, 1, C['pen-1'], .6); c.fillStyle = C['pen-1']; c.beginPath(); dotPath(c, x, y, 5); c.fill(); }
+  else if (key === 'depth') {
+    dottedCircle(c, x, y, 20, 4, 1.1, C['pen-6'], .9);
+    c.fillStyle = C['pen-6']; c.fillRect(x - 5, y - 8, 10, 16); c.fillStyle = C.paper; c.fillRect(x - 5, y - 3, 10, 1.5); c.fillRect(x - 5, y + 2, 10, 1.5);
+    c.strokeStyle = C['ink-2']; c.lineWidth = .8;
+    for (let i = 0; i < 5; i++) { const by = y - 14 - ((now * 20 + i * 9) % 30); c.beginPath(); c.arc(x + Math.sin(i * 2.1) * 9, by, 1.5 + i % 2, 0, TAU); c.stroke(); }
+  }
+  c.restore();
+}
+
+/* ------------------------------------------------------------ title: kit line + pressure switches */
+function buildKitLine() {
+  const lo = prefs.loadout, h = owns('hull', lo.hull) ? lo.hull : 'skiff';
+  const g = s => GEAR[s][owns(s, lo[s]) ? lo[s] : Object.keys(GEAR[s])[0]].name;
+  const nx = shopList()[0], ready = nx && prefs.salvage >= nx.cost;
+  $('#kitLine').innerHTML = `<span class="lbl">Kit</span><span><b>${HULLS[h].name}</b> hull</span><span>${g('torp')} · ${g('pulse')} · ${g('nuke')}</span>
+    <span class="r salv">salvage <b>${prefs.salvage.toLocaleString('en-US')}</b>${ready ? ' · <span style="color:var(--pen-4)">new parts affordable in the Dry Dock</span>' : nx ? ` · next ${esc(nx.name)} at ${nx.cost}` : ''}</span>`;
+}
+const pressMulNow = () => Object.keys(PRESSURE).filter(k => prefs.pressure[k] && PRESSURE[k].ok()).reduce((m, k) => m * PRESSURE[k].mul, 1);
+function buildPress() {
+  const mul = pressMulNow();
+  $('#pressBar').innerHTML = `<span class="lbl" style="margin-right:4px">Pressure</span>` + Object.entries(PRESSURE).map(([k, p]) => {
+    const ok = p.ok(), on = ok && prefs.pressure[k];
+    return `<button class="chip ${on ? 'on' : ''} ${ok ? '' : 'lk'}" data-press="${k}" title="${ok ? p.blurb : 'Locked until you ' + p.req + '. ' + p.blurb}">${ok ? '' : '<svg width="8" height="9" aria-hidden="true"><rect x=".5" y="4" width="7" height="4.5" style="fill:none;stroke:currentColor"/><path d="M2 4V2.6a2 2 0 0 1 4 0V4" style="fill:none;stroke:currentColor"/></svg>'}${p.name} ×${p.mul}</button>`;
+  }).join('') + `<span class="mult" ${mul > 1 ? '' : 'style="color:var(--ink-3)"'}>${mul > 1 ? `score ×${mul.toFixed(2)}` : 'harder runs, bigger scores'}</span>`;
+  document.querySelectorAll('[data-press]').forEach(b => b.onclick = () => {
+    const k = b.dataset.press;
+    if (!PRESSURE[k].ok()) { toast(`Locked until you ${PRESSURE[k].req}`); return; }
+    prefs.pressure[k] = !prefs.pressure[k]; savePrefs(); buildPress(); ensureAudio(); sfx.ui();
+  });
 }
 
 /* ------------------------------------------------------------ settings */
@@ -2340,13 +3281,22 @@ addEventListener('keydown', e => {
     else if (e.key === 'ArrowLeft') select(Math.max(1, sel - 1));
     else if (e.key === 'ArrowDown') select(Math.min(10, sel + 5));
     else if (e.key === 'ArrowUp') select(Math.max(1, sel - 5));
-    else if (e.key === 'Tab') { e.preventDefault(); setGame(prefs.game === 'sector' ? 'patrol' : 'sector'); }
+    else if (e.key === 'Tab') { e.preventDefault(); setGame(GAMES[(GAMES.indexOf(prefs.game) + (e.shiftKey ? 2 : 1)) % 3]); }
+    else if (k === 'd') openDock();
     else if (e.key === 'Enter') startRun(sel, prefs.game);
   } else if (screen === 'paused') {
     if (e.key === 'Escape' || e.key === 'Enter') resume();
     else if (k === 'q') quitToTitle();
     else if (k === 's') toggleShake();
+  } else if (screen === 'dock') {
+    if (e.key === 'Escape' || k === 'd') closeDock();
+    else if (/^[1-4]$/.test(e.key)) { dockTab = DOCK_TABS[+e.key - 1][0]; renderDock(); sfx.ui(); }
+  } else if (screen === 'pick') {
+    if (/^[1-3]$/.test(e.key)) takeCard(+e.key - 1);
+  } else if (screen === 'chart') {
+    chartKey(e);
   } else if (screen === 'over') {
+    if (k === 'd' && performance.now() >= inputGuard) { openDock(); return; }
     if (performance.now() < inputGuard) return;
     if (e.key === 'Enter') startRun(G.diff, G.game);
     else if (e.key === 'Escape') quitToTitle();
@@ -2378,6 +3328,8 @@ $('#btnResume').onclick = resume;
 $('#btnQuit').onclick = quitToTitle;
 $('#btnAgain').onclick = () => startRun(G.diff, G.game);
 $('#btnChange').onclick = quitToTitle;
+$('#btnDock').onclick = () => openDock();
+$('#btnDockBack').onclick = closeDock;
 document.querySelectorAll('[data-game]').forEach(b => b.onclick = () => setGame(b.dataset.game));
 // window controls exist only inside the installed app (see sonar-type-app/preload.js)
 if (window.sonarShell) {
@@ -2402,6 +3354,7 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   update(dt); render(); hud(dt); tipTick(dt); audioTick();
+  if (screen === 'dock') drawDock(); else if (screen === 'chart') drawChart();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
