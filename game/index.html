@@ -460,6 +460,18 @@ prefs.loadout = Object.assign({ hull: 'skiff', torp: 'torpedo', pulse: 'pulse', 
 prefs.pressure = Object.assign({}, prefs.pressure);
 prefs.expeditions = prefs.expeditions | 0;
 prefs.expEnds = Object.assign({}, prefs.expEnds);
+// first launch of v4 on a computer with history: bank salvage for the records already set, so past play counts
+let legacyGrant = 0;
+if (!prefs.v4) {
+  prefs.v4 = true;
+  if (prefs.runs > 0) {
+    const sum = o => Object.values(o || {}).reduce((s, v) => s + (+v || 0), 0);
+    legacyGrant = Math.round((sum(prefs.hi.sector) + sum(prefs.hi.patrol)) / 100) + sum(prefs.best)
+      + Object.values(prefs.medals).reduce((s, m) => s + ({ bronze: 10, silver: 20, gold: 40 }[m] || 0), 0);
+    prefs.salvage += legacyGrant; prefs.salvageTotal += legacyGrant;
+  }
+  try { localStorage.setItem(STORE, JSON.stringify(prefs)); } catch {}
+}
 function savePrefs() { try { localStorage.setItem(STORE, JSON.stringify(prefs)); } catch {} }
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const shakeOn = () => prefs.shake && !reducedMotion;
@@ -2755,7 +2767,7 @@ function setGame(g) { prefs.game = g; savePrefs(); buildTiles(); }
 const GAMES = ['sector', 'patrol', 'expedition'];
 const wavesTotal = () => G.game === 'expedition' && G.exp && G.exp.node ? G.exp.node.waves : 3;
 function startRun(d, game) {
-  ensureAudio(); sfx.engage();
+  ensureAudio(); sfx.engage(); legacyGrant = 0;
   sel = d; prefs.diff = d; savePrefs();
   newGame(d, 'play', game);
   bot.fresh = null; bot.armRelease = null;
@@ -3217,7 +3229,8 @@ function buildKitLine() {
   const g = s => GEAR[s][owns(s, lo[s]) ? lo[s] : Object.keys(GEAR[s])[0]].name;
   const nx = shopList()[0], ready = nx && prefs.salvage >= nx.cost;
   $('#kitLine').innerHTML = `<span class="lbl">Kit</span><span><b>${HULLS[h].name}</b> hull</span><span>${g('torp')} · ${g('pulse')} · ${g('nuke')}</span>
-    <span class="r salv">salvage <b>${prefs.salvage.toLocaleString('en-US')}</b>${ready ? ' · <span style="color:var(--pen-4)">new parts affordable in the Dry Dock</span>' : nx ? ` · next ${esc(nx.name)} at ${nx.cost}` : ''}</span>`;
+    <span class="r salv">salvage <b>${prefs.salvage.toLocaleString('en-US')}</b>${legacyGrant && prefs.salvage >= legacyGrant ? ` · <span style="color:var(--pen-4)">${legacyGrant} banked from your earlier records</span>`
+      : ready ? ' · <span style="color:var(--pen-4)">new parts affordable in the Dry Dock</span>' : nx ? ` · next ${esc(nx.name)} at ${nx.cost}` : ''}</span>`;
 }
 const pressMulNow = () => Object.keys(PRESSURE).filter(k => prefs.pressure[k] && PRESSURE[k].ok()).reduce((m, k) => m * PRESSURE[k].mul, 1);
 function buildPress() {
