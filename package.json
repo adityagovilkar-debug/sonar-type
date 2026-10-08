@@ -1,0 +1,44 @@
+{
+  "name": "sonar-type",
+  "productName": "Sonar Type",
+  "version": "3.4.1",
+  "description": "Typing defence on a sonar screen. Type the incoming words before they reach the core.",
+  "main": "main.js",
+  "author": "Aditya Govilkar",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^42.4.0",
+    "electron-builder": "^26.15.2"
+  },
+  "build": {
+    "appId": "com.aditya.sonartype",
+    "productName": "Sonar Type",
+    "directories": {
+      "buildResources": "build"
+    },
+    "electronDist": "node_modules/electron/dist",
+    "files": ["main.js", "preload.js", "game/index.html", "game/words.js", "build/icon.png"],
+    "win": {
+      "icon": "build/icon.png",
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "signExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "uninstallDisplayName": "Sonar Type",
+      "shortcutName": "Sonar Type",
+      "artifactName": "Sonar-Type-Setup-${version}.${ext}"
+    }
+  }
+}

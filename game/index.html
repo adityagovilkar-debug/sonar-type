@@ -1,0 +1,2410 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sonar Type</title>
+<style>
+:root{
+  --paper:#FFFFFF; --paper-2:#FBFAF7; --grid-dot:#DEDDD6; --rule:#E7E6DF; --rule-strong:#D6D5CC;
+  --ink:#12141A; --ink-2:#5A5E68; --ink-3:#9A9EA8; --ink-4:#C3C5CB;
+  --pen-1:#D93A1E; --pen-2:#1B4FA0; --pen-3:#0E7C63; --pen-4:#B07500; --pen-5:#6B3FA0; --pen-6:#C2410C;
+  --mono:"Cascadia Mono","JetBrains Mono",Consolas,ui-monospace,monospace;
+  --sans:"Segoe UI Variable Text","Segoe UI","Inter",system-ui,sans-serif;
+  --r:3px;
+  color-scheme: light;
+}
+:root[data-theme="dark"]{
+  --paper:#0E0F12; --paper-2:#15161B; --grid-dot:#24262D; --rule:#1F2127; --rule-strong:#30333B;
+  --ink:#E8E9EC; --ink-2:#A6AAB3; --ink-3:#6E727C; --ink-4:#383B43;
+  --pen-1:#FF5A3C; --pen-2:#5B8DEF; --pen-3:#2BC29B; --pen-4:#E0A526; --pen-5:#B48CF2; --pen-6:#F07A3A;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden;user-select:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.lbl{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+kbd{font-family:var(--mono);font-size:9.5px;border:1px solid var(--rule-strong);border-bottom-width:2px;border-radius:3px;padding:1px 5px;color:var(--ink-2);background:var(--paper);white-space:nowrap}
+small.u{font-size:9.5px;color:var(--ink-3);margin-left:3px;letter-spacing:.04em;font-weight:400}
+
+.app{display:grid;grid-template-rows:42px 1fr 26px;height:100vh}
+.tb{display:flex;align-items:center;gap:18px;padding:0 0 0 16px;border-bottom:1px solid var(--rule);background:var(--paper);z-index:6;-webkit-app-region:drag}
+.tb button{-webkit-app-region:no-drag}
+.wm{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.34em;font-weight:600;white-space:nowrap}
+.wm em{font-style:normal;font-family:var(--sans);letter-spacing:.2em;font-size:8.5px;color:var(--ink-3);font-weight:600;text-transform:uppercase}
+.mark{width:18px;height:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px}
+.mark i{width:4px;height:4px;border-radius:50%;background:var(--ink-4);transition:background .25s}
+.mark i.on{background:var(--pen-3)}
+.crumb{font-family:var(--mono);font-size:11px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.crumb b{color:var(--ink);font-weight:500}
+.tb-r{margin-left:auto;display:flex;align-items:center;gap:12px;height:100%;padding-right:12px}
+.tb-r.shell{padding-right:0}
+.winctl{display:flex;height:100%}
+.winctl button{width:46px;display:grid;place-items:center;color:var(--ink-2);height:100%}
+.winctl button:hover{background:var(--rule)}
+.winctl button.x:hover{background:#E81123;color:#fff}
+.winctl svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:1}
+.hint{font-size:10.5px;color:var(--ink-3);display:flex;gap:6px;align-items:center;white-space:nowrap}
+.iconbtn{width:26px;height:26px;display:grid;place-items:center;border-radius:var(--r);color:var(--ink-2)}
+.iconbtn:hover{background:var(--rule)}
+.iconbtn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round}
+.sb{display:flex;align-items:center;gap:18px;padding:0 14px;border-top:1px solid var(--rule);font-family:var(--mono);font-size:10px;color:var(--ink-3);white-space:nowrap;overflow:hidden;background:var(--paper);z-index:6}
+.sb .led{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;background:var(--ink-3)}
+.sb b{color:var(--ink-2);font-weight:500}
+.sb .r{margin-left:auto}
+
+.stage{position:relative;overflow:hidden}
+.paper{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 1px 1px,var(--grid-dot) 1px,transparent 0);background-size:22px 22px;opacity:.6;-webkit-mask-image:radial-gradient(circle at 50% 50%,transparent 34%,#000 62%);mask-image:radial-gradient(circle at 50% 50%,transparent 34%,#000 62%)}
+#scope{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:4;pointer-events:none}
+
+.unit{position:relative;min-width:0;background:var(--paper);border:1px solid var(--rule);border-radius:var(--r);padding:12px 14px 13px}
+.unit::before,.unit::after{content:"";position:absolute;width:7px;height:7px;border:solid var(--rule-strong);pointer-events:none;transition:width .3s,height .3s,border-color .3s}
+.unit::before{top:-1px;left:-1px;border-width:1px 0 0 1px}
+.unit::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
+.unit.ok::before,.unit.ok::after{width:18px;height:18px;border-color:var(--pen-2)}
+.unit.bad::before,.unit.bad::after{width:18px;height:18px;border-color:var(--pen-1)}
+.unit.warn::before,.unit.warn::after{width:18px;height:18px;border-color:var(--pen-4)}
+.unit.good::before,.unit.good::after{width:18px;height:18px;border-color:var(--pen-3)}
+.head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid var(--rule)}
+.head h2{margin:0;font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;white-space:nowrap}
+.meta{font-family:var(--mono);font-size:10.5px;font-variant-numeric:tabular-nums;color:var(--ink-3);white-space:nowrap}
+.meta b{color:var(--ink);font-weight:500}
+.readouts{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.ro{background:var(--paper);padding:8px 9px 9px;min-width:0}
+.ro .k{display:block;font-size:8.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px;white-space:nowrap}
+.ro .v{display:block;font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ro .s{display:block;margin-top:6px;font-family:var(--mono);font-size:9.5px;color:var(--ink-3);white-space:nowrap;line-height:1}
+.row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:6px 0;border-top:1px dotted var(--rule-strong);font-size:11px;min-width:0}
+.row:first-child{border-top:0}
+.row .nm{color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .nm b{color:var(--ink);font-weight:600;font-family:var(--mono)}
+.row .p{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:7px;vertical-align:1px}
+.row .val{font-family:var(--mono);font-size:10.5px;color:var(--ink-2)}
+.rise{animation:rise .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 45ms)}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.hud{position:absolute;width:236px;z-index:3}
+.hud.tl{left:16px;top:16px}.hud.tr{right:16px;top:16px}.hud.bl{left:16px;bottom:16px}.hud.br{right:16px;bottom:16px}
+body:not([data-screen="play"]):not([data-screen="paused"]) .hud{display:none}
+.big{font-family:var(--mono);font-size:50px;font-weight:600;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.big i{font-style:normal;color:var(--ink-4)}
+.hud canvas{display:block;width:100%}
+.cap{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--ink-3);margin-top:4px}
+.gaugewrap{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center}
+.gaugewrap canvas{width:96px;height:84px}
+.gaugewrap .readouts{grid-template-columns:1fr}
+.wrow{display:grid;grid-template-columns:1fr auto 76px;gap:8px;align-items:center;padding:6px 0;border-top:1px dotted var(--rule-strong);font-size:11.5px;color:var(--ink-3)}
+.wrow .wc{text-align:right;font-family:var(--mono);font-size:9.5px}
+.wrow.ready .wn{color:var(--pen);font-weight:600}
+.wrow.ready kbd{border-color:var(--pen);color:var(--pen)}
+.wrow.active .wc{color:var(--pen)}
+#chargeBar{margin:2px 0 6px}
+
+.overlay{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--paper) 50%,transparent),color-mix(in srgb,var(--paper) 88%,transparent) 70%)}
+body[data-screen="title"] #ovTitle,body[data-screen="paused"] #ovPause,body[data-screen="over"] #ovOver{display:flex}
+.panel{width:min(840px,100%);padding:20px 22px 18px}
+.panel.sm{width:min(440px,100%)}
+.pgrid{display:grid;grid-template-columns:.8fr 1.2fr;gap:24px}
+.keyrow{display:grid;grid-template-columns:170px 1fr;gap:12px;align-items:center;padding:3px 0;border-top:1px dotted var(--rule-strong)}
+.keyrow:first-child{border-top:0}
+.keyrow canvas{width:170px;height:46px;display:block}
+.keyrow b{display:block;font-size:11.5px;font-weight:600}
+.keyrow span{display:block;font-size:10.5px;color:var(--ink-3);line-height:1.35;margin-top:2px}
+.th{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:14px}
+.th .no{font-family:var(--mono);font-size:11px;color:var(--pen-2);letter-spacing:.14em}
+.th .no.bad{color:var(--pen-1)}.th .no.warn{color:var(--pen-4)}.th .no.good{color:var(--pen-3)}
+.th h1{margin:4px 0 0;font-size:26px;font-weight:600;letter-spacing:-.015em;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.th h1 span{font-size:12px;font-weight:400;color:var(--ink-3);letter-spacing:0}
+.th .acts{display:flex;gap:6px;align-items:center;font-size:10.5px;color:var(--ink-3);white-space:nowrap}
+.modebar{display:flex;gap:8px;align-items:center;margin:0 0 12px}
+.modebar .lbl{margin-right:4px}
+.tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.tile{text-align:left;display:flex;flex-direction:column;gap:7px;padding:11px 12px 11px;transition:border-color .25s,transform .25s}
+.tile:hover,.tile.sel{border-color:var(--rule-strong);transform:translateY(-2px)}
+.tile:hover::before,.tile:hover::after,.tile.sel::before,.tile.sel::after{width:16px;height:16px;border-color:var(--pen-2)}
+.tile .top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.tile .no{font-family:var(--mono);font-size:10.5px;color:var(--pen-2);letter-spacing:.1em}
+.tile .st{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);display:flex;align-items:center;gap:5px;white-space:nowrap}
+.tile .st b{color:var(--ink);font-weight:500}
+.tile .st .hi{color:var(--ink-2);padding-left:6px;border-left:1px dotted var(--rule-strong)}
+.tile .nm{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.spec{display:grid;grid-template-columns:38px 1fr;align-items:center;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.foot{display:flex;gap:14px;align-items:center;margin-top:14px;padding-top:11px;border-top:1px solid var(--rule);font-size:10.5px;color:var(--ink-3);flex-wrap:wrap}
+.foot span{display:flex;gap:6px;align-items:center}
+.foot .r{margin-left:auto}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:30px;padding:0 13px;border:1px solid var(--rule-strong);border-radius:var(--r);font-size:11px;letter-spacing:.04em;color:var(--ink);transition:all .18s;white-space:nowrap;background:var(--paper)}
+.btn:hover{border-color:var(--ink-2)}
+.btn.pri{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.pri kbd{background:transparent;color:var(--paper);border-color:color-mix(in srgb,var(--paper) 40%,transparent)}
+.btn.ghost{border-color:transparent}
+.chip{height:24px;padding:0 10px;border:1px solid var(--rule);border-radius:var(--r);font-family:var(--mono);font-size:10.5px;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px;background:var(--paper)}
+.chip:hover{border-color:var(--rule-strong);color:var(--ink)}
+.chip.on{border-color:var(--ink);color:var(--ink);background:var(--paper-2)}
+.chip.medal{height:28px;font-size:11px;letter-spacing:.14em}
+.tog{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px dotted var(--rule-strong);font-size:11.5px;color:var(--ink-2);cursor:pointer;width:100%;text-align:left}
+.tog:first-child{border-top:0}
+.tog .k{display:flex;gap:10px;align-items:center}
+.tog .val{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-left:auto}
+.tog .val b{color:var(--ink);font-weight:500}
+.tog .sw{width:26px;height:14px;border:1px solid var(--rule-strong);border-radius:8px;position:relative;transition:all .2s;flex:none}
+.tog .sw::after{content:"";position:absolute;top:2px;left:2px;width:8px;height:8px;border-radius:50%;background:var(--ink-4);transition:all .2s}
+.tog.on .sw{border-color:var(--ink)}
+.tog.on .sw::after{left:14px;background:var(--ink)}
+.dgrid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+.dgrid .readouts{grid-template-columns:repeat(3,1fr)}
+.dgrid .ro .v{font-size:19px}
+.dgrid .ro .v.word{font-size:13px;padding-top:4px}
+.sech{display:flex;align-items:center;gap:12px;margin:14px 0 8px}
+.sech::after{content:"";flex:1;border-top:1px dotted var(--rule-strong)}
+#cvTimeline{width:100%;height:60px;display:block}
+
+.callout{position:absolute;left:50%;bottom:18px;transform:translate(-50%,10px);opacity:0;z-index:6;width:min(420px,70%);transition:opacity .35s,transform .35s;pointer-events:none}
+.callout.on{opacity:1;transform:translate(-50%,0)}
+.callout::before,.callout::after{width:14px;height:14px;border-color:var(--pen-4)}
+.callout .no{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--pen-4)}
+.callout p{margin:5px 0 0;font-size:12px;color:var(--ink-2);line-height:1.45}
+
+body:not([data-screen="play"]):not([data-screen="paused"]) .callout{display:none}
+body[data-screen="play"] .stage{cursor:none}
+.toast{position:fixed;bottom:44px;left:50%;transform:translate(-50%,20px);opacity:0;z-index:60;background:var(--ink);color:var(--paper);padding:9px 14px;border-radius:var(--r);font-size:11.5px;transition:all .3s;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:1180px){ .hud{width:200px}.big{font-size:38px}.gaugewrap{grid-template-columns:72px 1fr}.gaugewrap canvas{width:72px;height:64px}.hint.opt{display:none} }
+@media (prefers-reduced-motion:reduce){.rise{animation:none}}
+</style>
+</head>
+<body data-screen="title">
+<div class="app">
+  <header class="tb">
+    <div class="wm"><span class="mark" id="mark"></span>SONAR TYPE<em>typing defence</em></div>
+    <div class="crumb" id="crumb"></div>
+    <div class="tb-r" id="tbr">
+      <span class="hint opt" id="hint"></span>
+      <button class="iconbtn" id="btnSound" title="Sound (M)"></button>
+      <button class="iconbtn" id="btnTheme" title="Backlit / Paper (T)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><path d="M8 3a5 5 0 0 1 0 10z" fill="currentColor"/></svg></button>
+      <button class="iconbtn" id="btnFull" title="Full screen (F11)"><svg viewBox="0 0 16 16"><path d="M3 6V3h3M10 3h3v3M13 10v3h-3M6 13H3v-3"/></svg></button>
+      <div class="winctl" id="winctl" hidden>
+        <button data-win="min" title="Minimise"><svg viewBox="0 0 10 10"><path d="M0 5h10"/></svg></button>
+        <button data-win="max" title="Maximise"><svg viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9"/></svg></button>
+        <button data-win="close" class="x" title="Close"><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10"/></svg></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="paper"></div>
+    <canvas id="scope"></canvas>
+
+    <section class="hud tl unit" id="uScore">
+      <div class="head"><h2>Score</h2><span class="meta" id="mBest"></span></div>
+      <div class="big" id="score"></div>
+      <canvas id="cvKills" style="height:40px;margin-top:10px"></canvas>
+      <div class="cap"><span id="capKills"></span><span id="capStreak"></span></div>
+    </section>
+
+    <section class="hud tr unit" id="uThreat">
+      <div class="head"><h2 id="tHead">Threat</h2><span class="meta" id="mFloor"></span></div>
+      <div class="gaugewrap">
+        <canvas id="cvGauge"></canvas>
+        <div class="readouts">
+          <div class="ro"><span class="k">Tracked</span><span class="v" id="vTracked">–</span></div>
+          <div class="ro"><span class="k">Nearest</span><span class="v" id="vNearest">–</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="hud bl unit" id="uCore">
+      <div class="head"><h2>Core</h2><span class="meta" id="mCore"></span></div>
+      <div class="readouts" style="grid-template-columns:1.15fr 1fr 1fr">
+        <div class="ro"><span class="k">Hull</span><span class="v" id="vHull"></span><span class="s" id="sHull"></span></div>
+        <div class="ro"><span class="k">Phase</span><span class="v" id="vPhase"></span><span class="s" id="sPhase"></span></div>
+        <div class="ro"><span class="k">Iron</span><span class="v" id="vIron"></span><span class="s" id="sIron"></span></div>
+      </div>
+    </section>
+
+    <section class="hud br unit" id="uArsenal">
+      <div class="head"><h2>Arsenal</h2><span class="meta" id="mCharge"></span></div>
+      <div id="chargeBar"></div>
+      <div class="wrow" id="wPing" style="--pen:var(--pen-3)"><span class="wn">Ping</span><kbd>/</kbd><span class="wc"></span></div>
+      <div class="wrow" id="wPulse" style="--pen:var(--pen-3)"><span class="wn">Pulse</span><kbd>Space</kbd><span class="wc"></span></div>
+      <div class="wrow" id="wTorp" style="--pen:var(--pen-2)"><span class="wn">Torpedo</span><kbd>Tab</kbd><span class="wc"></span></div>
+      <div class="wrow" id="wNuke" style="--pen:var(--pen-1)"><span class="wn">Nuke</span><kbd>hold ⏎</kbd><span class="wc"></span></div>
+    </section>
+
+    <div class="unit callout" id="callout"><div class="no" id="coNo"></div><p id="coTx"></p></div>
+
+    <div class="overlay" id="ovTitle">
+      <div class="unit panel rise">
+        <div class="th">
+          <div>
+            <div class="no">SELECT DIFFICULTY</div>
+            <h1>Sonar Type <span>type the incoming words before they reach the core</span></h1>
+          </div>
+          <div class="acts"><kbd>1</kbd>–<kbd>0</kbd> choose <kbd>Tab</kbd> mode <kbd>⏎</kbd> engage</div>
+        </div>
+        <div class="modebar">
+          <span class="lbl">Mode</span>
+          <button class="chip" data-game="sector">Sector · 3 waves + leviathan</button>
+          <button class="chip" data-game="patrol">Patrol · endless</button>
+        </div>
+        <div class="tiles" id="tiles"></div>
+        <div class="foot">
+          <span><kbd>/</kbd> ping</span><span><kbd>Space</kbd> pulse</span><span><kbd>Tab</kbd> torpedo</span><span><kbd>hold ⏎</kbd> nuke</span><span><kbd>Esc</kbd> pause</span>
+          <span class="r mono" id="runsNote"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="ovPause">
+      <div class="unit panel rise" style="width:min(780px,100%)">
+        <div class="th"><div><div class="no warn">PAUSED</div><h1>Holding position <span>contacts are frozen</span></h1></div></div>
+        <div class="pgrid">
+          <div>
+            <div class="sech" style="margin-top:0"><span class="lbl">Settings</span></div>
+            <button class="tog" id="togSound"><span class="k">Sound <kbd>M</kbd></span><span class="sw"></span></button>
+            <button class="tog" id="togMusic"><span class="k">Music <kbd>U</kbd></span><span class="sw"></span></button>
+            <button class="tog" id="togTheme"><span class="k">Theme <kbd>T</kbd></span><span class="val" id="vTheme"></span></button>
+            <button class="tog" id="togShake"><span class="k">Screen shake <kbd>S</kbd></span><span class="sw"></span></button>
+          </div>
+          <div>
+            <div class="sech" style="margin-top:0"><span class="lbl">Contact key</span></div>
+            <div id="keyList"></div>
+          </div>
+        </div>
+        <div class="foot">
+          <button class="btn pri" id="btnResume">Resume <kbd>Esc</kbd></button>
+          <button class="btn" id="btnQuit">Quit to title <kbd>Q</kbd></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="ovOver">
+      <div class="unit panel rise" style="width:min(780px,100%)">
+        <div class="th">
+          <div>
+            <div class="no bad" id="dNo"></div>
+            <h1><span id="dTitle" style="font-size:26px;color:var(--ink);font-weight:600"></span><span id="dSub"></span></h1>
+          </div>
+          <div class="acts" id="dActs"></div>
+        </div>
+        <div class="dgrid">
+          <div>
+            <div class="readouts">
+              <div class="ro"><span class="k">Score</span><span class="v" id="dScore"></span><span class="s" id="dScoreS"></span></div>
+              <div class="ro"><span class="k">WPM</span><span class="v" id="dWpm"></span><span class="s" id="dWpmS"></span></div>
+              <div class="ro"><span class="k">Accuracy</span><span class="v" id="dAcc"></span><span class="s" id="dAccS"></span></div>
+              <div class="ro"><span class="k">Destroyed</span><span class="v" id="dKills"></span><span class="s" id="dKillsS"></span></div>
+              <div class="ro"><span class="k">Best word</span><span class="v word" id="dLong"></span><span class="s" id="dLongS"></span></div>
+              <div class="ro"><span class="k">Hull left</span><span class="v" id="dHull"></span><span class="s" id="dHullS"></span></div>
+            </div>
+            <div class="sech"><span class="lbl">Kills per 10 s</span></div>
+            <canvas id="cvTimeline"></canvas>
+          </div>
+          <div>
+            <div class="sech" style="margin-top:0"><span class="lbl">Score</span></div>
+            <div id="dPoints"></div>
+            <div class="sech"><span class="lbl">Damage</span></div>
+            <div id="dDamage"></div>
+            <div class="sech"><span class="lbl">Arsenal</span></div>
+            <div id="dArsenal"></div>
+          </div>
+        </div>
+        <div class="foot">
+          <button class="btn pri" id="btnAgain"></button>
+          <button class="btn" id="btnChange">Change difficulty <kbd>Esc</kbd></button>
+          <button class="btn ghost" id="btnCopy">Copy result</button>
+          <span class="r mono" id="dRuns"></span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="sb">
+    <span><i class="led" id="led"></i><b id="sbState"></b></span>
+    <span id="sbTracked"></span>
+    <span id="sbLock"></span>
+    <span id="sbLast"></span>
+    <span class="r" id="sbBank"></span>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="words.js"></script>
+<script>
+'use strict';
+/* ============================================================
+   SONAR TYPE: type the incoming words before they reach the
+   core. Hull + iron and phase shields, an arsenal earned by
+   clean typing (pulse / torpedo / nuke), supply crates, and a
+   sector mode that ends with a leviathan.
+   ============================================================ */
+const VERSION = '3.4';
+const TAU = Math.PI * 2;
+const $ = s => document.querySelector(s);
+const wrap = a => ((a % TAU) + TAU) % TAU;
+const easeOut = p => 1 - Math.pow(1 - p, 3);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const pad = (n, k = 2) => String(n).padStart(k, '0');
+const fmtClock = t => `${Math.floor(t / 60)}:${pad(Math.floor(t % 60))}`;
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+
+/* ------------------------------------------------------------ preferences */
+// same key as v2 so existing best scores and settings carry over
+const STORE = 'sonar-type.v2';
+const prefs = { theme: 'dark', sound: true, music: true, shake: true, diff: 1, game: 'sector', best: {}, medals: {}, runs: 0, seen: {} };
+try { Object.assign(prefs, JSON.parse(localStorage.getItem(STORE) || '{}')); } catch {}
+// v3.4 scores points; `best` keeps the old destroyed-count records, `hi` holds the point records per mode and level
+prefs.hi = Object.assign({ patrol: {}, sector: {} }, prefs.hi);
+function savePrefs() { try { localStorage.setItem(STORE, JSON.stringify(prefs)); } catch {} }
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const shakeOn = () => prefs.shake && !reducedMotion;
+
+/* ------------------------------------------------------------ colours */
+const S = { w: 0, h: 0, cx: 0, cy: 0, R: 0, dpr: 1, lattice: [], snow: [], cw: 9.6, cwB: 12, font: '', fontB: '', fontSm: '' };
+const C = {};
+let MONO = 'monospace', dark = true;
+function readColors() {
+  const cs = getComputedStyle(document.documentElement);
+  for (const k of ['paper', 'ink', 'ink-2', 'ink-3', 'ink-4', 'rule', 'rule-strong', 'pen-1', 'pen-2', 'pen-3', 'pen-4', 'pen-5', 'pen-6'])
+    C[k] = cs.getPropertyValue('--' + k).trim();
+  MONO = cs.getPropertyValue('--mono').trim();
+  dark = document.documentElement.dataset.theme === 'dark';
+  S.font = `500 16px ${MONO}`; S.fontB = `600 20px ${MONO}`; S.fontSm = `500 9px ${MONO}`;
+}
+
+/* ------------------------------------------------------------ words + difficulty */
+const FALLBACK_POOLS = [
+  ['ox', 'bee', 'jet', 'fog', 'ray', 'owl', 'sky', 'sea', 'fin', 'oar', 'ant', 'gem', 'bay', 'ice', 'sun', 'map', 'key', 'fox'],
+  ['tide', 'wave', 'echo', 'iron', 'wolf', 'hawk', 'reef', 'dune', 'mist', 'bolt', 'core', 'ping', 'grid', 'buoy', 'keel', 'hull', 'gale'],
+  ['radar', 'sonar', 'pulse', 'ghost', 'storm', 'laser', 'orbit', 'vapor', 'prism', 'cargo', 'anchor', 'beacon', 'trench', 'vessel'],
+  ['torpedo', 'phantom', 'cyclone', 'javelin', 'monsoon', 'horizon', 'tsunami', 'starboard', 'periscope', 'undertow', 'frigate'],
+  ['leviathan', 'hurricane', 'battleship', 'interceptor', 'thermocline', 'countermeasure', 'triangulation', 'reverberation'],
+];
+const POOLS = (Array.isArray(window.WORD_BANK) && window.WORD_BANK.length === 5 &&
+               window.WORD_BANK.every(t => Array.isArray(t) && t.length > 0)) ? window.WORD_BANK : FALLBACK_POOLS;
+const LEVEL_WEIGHTS = [
+  [1, 0, 0, 0, 0], [.6, .4, 0, 0, 0], [.3, .7, 0, 0, 0], [.1, .5, .4, 0, 0], [0, .4, .6, 0, 0], [0, .25, .55, .2, 0],
+  [0, .15, .45, .4, 0], [0, .1, .35, .45, .1], [0, 0, .3, .5, .2], [0, 0, .2, .45, .35], [0, 0, .1, .4, .5], [0, 0, 0, .4, .6],
+];
+const DIFF_NAMES = ['Calm water', 'Shallows', 'Coastal', 'Patrol', 'Contact', 'Pursuit', 'Hunt', 'Wolfpack', 'Barrage', 'Full assault'];
+const maxContacts = lv => lv <= 1 ? 1 : Math.min(10, 1 + lv);
+const spawnInterval = lv => Math.max(1.25, 3.6 - lv * .25);
+const wordSpeed = lv => 18 + lv * 7 + Math.random() * 8;
+const rampLevel = () => Math.min(12, G.diff + Math.min(3, Math.floor(G.kills / 10)));
+const quotaFor = (wave, diff) => 10 + wave * 4 + Math.floor(diff / 2);
+const TIER_LEN = [3, 4, 5.5, 7.5, 10.5];
+const avgLen = lv => LEVEL_WEIGHTS[lv - 1].reduce((s, w, k) => s + w * TIER_LEN[k], 0);
+// sector pacing: each level expects a typing speed (24 wpm at level 1, +9 per level);
+// a new word arrives about as fast as a typist at that speed can read and clear one
+const sectorGap = lv => avgLen(lv) / ((15 + lv * 9) / 12) + .45;
+// wave 1 is a warm-up a level below the chosen difficulty, wave 3 a level above
+const sectorLevel = wave => clamp(G.diff + wave - 2, 1, 12);
+
+/* ------------------------------------------------------------ defence layers */
+const HULL_MAX = 100, PHASE_MAX = 40, CHARGE_MAX = 50, MISS_COST = 2;
+const R_HULL = 25, R_PHASE = 36, R_IRON = 46;
+// a contact detonates against the outermost layer facing it
+const STOP_HULL = 36, STOP_PHASE = 44, STOP_IRON = 54;
+const PLATE0 = -Math.PI / 2 - Math.PI / 6;
+const plateAt = a => Math.floor(wrap(a - PLATE0) / (TAU / 6)) % 6;
+const dmgScale = () => .8 + G.diff * .035;
+// damage comes from the letters still standing, so chipping a big word down before it lands pays off
+const wordDamage = w => Math.round((8 + 3 * (w.text.length - w.landed)) * dmgScale());
+const TICKS = [[8, 'pulse', 'P', '--pen-3'], [18, 'torp', 'T', '--pen-2'], [30, 'crate', 'S', '--pen-4'], [50, 'nuke', 'N', '--pen-1']];
+
+/* ------------------------------------------------------------ sonar conditions + contact types */
+const PING_CD = 14, PING_SHOW = 4, PING_ALERT = 5;
+const MINE_R = 140, MINE_STRIP = 3;
+const PUNCT = ',.!?;:';
+// [trait, first level it appears, chance at that level, extra chance per level after]
+const TRAITS = [
+  ['armour', 2, .05, .012], ['splitter', 3, .04, .01], ['silent', 3, .05, .012],
+  ['mine', 4, .03, .006], ['decoy', 4, .03, .006], ['reversed', 6, .03, .008], ['cased', 8, .04, .012],
+];
+const TRAIT_LABEL = { armour: 'ARMOUR', splitter: 'SPLITTER', silent: 'SILENT', mine: 'MINE', decoy: 'DECOY', reversed: 'REVERSED ←', cased: 'EXACT' };
+function traitOdds(lv) {
+  const opts = TRAITS.filter(t => lv >= t[1]).map(t => [t[0], t[2] + t[3] * (lv - t[1])]);
+  const total = opts.reduce((s, o) => s + o[1], 0), scale = total > .5 ? .5 / total : 1;
+  return opts.map(([name, p]) => [name, p * scale]);
+}
+function rollTrait(lv) {
+  let r = Math.random();
+  for (const [name, p] of traitOdds(lv)) { r -= p; if (r < 0) return name; }
+  return null;
+}
+// extra work each special contact adds compared with a plain word (armour is typed twice, a splitter adds two
+// small words, hidden or scrambled words cost reading time); spawn pacing stretches by the expected total
+const TRAIT_WORK = { armour: 1, splitter: .9, silent: .35, mine: 0, decoy: .4, reversed: .5, cased: .35 };
+const workLoad = lv => 1 + traitOdds(lv).reduce((s, [name, p]) => s + p * TRAIT_WORK[name], 0) + (lv >= 3 ? .08 : 0) + (lv >= 5 ? .08 : 0);
+
+/* ------------------------------------------------------------ scoring */
+// a word's base value is its difficulty: every character scores, rarer letters more, and capitals and
+// punctuation on exact words more again; its type and the current threat level raise it further
+const charPts = ch => /[jqxz]/i.test(ch) ? 22 : /[cmfwygpbvk]/i.test(ch) ? 14 : /[a-z]/i.test(ch) ? 10 : 16;
+const TRAIT_PTS = { reversed: 1.5, cased: 1.4, silent: 1.3, splitter: 1.1 };
+function wordBase(w) {
+  const chars = [...shown(w)].reduce((s, ch) => s + charPts(ch) + (w.cased && /[A-Z]/.test(ch) ? 6 : 0), 0);
+  return chars * (w.trait === 'armour' ? 2 : 1) * (TRAIT_PTS[w.trait] || 1) * (1 + (G.level - 1) * .06);
+}
+// typing speed on the word itself, first keystroke to last: 30 wpm ×1, 60 ×1.5, 90 ×2, capped at ×2.5
+function speedFactor(w) {
+  if (!w.typeDur || w.typeKeys - w.passes < 1) return 1;
+  return clamp(1 + ((w.typeKeys - w.passes) / w.typeDur * 12 - 30) / 60, .75, 2.5);
+}
+// how far out it was when destroyed: the danger ring ×0.85, halfway ×1.04, the scope's edge ×1.5
+const distFactor = w => clamp(.571 + .929 * w.dist / S.R, .75, 1.65);
+// +5% for every clean word before this one in the streak, up to double
+const streakFactor = () => 1 + clamp(G.combo - 1, 0, 20) * .05;
+// wave and sector bonuses grow with the sector's difficulty so they stay worth chasing at the top
+const bonusScale = () => 1 + (G.diff - 1) * .25;
+function addPoints(n, part) { n = Math.round(n); G.points += n; G.ptsBy[part] = (G.ptsBy[part] || 0) + n; return n; }
+const fmtPts = n => n >= 100000 ? Math.round(n / 1000) + 'k' : n.toLocaleString('en-US');
+// a typed contact pays its letters, scaled by typing speed, the range it died at and the clean streak;
+// each step's share is booked separately so the debrief can show where the score came from
+function typedPoints(w, clean, mul = 1) {
+  const sp = speedFactor(w), di = distFactor(w), st = clean ? streakFactor() : 1;
+  const b = wordBase(w) * mul, r = [b, b * sp, b * sp * di, b * sp * di * st].map(Math.round);
+  addPoints(r[0], 'words'); addPoints(r[1] - r[0], 'speed'); addPoints(r[2] - r[1], 'range'); addPoints(r[3] - r[2], 'streak');
+  const x = v => '×' + v.toFixed(1), tags = [];
+  if (sp >= 1.1) tags.push('FAST ' + x(sp)); else if (sp <= .92) tags.push('SLOW ' + x(sp));
+  if (di >= 1.1) tags.push('FAR ' + x(di)); else if (di <= .92) tags.push('CLOSE ' + x(di));
+  if (st >= 1.1) tags.push('STREAK ' + x(st));
+  if (!G.bestWord || r[3] > G.bestWord.pts) G.bestWord = { text: shown(w), pts: r[3] };
+  return { pts: r[3], sub: tags.join(' · ') };
+}
+
+/* ------------------------------------------------------------ audio */
+// Everything is synthesised. Voices → stereo panner → master (ducking) → compressor → speakers, with a send
+// into a generated "underwater" reverb. The ocean ambience and the music run on their own buses.
+let actx = null, master = null, verbIn = null, ambBus = null, musicBus = null, noiseBuf = null;
+function ensureAudio() {
+  try {
+    if (!actx) buildAudio(new (window.AudioContext || window.webkitAudioContext)());
+    if (actx.state === 'suspended') actx.resume();
+  } catch {}
+}
+function buildAudio(ac) {
+  actx = ac;
+  master = ac.createGain();
+  const comp = ac.createDynamicsCompressor();
+  comp.threshold.value = -16; comp.knee.value = 12; comp.ratio.value = 5; comp.attack.value = .003; comp.release.value = .25;
+  master.connect(comp).connect(ac.destination);
+  // the reverb impulse is decaying stereo noise, darkened the way sound is when it travels through water
+  const len = Math.floor(ac.sampleRate * 2.6), ir = ac.createBuffer(2, len, ac.sampleRate);
+  for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.8); }
+  const verb = ac.createConvolver(), dark = ac.createBiquadFilter(), wet = ac.createGain();
+  verb.buffer = ir; dark.type = 'lowpass'; dark.frequency.value = 1900; wet.gain.value = .6;
+  verbIn = ac.createGain();
+  verbIn.connect(verb).connect(dark).connect(wet).connect(master);
+  noiseBuf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate);
+  const nd = noiseBuf.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  ambBus = ac.createGain(); ambBus.gain.value = 0; ambBus.connect(master);
+  musicBus = ac.createGain(); musicBus.gain.value = 0; musicBus.connect(master);
+  // ocean bed: two slightly detuned sub tones that beat slowly, and filtered noise that breathes
+  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 260; lp.connect(ambBus);
+  for (const [f, v] of [[55, .05], [55.6, .05], [82.4, .018]]) {
+    const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = f; g.gain.value = v; o.connect(g).connect(lp); o.start();
+  }
+  const src = ac.createBufferSource(), nf = ac.createBiquadFilter(), ng = ac.createGain(), lfo = ac.createOscillator(), lg = ac.createGain();
+  src.buffer = noiseBuf; src.loop = true; nf.type = 'lowpass'; nf.frequency.value = 380; ng.gain.value = .07;
+  lfo.frequency.value = .07; lg.gain.value = 220; lfo.connect(lg).connect(nf.frequency);
+  src.connect(nf).connect(ng).connect(ambBus); src.start(); lfo.start();
+}
+// in-game sounds play only during a run; UI and music voices pass { force: true }
+const audible = (o = {}) => prefs.sound && actx && (o.force || screen === 'play');
+const panAt = x => clamp((x - S.cx) / (S.w / 2 || 1), -1, 1) * .8;
+function route(node, o) {
+  const p = actx.createStereoPanner(); p.pan.value = clamp(o.pan || 0, -1, 1);
+  node.connect(p).connect(o.bus || master);
+  if (o.wet) { const s = actx.createGain(); s.gain.value = o.wet; p.connect(s).connect(verbIn); }
+}
+// one voice; o = { pan, wet, lfo, depth, attack, filter, ff, q, bus, force }
+function tone(type, f0, f1, dur, vol, when = 0, o = {}) {
+  if (!audible(o)) return;
+  const t = actx.currentTime + when, osc = actx.createOscillator(), g = actx.createGain();
+  // a gain node starts at 1 until its envelope begins, which clicks on delayed voices; start it silent
+  g.gain.value = 0;
+  osc.type = type;
+  osc.frequency.setValueAtTime(f0, t);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t + dur);
+  g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(vol, t + (o.attack || .006));
+  g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  if (o.lfo) {
+    const l = actx.createOscillator(), lg = actx.createGain();
+    l.frequency.value = o.lfo; lg.gain.value = f0 * (o.depth || .08); l.connect(lg).connect(osc.frequency); l.start(t); l.stop(t + dur);
+  }
+  let n = osc;
+  if (o.filter) { const f = actx.createBiquadFilter(); f.type = o.filter; f.frequency.value = o.ff || 1200; f.Q.value = o.q || 1; n.connect(f); n = f; }
+  n.connect(g); route(g, o);
+  osc.start(t); osc.stop(t + dur + .05);
+}
+// filtered noise; o.f1 sweeps the filter over the sound's length
+function noise(dur, vol, freq, when = 0, type = 'lowpass', o = {}) {
+  if (!audible(o)) return;
+  const t = actx.currentTime + when, src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+  g.gain.value = 0;
+  src.buffer = noiseBuf; src.loop = true; f.type = type; f.Q.value = o.q || 1;
+  f.frequency.setValueAtTime(freq, t);
+  if (o.f1) f.frequency.exponentialRampToValueAtTime(o.f1, t + dur);
+  g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(vol, t + (o.attack || .004)); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  src.connect(f).connect(g); route(g, o);
+  src.start(t, Math.random() * 1.5); src.stop(t + dur + .05);
+}
+function duck(hold) {
+  if (!audible()) return;
+  const t = actx.currentTime, g = master.gain;
+  g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
+  g.linearRampToValueAtTime(.0001, t + .04); g.setValueAtTime(.0001, t + hold); g.linearRampToValueAtTime(1, t + hold + .06);
+}
+// A-minor pentatonic: each letter of a word plays the next note up, and a clean streak lifts the starting note
+const SCALE = [0, 3, 5, 7, 10, 12, 15, 17, 19, 22, 24, 27, 29, 31].map(s => 220 * Math.pow(2, s / 12));
+const noteFor = step => SCALE[clamp(Math.floor(step), 0, SCALE.length - 1)];
+const sfx = {
+  fire:    (p, f) => { tone('triangle', f, f * .995, .16, .07, 0, { pan: p, wet: .25 }); tone('sine', f * 2, f * 2, .09, .022, 0, { pan: p }); noise(.025, .05, 6000, 0, 'highpass', { pan: p }); },
+  hit:     p => { noise(.07, .1, 2800, 0, 'bandpass', { pan: p, q: 2, wet: .2 }); tone('triangle', 320, 120, .1, .08, 0, { pan: p }); tone('sine', 1600, 1300, .05, .02, 0, { pan: p, wet: .3 }); },
+  kill:    (p, f) => {
+    tone('sine', 150, 42, .5, .3, 0, { pan: p });
+    noise(.45, .2, 1800, 0, 'bandpass', { pan: p, f1: 300, q: 1.5, wet: .35 });
+    noise(.3, .05, 7000, .02, 'highpass', { pan: p, wet: .5 });
+    for (const [m, d] of [[1, 0], [1.5, .05], [2, .1]]) tone('triangle', f * m, f * m, .8, .035, d, { pan: p, wet: .6, attack: .02 });
+  },
+  streak:  n => { const lift = Math.min(3, Math.floor(n / 10)); for (let i = 0; i < 4; i++) tone('triangle', noteFor(5 + i + lift), noteFor(5 + i + lift), .5, .04, i * .07, { wet: .7 }); },
+  miss:    () => { tone('sawtooth', 150, 80, .14, .1, 0, { filter: 'lowpass', ff: 700 }); tone('square', 159, 85, .1, .04); },
+  drop:    () => tone('sine', 420, 260, .08, .05),
+  breach:  () => {
+    noise(.7, .32, 900, 0, 'lowpass', { f1: 120, wet: .4 }); tone('sawtooth', 70, 30, .6, .2, 0, { filter: 'lowpass', ff: 400 });
+    tone('square', 440, 440, .12, .06, 0, { wet: .3 }); tone('square', 330, 330, .14, .06, .16, { wet: .3 }); tone('sine', 50, 30, .9, .3);
+  },
+  heart:   () => { tone('sine', 72, 50, .12, .32); tone('sine', 66, 46, .14, .26, .2); },
+  chime:   p => { tone('sine', 1800, 1500, .4, .06, 0, { pan: p, wet: .6 }); tone('triangle', 2400, 2300, .3, .03, .03, { pan: p, wet: .6 }); tone('sine', 3600, 3400, .2, .012, .05, { pan: p, wet: .8 }); },
+  pop:     () => {
+    tone('sawtooth', 1400, 60, .35, .1, 0, { filter: 'lowpass', ff: 3000 }); noise(.3, .14, 4000, 0, 'highpass', { wet: .5 });
+    for (let i = 0; i < 5; i++) tone('sine', 2000 + Math.random() * 2000, 1500, .05, .015, Math.random() * .2, { pan: rnd(-.6, .6), wet: .6 });
+  },
+  clang:   p => {
+    tone('square', 230, 205, .3, .06, 0, { pan: p, filter: 'bandpass', ff: 900, q: 3, wet: .4 }); tone('triangle', 690, 660, .6, .05, 0, { pan: p, wet: .6 });
+    tone('sine', 1050, 1030, .8, .02, 0, { pan: p, wet: .7 }); noise(.08, .16, 3200, 0, 'bandpass', { pan: p }); tone('sine', 95, 40, .35, .25, .02, { pan: p });
+  },
+  forge:   () => { tone('triangle', 330, 330, .2, .05, 0, { wet: .5 }); tone('triangle', 495, 495, .2, .05, .1, { wet: .5 }); tone('square', 990, 980, .1, .025, .2, { wet: .6 }); },
+  pulse:   () => { tone('sine', 320, 110, 1.3, .22, 0, { lfo: 6, wet: .5 }); tone('sine', 640, 220, 1, .05, .05, { lfo: 6, wet: .6 }); noise(1.2, .06, 600, 0, 'lowpass', { f1: 150, wet: .5 }); },
+  torpGo:  d => { tone('sawtooth', 160, 900, d, .03, 0, { filter: 'lowpass', ff: 1500 }); noise(d, .05, 900, 0, 'bandpass', { f1: 2400 }); },
+  bubble:  (p, when = 0) => tone('sine', 380 + Math.random() * 300, 900 + Math.random() * 500, .045, .03, when, { pan: p, wet: .3 }),
+  torpHit: p => {
+    noise(.7, .32, 1200, 0, 'lowpass', { pan: p, f1: 200, wet: .4 }); tone('sine', 80, 28, .7, .34, 0, { pan: p }); tone('square', 300, 120, .2, .06, 0, { pan: p });
+    for (let i = 0; i < 6; i++) sfx.bubble(p, .1 + i * .06);
+  },
+  collect: p => [523, 659, 784, 1046].forEach((f, i) => tone('triangle', f, f, .35, .06, i * .07, { pan: p, wet: .5 })),
+  ready:   () => { tone('triangle', 880, 880, .16, .09, 0, { wet: .4 }); tone('triangle', 1320, 1320, .26, .09, .08, { wet: .5 }); },
+  arm:     () => tone('square', 220, 220, .05, .03),
+  nuke:    () => {
+    duck(.38); const w = .4;
+    tone('sine', 58, 22, 2.6, .55, w); noise(2, .45, 900, w, 'lowpass', { f1: 120, wet: .6 }); noise(.5, .3, 2400, w, 'highpass', { wet: .5 });
+    tone('triangle', 220, 90, 2.2, .1, w + .1, { wet: .7 }); tone('sine', 110, 108, 4, .05, w + .5, { wet: .9, attack: .6 });
+    for (let i = 0; i < 14; i++) noise(.04, .1, 5000, w + .3 + Math.random() * 1.6, 'highpass', { pan: rnd(-.9, .9) });
+  },
+  wave:    () => [392, 523, 659, 784].forEach((f, i) => tone('triangle', f, f, .9, .05, i * .09, { wet: .7, attack: .02 })),
+  siren:   () => { for (let i = 0; i < 3; i++) { tone('sawtooth', 300, 520, .45, .11, i * .9, { wet: .5, filter: 'lowpass', ff: 2400 }); tone('sawtooth', 520, 300, .45, .11, i * .9 + .45, { wet: .5, filter: 'lowpass', ff: 2400 }); } },
+  bossHit: p => { noise(.7, .35, 900, 0, 'lowpass', { pan: p, f1: 150, wet: .5 }); tone('sine', 60, 25, .9, .38, 0, { pan: p }); tone('square', 180, 90, .3, .07, 0, { pan: p, wet: .4 }); },
+  // the leviathan's call: a slow, wavering moan with an undertone
+  bossCall: p => {
+    tone('sine', 78, 55, 2.4, .22, 0, { pan: p, lfo: 4.5, depth: .05, wet: .8, attack: .4 });
+    tone('sawtooth', 156, 110, 2.2, .035, .1, { pan: p, filter: 'lowpass', ff: 420, wet: .8, attack: .5 });
+    tone('sine', 52, 70, 1.6, .15, 1.2, { pan: p, lfo: 3, depth: .06, wet: .8, attack: .3 });
+  },
+  win:     () => [523, 659, 784, 1046, 1318].forEach((f, i) => tone('triangle', f, f, .9, .06, i * .12, { wet: .7 })),
+  sonarPing: () => { tone('sine', 1480, 1400, 1.8, .13, 0, { wet: .7 }); tone('sine', 1480, 1420, 1.3, .05, .42, { wet: .8 }); tone('sine', 1480, 1440, 1, .025, .84, { wet: .9 }); tone('sine', 95, 50, .3, .18); },
+  sweep:   () => tone('sine', 1175, 1150, 1.4, .03, 0, { wet: .9 }),
+  // a contact returns a faint blip as the sweep crosses it; closer contacts sound higher
+  blip:    (p, f) => tone('sine', f, f * .98, .08, .03, 0, { pan: p, wet: .5 }),
+  armour:  p => { tone('square', 260, 180, .2, .06, 0, { pan: p, filter: 'bandpass', ff: 1100, q: 2, wet: .4 }); noise(.18, .2, 3600, 0, 'bandpass', { pan: p }); tone('triangle', 820, 760, .5, .05, .02, { pan: p, wet: .6 }); },
+  split:   p => { noise(.12, .14, 1800, 0, 'lowpass', { pan: p }); tone('triangle', 700, 1200, .1, .05, 0, { pan: p - .3, wet: .4 }); tone('triangle', 700, 1200, .1, .05, .08, { pan: p + .3, wet: .4 }); },
+  mine:    p => {
+    noise(.9, .4, 1500, 0, 'lowpass', { pan: p, f1: 140, wet: .5 }); tone('sine', 70, 28, .9, .4, 0, { pan: p });
+    for (let i = 0; i < 8; i++) noise(.05, .1, 4500, .1 + Math.random() * .6, 'highpass', { pan: p + rnd(-.3, .3) });
+  },
+  ambush:  p => { tone('sawtooth', 600, 200, .35, .06, 0, { pan: p, wet: .4 }); tone('sawtooth', 500, 150, .35, .06, .2, { pan: p, wet: .4 }); noise(.3, .15, 900, .1, 'lowpass', { pan: p }); },
+  fizz:    p => noise(.35, .06, 1400, 0, 'highpass', { pan: p, wet: .4 }),
+  storm:   () => { noise(2.4, .07, 700, 0, 'lowpass', { wet: .5 }); noise(2.4, .03, 3000, .2, 'highpass', { pan: rnd(-.6, .6) }); },
+  thermo:  () => tone('sine', 180, 120, 1.6, .07, 0, { lfo: 4, wet: .6 }),
+  ui:      () => tone('sine', 1300, 1250, .04, .018, 0, { force: true }),
+  engage:  () => { tone('sine', 300, 900, .3, .05, 0, { force: true, wet: .5 }); noise(.3, .04, 600, 0, 'bandpass', { force: true, f1: 3000 }); },
+};
+
+// ocean bed level follows the threat; the generative score follows the threat and the leviathan
+const CHORDS = [[0, 3, 7], [-4, 0, 3], [3, 7, 10], [-2, 2, 5]]; // Am F C G, in semitones from A
+let musicNext = 0, musicBeat = 0;
+function audioTick() {
+  if (!actx) return;
+  const t = actx.currentTime, on = prefs.sound && (screen === 'play' || screen === 'title');
+  ambBus.gain.setTargetAtTime(on ? .55 + (screen === 'play' ? (G.level - 1) / 11 * .35 : 0) : 0, t, .6);
+  const musicOn = on && prefs.music && screen === 'play';
+  musicBus.gain.setTargetAtTime(musicOn ? .5 : 0, t, .8);
+  if (!musicOn) { musicNext = t + .2; return; }
+  const beat = 60 / (72 + G.level * 4 + (G.boss ? 12 : 0));
+  while (musicNext < t + .25) { playBeat(musicNext - t, musicBeat++); musicNext += beat; }
+}
+function playBeat(when, n) {
+  const chord = CHORDS[Math.floor(n / 8) % CHORDS.length], root = 110 * Math.pow(2, chord[0] / 12);
+  const o = { bus: musicBus, force: true, wet: .5 };
+  if (n % 4 === 0) tone('sine', root / 2, root / 2, 1.6, .16, when, { ...o, attack: .05 });
+  if (n % 8 === 4) tone('triangle', root, root, 1.2, .03, when, { ...o, wet: .7, attack: .2 });
+  const busy = .3 + (G.level / 12) * .45 + (G.boss ? .2 : 0);
+  if (Math.random() < busy) {
+    const f = 110 * Math.pow(2, (pick(chord) + 12 * (1 + Math.floor(Math.random() * 2))) / 12);
+    tone('triangle', f, f, .35, .022, when, { ...o, pan: rnd(-.5, .5), wet: .6 });
+  }
+  if (G.level >= 6 && n % 2 === 1) noise(.04, .015, 7000, when, 'highpass', o);
+}
+
+/* ------------------------------------------------------------ stage */
+const stage = $('#stage'), cv = $('#scope'), ctx = cv.getContext('2d');
+function resize() {
+  const r = stage.getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  S.w = r.width; S.h = r.height; S.dpr = Math.min(2, devicePixelRatio || 1);
+  cv.width = Math.round(S.w * S.dpr); cv.height = Math.round(S.h * S.dpr);
+  S.cx = S.w / 2; S.cy = S.h / 2; S.R = Math.min(S.w, S.h) * .44;
+  S.lattice = [];
+  for (let r = 34; r <= S.R; r += 15) {
+    const n = Math.max(10, Math.floor(TAU * r / 11.5));
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * TAU + r * .37;
+      S.lattice.push({ x: S.cx + Math.cos(a) * r, y: S.cy + Math.sin(a) * r, a: wrap(a), r });
+    }
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.font = S.font; S.cw = ctx.measureText('m').width;
+  ctx.font = S.fontB; S.cwB = ctx.measureText('m').width;
+  // marine snow: specks of drifting matter that give the water depth
+  S.snow = Array.from({ length: 70 }, () => ({ x: Math.random() * S.w, y: Math.random() * S.h, v: rnd(3, 9), ph: Math.random() * TAU, r: rnd(.6, 1.4) }));
+}
+new ResizeObserver(resize).observe(stage);
+
+/* ------------------------------------------------------------ game state */
+const G = { mode: 'demo', game: 'patrol', diff: 4, level: 4, words: [], tracers: [], torps: [], fx: [], sweep: 0, prevSweep: 0, shake: 0, sim: true, flash: 0, hull: HULL_MAX, iron: [], ironForge: [], phase: { on: false }, ripples: [], hurt: 0, combo: 0 };
+function newGame(diff, mode, game) {
+  Object.assign(G, {
+    mode, game, diff, level: diff, kills: 0, points: 0, ptsBy: {}, bestWord: null, words: [], tracers: [], torps: [], fx: [], lock: null, boss: null,
+    spawnT: .8, nextId: 1, t: 0, correct: 0, miss: 0, sim: true, flash: 0, slowT: 0,
+    hull: HULL_MAX, phase: { on: false, charge: 0, lastHit: -99, ripples: [], forge: 1 },
+    iron: [false, false, false, false, false, false], ironForge: [1, 1, 1, 1, 1, 1],
+    charge: 0, arsenal: { pulse: 0, torp: 0, nuke: 0 }, arm: 0, armHeld: false, armTick: 0, nuke: null, spawnHold: 0,
+    crateT: game === 'sector' ? 14 : 30, hbT: 0,
+    pingCd: 0, pingT: 0, alertT: 0, pingGlow: 0, thermo: null, thermoT: rnd(20, 35), storm: null, stormT: rnd(25, 40),
+    combo: 0, ripples: [], hurt: 0,
+    kills5: Array(24).fill(0), k5T: 0, killsRun: [0], kRunT: 0, keyTimes: [], peakWpm: 0, recent: [], longest: '', last: '',
+    stats: { hullDmg: 0, hullHits: 0, phaseAbs: 0, ironHits: 0, hardest: null, used: { pulse: 0, torp: 0, nuke: 0, ping: 0 }, earned: { pulse: 0, torp: 0, nuke: 0 }, crates: { got: 0, seen: 0 }, mines: 0, decoys: 0 },
+    sec: { wave: 1, quota: 0, spawned: 0, stage: 'intro', t: 0 },
+  });
+  G.sec.quota = quotaFor(1, diff);
+  if (game === 'sector') G.level = sectorLevel(1);
+}
+const enemies = () => G.words.filter(w => w.kind === 'enemy').length;
+const threats = () => G.words.filter(w => w.kind !== 'crate' && w.trait !== 'decoy');
+const pos = w => ({ x: S.cx + w.rx, y: S.cy + w.ry });
+const angOf = w => Math.atan2(w.ry, w.rx);
+const live = w => G.words.includes(w);
+const bearing = w => Math.round(wrap(angOf(w) + Math.PI / 2) * 180 / Math.PI) % 360;
+// reversed words store their letters in typing order; the chip still shows the word the right way round
+const shown = w => w.rev ? [...w.text].reverse().join('') : w.text;
+const hitDamage = w => wordDamage(w) * (w.trait === 'mine' ? 2 : 1);
+function letterPos(w, i) {
+  const p = pos(w), cw = w.kind === 'boss' ? S.cwB : S.cw, n = w.text.length, d = w.rev ? n - 1 - i : i;
+  return { x: p.x - (n - 1) * cw / 2 + d * cw, y: p.y };
+}
+const pinging = () => G.pingT > 0;
+const inStorm = w => !!G.storm && w.dist > S.R * .3 && angGap(angOf(w), G.storm.a) < G.storm.hw;
+const inThermo = w => !!G.thermo && w.dist > G.thermo.f0 * S.R && w.dist < G.thermo.f1 * S.R;
+// what the scope shows of a contact: 'clear', 'echo' (a silent contact's last-seen position) or 'hidden'
+function sight(w) {
+  if (pinging() || w.dist < S.R * .3) return 'clear';
+  if (inStorm(w)) return 'hidden';
+  if (w.silent) return w.echo > .02 ? 'echo' : 'hidden';
+  return 'clear';
+}
+function edgeDist(a) {
+  const c = Math.abs(Math.cos(a)), s = Math.abs(Math.sin(a));
+  return Math.min((S.w / 2) / Math.max(c, 1e-6), (S.h / 2) / Math.max(s, 1e-6));
+}
+const angGap = (a, b) => Math.abs(wrap(a - b + Math.PI) - Math.PI);
+function bestBearing() {
+  let ang = Math.random() * TAU, best = -1;
+  for (let k = 0; k < 16; k++) {
+    const cand = Math.random() * TAU;
+    const gap = G.words.reduce((m, w) => Math.min(m, angGap(cand, angOf(w))), Infinity);
+    if (gap > best) { best = gap; ang = cand; }
+    if (gap > .52) break;
+  }
+  return ang;
+}
+function pickFromTier(tier, minLen = 0) {
+  const pool = POOLS[tier];
+  const taken = new Set(G.words.filter(w => w.fired < w.text.length).map(w => w.text[w.fired].toLowerCase()));
+  for (let k = 0; k < 30; k++) {
+    const c = pick(pool);
+    if (c.length >= minLen && !taken.has(c[0]) && !G.recent.includes(c) && !G.words.some(w => w.text === c)) return c;
+  }
+  return pool.filter(c => c.length >= minLen)[0] || pick(pool);
+}
+function pickWord() {
+  const wts = LEVEL_WEIGHTS[Math.min(G.level, 12) - 1];
+  let r = Math.random(), tier = 0, acc = 0;
+  for (let i = 0; i < wts.length; i++) { acc += wts[i]; if (r <= acc) { tier = i; break; } }
+  return pickFromTier(tier);
+}
+function mk(kind, text, rx, ry, extra) {
+  G.recent.push(text); if (G.recent.length > 40) G.recent.shift();
+  return Object.assign({ id: G.nextId++, kind, text, rx, ry, dist: Math.hypot(rx, ry), fired: 0, landed: 0, trail: [], trailT: 0, hitT: 0, missT: 0, missed: false, layerNo: 0 }, extra);
+}
+function spawnEnemy(o = {}) {
+  const ang = o.ang ?? bestBearing(), d = o.dist ?? edgeDist(ang) + 30;
+  const trait = o.trait !== undefined ? o.trait : rollTrait(G.level);
+  let text = o.text || (o.tier != null ? pickFromTier(o.tier) : pickWord());
+  if (!o.text) {
+    if (trait === 'splitter' && text.length < 7) text = pickFromTier(3);
+    if (trait === 'mine') text = pickFromTier(Math.random() < .5 ? 0 : 1);
+    if (trait === 'reversed' && text.length > 7) text = pickFromTier(2);
+  }
+  const extra = { speed: o.speed ?? wordSpeed(G.level), trait };
+  if (trait === 'cased') {
+    if (Math.random() < .6) text = text[0].toUpperCase() + text.slice(1);
+    if (!/[A-Z]/.test(text) || Math.random() < .5) text += pick([...PUNCT]);
+    extra.cased = true;
+  }
+  if (trait === 'reversed') { extra.rev = true; text = [...text].reverse().join(''); }
+  if (trait === 'armour') extra.armour = 1;
+  if (trait === 'silent') Object.assign(extra, { silent: true, echo: 0, ex: 0, ey: 0 });
+  if (trait === 'mine') extra.speed *= .55;
+  const w = mk('enemy', text, Math.cos(ang) * d, Math.sin(ang) * d, extra);
+  G.words.push(w);
+  if (trait) tip(trait);
+  return w;
+}
+// supply crates drift ACROSS the scope (not at the core) and escape if not typed in time
+function spawnCrate(ctype) {
+  const a = Math.random() * TAU, d0 = edgeDist(a) + 70, sx = Math.cos(a) * d0, sy = Math.sin(a) * d0;
+  const side = Math.random() < .5 ? 1 : -1, off = S.R * rnd(.45, .65);
+  const px = -Math.sin(a) * side * off, py = Math.cos(a) * side * off;
+  const sp = ctype === 'nuke' ? 66 : 44, n = Math.hypot(px - sx, py - sy);
+  const text = ctype === 'nuke' ? pickFromTier(4, 10) : pickFromTier(3);
+  G.words.push(mk('crate', text, sx, sy, { ctype, vx: (px - sx) / n * sp, vy: (py - sy) / n * sp, entered: false }));
+  G.stats.crates.seen++;
+  tip('crate');
+}
+function spawnBoss() {
+  // layers are one tier longer than the longest words of the final wave; the last layer one more
+  const wts = LEVEL_WEIGHTS[sectorLevel(3) - 1], top = wts.reduce((m, w, k) => w > 0 ? k : m, 0);
+  const n = 3 + Math.floor(G.diff / 2), layers = [];
+  for (let i = 0; i < n; i++) layers.push(pickFromTier(Math.min(4, top + 1 + (i === n - 1 ? 1 : 0))));
+  const a = bestBearing(), d = edgeDist(a) + 50;
+  G.boss = mk('boss', layers[0], Math.cos(a) * d, Math.sin(a) * d, { layers, layerTotal: n, speed: 12 + G.diff * 1.9, escortT: 2 });
+  G.words.push(G.boss);
+  G.boss.callT = .6; G.boss.wakeT = 0;
+  tip('boss');
+}
+function remove(w) { G.words = G.words.filter(o => o !== w); if (G.lock === w) G.lock = null; }
+
+/* ------------------------------------------------------------ typing + combat */
+// exact words need the right case and punctuation; everything else ignores case (so Caps Lock is harmless)
+function wants(w, ch) { const n = w.text[w.fired]; return w.cased ? ch === n : ch.toLowerCase() === n.toLowerCase(); }
+function press(ch) {
+  if (G.lock && (G.lock.fired >= G.lock.text.length || !live(G.lock))) G.lock = null;
+  let target = null;
+  if (G.lock) { if (wants(G.lock, ch)) target = G.lock; }
+  else for (const w of G.words) if (w.fired < w.text.length && wants(w, ch) && (!target || w.dist < target.dist)) target = w;
+  if (target) { G.lock = target; fire(target); } else miss();
+}
+function dropLock() { if (G.lock) { G.lock = null; sfx.drop(); } }
+function fire(w) {
+  const idx = w.fired++;
+  // time each typing pass (armour has two) from its first keystroke to its last, for the speed score
+  if (idx === 0) w.passT = G.t;
+  if (w.fired === w.text.length) { w.typeDur = (w.typeDur || 0) + (G.t - w.passT); w.typeKeys = (w.typeKeys || 0) + w.text.length; w.passes = (w.passes || 0) + 1; }
+  G.correct++; G.keyTimes.push(G.t);
+  const p = pos(w), a = Math.atan2(p.y - S.cy, p.x - S.cx);
+  const sx = S.cx + Math.cos(a) * 14, sy = S.cy + Math.sin(a) * 14;
+  G.tracers.push({ w, idx, layerNo: w.layerNo, sx, sy, tx: p.x, ty: p.y, kick: (Math.random() < .5 ? -1 : 1) * (.16 + Math.random() * .2), t: 0, dur: .12 + w.dist / 2800, ch: w.text[idx] });
+  for (let i = 0; i < 5; i++) {
+    const b = a + (Math.random() - .5) * 1.1, v = rnd(90, 250);
+    G.fx.push({ k: 'dot', x: sx, y: sy, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: 1.3, col: C['pen-2'], life: .18, max: .18, drag: 6 });
+  }
+  bump(1); sfx.fire(panAt(p.x), noteFor(idx + Math.min(4, Math.floor(G.combo / 3))));
+}
+function miss() {
+  G.miss++;
+  if (G.lock) { G.lock.missT = .28; G.lock.missed = true; }
+  G.charge = Math.max(0, G.charge - MISS_COST); G.combo = 0;
+  G.fx.push({ k: 'x', x: S.cx, y: S.cy - 74, life: .45, max: .45 });
+  flashUnit('uCore', 'bad', 260);
+  bump(1.5); sfx.miss();
+}
+function bump(n) { if (shakeOn()) G.shake = Math.min(G.shake + n, 14); }
+function bez(tr, s) {
+  const mx = (tr.sx + tr.tx) / 2, my = (tr.sy + tr.ty) / 2, dx = tr.tx - tr.sx, dy = tr.ty - tr.sy;
+  const cx = mx - dy * tr.kick, cy = my + dx * tr.kick, u = 1 - s;
+  return { x: u * u * tr.sx + 2 * u * s * cx + s * s * tr.tx, y: u * u * tr.sy + 2 * u * s * cy + s * s * tr.ty };
+}
+function impact(tr) {
+  const w = tr.w;
+  const n = Math.max(6, Math.floor(Math.hypot(tr.tx - tr.sx, tr.ty - tr.sy) / 10));
+  for (let i = 1; i < n; i++) {
+    const q = bez(tr, i / n);
+    G.fx.push({ k: 'dot', x: q.x, y: q.y, vx: 0, vy: 0, r: .95, col: C['pen-2'], life: .55 * (i / n) + .15, max: .7, a0: .55 });
+  }
+  if (!live(w) || tr.layerNo !== w.layerNo || w.landed >= w.text.length) return;
+  w.landed++; w.hitT = .22;
+  const dir = Math.atan2(tr.ty - tr.sy, tr.tx - tr.sx);
+  G.fx.push({ k: 'glyph', x: tr.tx, y: tr.ty, ch: tr.ch, vx: Math.cos(dir) * 40, vy: Math.sin(dir) * 40 - 30, life: .5, max: .5, big: w.kind === 'boss' });
+  G.fx.push({ k: 'ring', x: tr.tx, y: tr.ty, r0: 3, r1: 22, col: C['pen-2'], life: .3, max: .3 });
+  for (let i = 0; i < 11; i++) {
+    const b = dir + (Math.random() - .5) * 2.4, v = rnd(80, 300);
+    G.fx.push({ k: 'dot', x: tr.tx, y: tr.ty, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(.9, 2.1), col: Math.random() < .3 ? C.ink : C['pen-2'], life: rnd(.25, .55), max: .55, drag: 5 });
+  }
+  ripple(tr.tx, tr.ty, 3, 300, .5);
+  bump(2); sfx.hit(panAt(tr.tx));
+  if (w.landed >= w.text.length) complete(w, 'type');
+}
+function complete(w, how) {
+  if (w.kind === 'crate') return collect(w);
+  if (w.kind === 'boss') return bossLayer(w, how);
+  if (w.trait === 'mine' && how !== 'nuke') return detonateMine(w);
+  if (w.trait === 'decoy') return how === 'type' ? springDecoy(w) : dissolve(w);
+  if (w.armour > 0 && how !== 'torp' && how !== 'nuke') return breakArmour(w);
+  kill(w, how);
+}
+function breakArmour(w) {
+  const p = pos(w);
+  w.armour--; w.fired = 0; w.landed = 0; w.layerNo++; w.hitT = .5;
+  for (let k = 0; k < 12; k++) {
+    const a = Math.random() * TAU, v = rnd(70, 220);
+    G.fx.push({ k: 'chunk', x: p.x + rnd(-30, 30), y: p.y + rnd(-10, 10), vx: Math.cos(a) * v, vy: Math.sin(a) * v - 50, rot: a, spin: rnd(-9, 9), w: rnd(5, 10), h: rnd(2, 3.5), g: 320, col: C['ink-2'], life: rnd(.8, 1.2), max: 1.2 });
+  }
+  G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 6, r1: 60, n: 28, col: C['ink-2'], life: .5, max: .5 });
+  G.fx.push({ k: 'stamp', x: p.x, y: p.y - 26, text: 'ARMOUR BROKEN', col: C['ink-2'], life: 1.1, max: 1.1 });
+  ripple(p.x, p.y, 6);
+  bump(4); sfx.armour(panAt(p.x));
+  G.last = `${shown(w)}: armour broken, type it again`;
+}
+function splitInto(w) {
+  const a = angOf(w), p = pos(w);
+  for (const s of [-1, 1]) {
+    const c = spawnEnemy({ trait: null, tier: Math.random() < .5 ? 0 : 1, ang: a + s * .2, dist: w.dist + 24, speed: w.speed * 1.15 });
+    c.hitT = .4;
+  }
+  G.fx.push({ k: 'stamp', x: p.x, y: p.y + 30, text: 'SPLIT', col: C['ink-2'], life: 1, max: 1 });
+  sfx.split(panAt(p.x));
+}
+// a mine strips the untyped tail off every contact inside its blast ring
+function detonateMine(w) {
+  const p = pos(w);
+  remove(w);
+  G.kills++; G.stats.mines++; G.kills5[G.kills5.length - 1]++; G.killsRun[G.killsRun.length - 1]++;
+  const sc = typedPoints(w, !w.missed);
+  G.fx.push({ k: 'stamp', x: p.x, y: p.y - 26, text: `+${sc.pts}  ${shown(w)}`, sub: sc.sub, col: C['pen-6'], life: 1.3, max: 1.3 });
+  G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 8, r1: MINE_R, n: 64, col: C['pen-6'], life: .6, max: .6 });
+  G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 4, r1: MINE_R * .6, n: 36, col: C.ink, life: .8, max: .8 });
+  for (let i = 0; i < 40; i++) {
+    const b = Math.random() * TAU, v = rnd(100, 460);
+    G.fx.push({ k: 'dot', x: p.x, y: p.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(1, 2.8), col: Math.random() < .4 ? C.ink : C['pen-6'], life: rnd(.4, .9), max: .9, drag: 3 });
+  }
+  ripple(p.x, p.y, 13, 380, 1.2); bubbles(p.x, p.y, 12);
+  bump(10); sfx.mine(panAt(p.x));
+  for (const o of [...G.words]) {
+    if (o.kind === 'crate' || !live(o)) continue;
+    const q = pos(o);
+    if (Math.hypot(q.x - p.x, q.y - p.y) > MINE_R) continue;
+    const k = Math.min(MINE_STRIP, o.text.length - o.fired);
+    if (k <= 0) continue;
+    for (let i = o.text.length - k; i < o.text.length; i++) {
+      const lp = letterPos(o, i);
+      G.fx.push({ k: 'glyph', x: lp.x, y: lp.y, ch: o.text[i], vx: rnd(-80, 80), vy: rnd(-90, -20), life: .6, max: .6, col: C['pen-6'], big: o.kind === 'boss' });
+    }
+    o.orig = o.orig || o.text; o.text = o.text.slice(0, o.text.length - k); o.hitT = .4;
+    if (o.landed >= o.text.length) complete(o, 'mine');
+  }
+  G.last = 'mine detonated';
+}
+function springDecoy(w) {
+  const p = pos(w), a = angOf(w);
+  remove(w); G.stats.decoys++; G.charge = 0;
+  for (const s of [-1, 0, 1]) spawnEnemy({ trait: null, tier: Math.random() < .6 ? 0 : 1, ang: a + s * .3, dist: Math.max(S.R * .55, w.dist), speed: wordSpeed(G.level) * 1.1 });
+  G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 6, r1: 90, n: 36, col: C['pen-1'], life: .7, max: .7 });
+  G.fx.push({ k: 'stamp', x: p.x, y: p.y - 26, text: 'AMBUSH', col: C['pen-1'], life: 1.4, max: 1.4, big: true });
+  flashUnit('uCore', 'bad', 600); bump(6); sfx.ambush(panAt(p.x));
+  G.last = 'decoy sprang an ambush';
+}
+function dissolve(w) {
+  const p = pos(w);
+  remove(w);
+  if (sight(w) === 'clear') {
+    G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 4, r1: 36, n: 20, col: C['ink-3'], life: .6, max: .6 });
+    G.fx.push({ k: 'stamp', x: p.x, y: p.y - 22, text: 'DECOY', col: C['ink-3'], life: 1, max: 1 });
+  }
+  sfx.fizz(panAt(p.x));
+}
+function burstLetters(w, col, spread = 60) {
+  for (let i = w.landed; i < w.text.length; i++) {
+    const q = letterPos(w, i);
+    G.fx.push({ k: 'glyph', x: q.x, y: q.y, ch: w.text[i], vx: rnd(-spread, spread), vy: rnd(-90, -20), life: .6, max: .6, delay: (i - w.landed) * .035, col, big: w.kind === 'boss' });
+  }
+}
+function kill(w, how) {
+  const p = pos(w);
+  remove(w);
+  G.kills++;
+  G.kills5[G.kills5.length - 1]++; G.killsRun[G.killsRun.length - 1]++;
+  if (shown(w).length > G.longest.length) G.longest = shown(w);
+  // a clean word (no miss while engaged) charges the arsenal, patches the hull and extends the streak
+  const clean = how === 'type' && !w.missed;
+  if (clean) G.combo++;
+  // weapon kills pay half the letters (as the word was before a mine stripped it) and nothing for speed; a nuke pays a flat salvage fee
+  const whole = w.orig ? { ...w, text: w.orig } : w;
+  const sc = how === 'type' ? typedPoints(w, clean)
+    : { pts: addPoints(how === 'nuke' ? 5 : wordBase(whole) * .5, 'weapons'), sub: how === 'nuke' ? '' : 'WEAPON ×0.5' };
+  if (how === 'type' || how === 'mine') {
+    G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 6, r1: 86, n: 40, col: C['pen-2'], life: .6, max: .6 });
+    G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 2, r1: 52, n: 24, col: C['ink-2'], life: .8, max: .8 });
+    G.fx.push({ k: 'cross', x: p.x, y: p.y, life: 1, max: 1 });
+    G.fx.push({ k: 'stamp', x: p.x, y: p.y - 26, text: `+${sc.pts}  ${shown(whole)}`, sub: sc.sub, col: C['pen-2'], life: 1.3, max: 1.3 });
+    for (let i = 0; i < 26; i++) {
+      const b = Math.random() * TAU, v = rnd(70, 400);
+      G.fx.push({ k: 'dot', x: p.x, y: p.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(1, 2.6), col: Math.random() < .35 ? C.ink : C['pen-2'], life: rnd(.4, .9), max: .9, drag: 3.5 });
+    }
+    // the spent letter dots scatter, glowing motes linger, and bubbles rise
+    for (let i = 0; i < w.text.length; i++) {
+      const q = letterPos(w, i), b = Math.atan2(q.y - p.y, q.x - p.x + .01);
+      G.fx.push({ k: 'dot', x: q.x, y: q.y, vx: Math.cos(b) * rnd(40, 120), vy: Math.sin(b) * rnd(40, 120) - 20, r: 1.4, col: C['ink-3'], life: .7, max: .7, drag: 2.5 });
+    }
+    for (let i = 0; i < 9; i++) G.fx.push({ k: 'twinkle', x: p.x + rnd(-40, 40), y: p.y + rnd(-18, 18), vx: rnd(-8, 8), vy: rnd(-14, -2), seed: Math.random() * 9, life: rnd(.9, 1.6), max: 1.6 });
+    bubbles(p.x, p.y, 7);
+    ripple(p.x, p.y, 6, 360, .9);
+    bump(5);
+    if (how === 'type') sfx.kill(panAt(p.x), noteFor(2 + Math.min(6, Math.floor(G.combo / 3))));
+    if (clean && G.combo % 10 === 0) streakFlourish();
+  }
+  if (w.trait === 'splitter' && how !== 'nuke') splitInto(w);
+  if (clean) { addCharge(1); repair(1.5); }
+  G.last = `${shown(w)} ${how === 'nuke' ? 'vaporised' : how === 'torp' ? 'torpedoed' : how === 'mine' ? 'caught in a mine blast' : 'splashed'}`;
+  flashUnit('uScore', 'ok', 420);
+  if (G.game === 'patrol') { const lv = rampLevel(); if (lv > G.level) levelUp(lv); }
+}
+function levelUp(lv) {
+  G.level = lv;
+  G.fx.push({ k: 'stamp', x: S.cx, y: S.cy - 92, text: `THREAT ${pad(lv)}`, col: C['pen-4'], life: 1.6, max: 1.6, big: true });
+  flashUnit('uThreat', 'warn', 900);
+  sfx.wave();
+}
+function repair(n) { G.hull = Math.min(HULL_MAX, G.hull + n); }
+function banner(title, sub, col) { G.fx.push({ k: 'banner', title, sub, col, life: 2.6, max: 2.6 }); }
+// a ring of displacement travelling through the scope's dot lattice, like a pressure wave in water
+function ripple(x, y, amp, speed = 420, life = 1.1) {
+  if (reducedMotion) amp *= .3;
+  G.ripples.push({ x, y, amp, speed, life, t: 0 });
+  if (G.ripples.length > 10) G.ripples.shift();
+}
+function bubbles(x, y, n, spread = 18) {
+  for (let i = 0; i < n; i++) G.fx.push({ k: 'bubble', x: x + rnd(-spread, spread), y: y + rnd(-spread / 2, spread / 2), vx: rnd(-14, 14), vy: rnd(-55, -18), r: rnd(1.2, 3.4), life: rnd(.7, 1.4), max: 1.4, delay: rnd(0, .25) });
+}
+function streakFlourish() {
+  for (let i = 0; i < 2; i++) G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 30, r1: 150 + i * 60, n: 64, col: C['pen-2'], life: .9, max: .9, delay: i * .15 });
+  G.fx.push({ k: 'stamp', x: S.cx, y: S.cy - 92, text: `STREAK ${G.combo}`, col: C['pen-2'], life: 1.6, max: 1.6, big: true });
+  ripple(S.cx, S.cy, 7, 500, 1.2);
+  sfx.streak(G.combo);
+}
+// jagged dotted fractures running out from the core when the hull takes damage
+function cracks(n) {
+  for (let k = 0; k < n; k++) {
+    let a = Math.random() * TAU, r = R_HULL + 2;
+    const pts = [];
+    const len = rnd(60, 150);
+    while (r < R_HULL + len) { r += rnd(6, 12); a += rnd(-.18, .18); pts.push([Math.cos(a) * r, Math.sin(a) * r]); }
+    G.fx.push({ k: 'crack', pts, life: .9, max: .9 });
+  }
+}
+
+function addCharge(n) {
+  const before = G.charge;
+  G.charge = Math.min(CHARGE_MAX, G.charge + n);
+  for (const [th, award] of TICKS) if (before < th && G.charge >= th) grant(award);
+  if (G.charge >= CHARGE_MAX) G.charge = 0;
+}
+function grant(award) {
+  const at = (text, col) => G.fx.push({ k: 'stamp', x: S.cx, y: S.cy + 84, text, col, life: 1.8, max: 1.8, big: true });
+  if (award === 'pulse') { G.arsenal.pulse = Math.min(3, G.arsenal.pulse + 1); G.stats.earned.pulse++; at('PULSE READY', C['pen-3']); tip('pulse'); }
+  else if (award === 'torp') { G.arsenal.torp = Math.min(3, G.arsenal.torp + 1); G.stats.earned.torp++; at('TORPEDO READY', C['pen-2']); tip('torp'); }
+  else if (award === 'crate') { spawnCrate(pick(['iron', 'phase', 'repair'])); at('SUPPLY INBOUND', C['pen-4']); }
+  else if (award === 'nuke') {
+    if (!G.arsenal.nuke && !G.words.some(w => w.ctype === 'nuke')) { spawnCrate('nuke'); at('NUKE CRATE INBOUND', C['pen-1']); }
+    else { spawnCrate(pick(['iron', 'phase', 'repair'])); at('SUPPLY INBOUND', C['pen-4']); }
+  }
+  flashUnit('uArsenal', 'ok', 700);
+  sfx.ready();
+}
+
+function collect(w) {
+  const p = pos(w);
+  remove(w);
+  G.stats.crates.got++;
+  const pts = addPoints(wordBase(w) * speedFactor(w), 'crates');
+  G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 6, r1: 90, n: 36, col: w.ctype === 'nuke' ? C['pen-1'] : C['pen-4'], life: .7, max: .7 });
+  G.fx.push({ k: 'stamp', x: p.x, y: p.y - 28, text: `+ ${w.ctype.toUpperCase()}`, sub: `+${pts} pts`, col: w.ctype === 'nuke' ? C['pen-1'] : C['pen-4'], life: 1.4, max: 1.4, big: true });
+  // a ring of supply dots streams into the core
+  G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 120, r1: 30, n: 30, col: C['pen-4'], life: .6, max: .6, delay: .1 });
+  if (w.ctype === 'iron') {
+    const missing = [0, 1, 2, 3, 4, 5].filter(i => !G.iron[i]).sort(() => Math.random() - .5).slice(0, 3);
+    for (const i of missing) { G.iron[i] = true; G.ironForge[i] = 0; }
+    sfx.forge();
+  } else if (w.ctype === 'phase') {
+    if (!G.phase.on) G.phase.forge = 0;
+    Object.assign(G.phase, { on: true, charge: PHASE_MAX, lastHit: -99 });
+  } else if (w.ctype === 'repair') {
+    repair(35);
+    G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 70, r1: R_HULL, n: 40, col: C['pen-3'], life: .8, max: .8 });
+  } else if (w.ctype === 'nuke') { G.arsenal.nuke = 1; G.stats.earned.nuke++; tip('nuke'); }
+  if (w.ctype !== 'nuke') tip(w.ctype);
+  G.last = `${w.ctype} collected`;
+  ripple(p.x, p.y, 5);
+  sfx.collect(panAt(p.x));
+}
+
+/* ------------------------------------------------------------ hits on the core */
+function coreHit(w) {
+  const p = pos(w), a = angOf(w), pi = plateAt(a);
+  remove(w);
+  if (w.kind === 'boss') {
+    G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 30, r1: S.R, n: 72, col: C['pen-1'], life: 1, max: 1 });
+    burstLetters(w, C['pen-1'], 120);
+    G.hull = 0; G.hurt = 1; cracks(8); ripple(S.cx, S.cy, 16, 520, 1.4); bump(20); sfx.breach();
+    if (G.mode === 'play') gameOver('rammed'); else { G.hull = HULL_MAX; G.boss = null; }
+    return;
+  }
+  let dmg = hitDamage(w), by = 'hull';
+  if (G.iron[pi]) {
+    // an iron plate stops any single hit from its side, then breaks
+    G.iron[pi] = false; G.stats.ironHits++; dmg = 0; by = 'iron';
+    ironBreakFx(pi); sfx.clang(panAt(S.cx + Math.cos(a) * R_IRON)); bump(6);
+    ripple(S.cx + Math.cos(a) * R_IRON, S.cy + Math.sin(a) * R_IRON, 8);
+  } else if (G.phase.on) {
+    if (dmg > G.phase.charge) {
+      G.stats.phaseAbs += G.phase.charge; dmg -= Math.round(G.phase.charge);
+      G.phase.on = false; G.phase.charge = 0;
+      phasePopFx(); sfx.pop(); by = 'phase-pop';
+    } else {
+      G.phase.charge -= dmg; G.stats.phaseAbs += dmg; dmg = 0; by = 'phase';
+      G.phase.lastHit = G.t; G.phase.ripples.push({ a, t: 0 }); sfx.chime(panAt(p.x)); bump(2);
+      ripple(S.cx, S.cy, 5, 300, .8);
+    }
+  }
+  const col = by === 'iron' ? C['ink-2'] : by === 'phase' ? C['pen-3'] : C['pen-1'];
+  G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 4, r1: 46, n: 28, col, life: .55, max: .55 });
+  burstLetters(w, col);
+  if (dmg > 0) {
+    G.hull -= dmg; G.stats.hullDmg += dmg; G.stats.hullHits++;
+    G.combo = 0; G.hurt = 1; cracks(3 + Math.floor(dmg / 12)); ripple(S.cx, S.cy, 10 + dmg / 4, 480, 1.2);
+    if (!G.stats.hardest || dmg > G.stats.hardest.dmg) G.stats.hardest = { word: shown(w), dmg };
+    G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: R_HULL, r1: 120 + dmg * 2, n: 48, col: C['pen-1'], life: .7, max: .7 });
+    G.fx.push({ k: 'stamp', x: S.cx, y: S.cy + 64, text: `-${dmg} HULL`, col: C['pen-1'], life: 1.2, max: 1.2, big: true });
+    for (let i = 0; i < 24; i++) {
+      const b = Math.random() * TAU, v = rnd(90, 360);
+      G.fx.push({ k: 'dot', x: S.cx, y: S.cy, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(1.2, 2.6), col: C['pen-1'], life: rnd(.5, .9), max: .9, drag: 3 });
+    }
+    G.charge = 0;
+    flashUnit('uCore', 'bad', 700);
+    bump(4 + dmg / 5); sfx.breach();
+    G.last = `${shown(w)} hit the hull for ${dmg}`;
+    tip('hull');
+  } else {
+    G.charge = Math.floor(G.charge / 2);
+    flashUnit('uCore', by === 'iron' ? 'warn' : 'good', 500);
+    G.last = `${shown(w)} stopped by ${by === 'iron' ? 'iron' : 'phase'}`;
+  }
+  if (G.hull <= 0) { G.hull = 0; if (G.mode === 'play') gameOver('hull'); else G.hull = HULL_MAX; }
+}
+function ironBreakFx(i) {
+  const a0 = PLATE0 + i * TAU / 6, a1 = a0 + TAU / 6;
+  G.fx.push({ k: 'arcflash', a0: a0 + .07, a1: a1 - .07, r: R_IRON, life: .3, max: .3 });
+  for (let k = 0; k < 9; k++) {
+    const a = rnd(a0 + .08, a1 - .08), v = rnd(60, 190);
+    G.fx.push({ k: 'chunk', x: S.cx + Math.cos(a) * R_IRON, y: S.cy + Math.sin(a) * R_IRON, vx: Math.cos(a) * v + rnd(-30, 30), vy: Math.sin(a) * v - rnd(20, 90),
+      rot: a, spin: rnd(-9, 9), w: rnd(5, 10), h: rnd(2.5, 4), g: 340, col: C['ink-2'], life: rnd(.9, 1.3), max: 1.3 });
+  }
+  for (let k = 0; k < 10; k++) {
+    const a = rnd(a0, a1), v = rnd(120, 280);
+    G.fx.push({ k: 'dot', x: S.cx + Math.cos(a) * R_IRON, y: S.cy + Math.sin(a) * R_IRON, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 1.2, col: C['pen-4'], life: .3, max: .3, drag: 4 });
+  }
+}
+function phasePopFx() {
+  for (let i = 0; i < 72; i++) {
+    const a = i / 72 * TAU, v = rnd(140, 320);
+    G.fx.push({ k: 'dot', x: S.cx + Math.cos(a) * R_PHASE, y: S.cy + Math.sin(a) * R_PHASE, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 1.4, col: C['pen-3'], life: rnd(.4, .7), max: .7, drag: 3 });
+  }
+  G.fx.push({ k: 'ring', x: S.cx, y: S.cy, r0: R_PHASE, r1: R_PHASE + 40, col: C['pen-3'], life: .35, max: .35 });
+}
+
+/* ------------------------------------------------------------ weapons */
+function usePulse() {
+  if (!G.arsenal.pulse || G.slowT > 0) return;
+  G.arsenal.pulse--; G.stats.used.pulse++; G.slowT = 5;
+  for (let i = 0; i < 3; i++) G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 20, r1: S.R * 1.05, n: 96, col: C['pen-3'], life: 1.1, max: 1.1, delay: i * .18 });
+  sfx.pulse(); G.last = 'pulse: contacts slowed';
+}
+function useTorp(target) {
+  if (!G.arsenal.torp) return;
+  let t = target || (G.lock && live(G.lock) && G.lock.fired < G.lock.text.length ? G.lock : null);
+  if (!t) for (const w of threats()) if (w.fired < w.text.length && (!t || w.dist < t.dist)) t = w;
+  if (!t) return;
+  G.arsenal.torp--; G.stats.used.torp++;
+  t.fired = t.text.length;
+  if (G.lock === t) G.lock = null;
+  const p = pos(t), a = Math.atan2(p.y - S.cy, p.x - S.cx), side = Math.random() < .5 ? 1 : -1;
+  G.torps.push({ w: t, layerNo: t.layerNo, x: S.cx + Math.cos(a) * 16, y: S.cy + Math.sin(a) * 16, tx: p.x, ty: p.y,
+    vx: Math.cos(a + side * .9) * 60, vy: Math.sin(a + side * .9) * 60, t: 0, bub: 0 });
+  sfx.torpGo(.9); G.last = `torpedo away: ${shown(t)}`;
+}
+// active ping: everything shows for a few seconds, but every contact hears it and speeds up
+function usePing() {
+  if (G.pingCd > 0) return;
+  G.pingCd = PING_CD; G.pingT = PING_SHOW; G.alertT = PING_ALERT; G.pingGlow = 1; G.stats.used.ping++;
+  G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 20, r1: S.R * 1.08, n: 140, col: C['pen-3'], life: .9, max: .9 });
+  ripple(S.cx, S.cy, 6, S.R * 1.2, .9);
+  for (const w of G.words) {
+    if (w.silent) { w.echo = 1; w.ex = w.rx; w.ey = w.ry; }
+    const p = pos(w);
+    // the return echo travels back from each contact to the core
+    G.fx.push({ k: 'echoArc', x0: p.x, y0: p.y, life: .75, max: .75, delay: Math.min(1, w.dist / (S.R * 1.08)) * .7 + .1 });
+    G.fx.push({ k: 'ring', x: p.x, y: p.y, r0: 2, r1: 24, col: C['pen-3'], life: .8, max: .8, delay: Math.min(1, w.dist / (S.R * 1.08)) * .7 });
+  }
+  if (G.game === 'patrol' || G.sec.stage === 'wave') G.spawnT = Math.min(G.spawnT, .4);
+  sfx.sonarPing(); tip('ping');
+  G.last = 'active ping: contacts alerted';
+}
+function startThermo() {
+  const f0 = rnd(.42, .62);
+  G.thermo = { f0, f1: f0 + .11 };
+  G.fx.push({ k: 'stamp', x: S.cx, y: S.cy - S.R * (f0 + .055), text: 'THERMOCLINE', col: C['pen-6'], life: 2, max: 2, big: true });
+  sfx.thermo(); tip('thermo');
+}
+function startStorm() {
+  G.storm = { a: Math.random() * TAU, hw: rnd(.42, .6), drift: (Math.random() < .5 ? -1 : 1) * rnd(.04, .08) };
+  sfx.storm(); tip('storm');
+}
+function torpImpact(tp) {
+  G.fx.push({ k: 'dring', x: tp.x, y: tp.y, r0: 8, r1: 130, n: 52, col: C['pen-2'], life: .75, max: .75 });
+  G.fx.push({ k: 'dring', x: tp.x, y: tp.y, r0: 4, r1: 80, n: 30, col: C['ink-2'], life: .9, max: .9 });
+  G.fx.push({ k: 'cross', x: tp.x, y: tp.y, life: 1, max: 1 });
+  for (let i = 0; i < 34; i++) {
+    const b = Math.random() * TAU, v = rnd(80, 460);
+    G.fx.push({ k: 'dot', x: tp.x, y: tp.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(1, 3), col: Math.random() < .3 ? C.ink : C['pen-2'], life: rnd(.4, 1), max: 1, drag: 3 });
+  }
+  for (let i = 0; i < 14; i++) G.fx.push({ k: 'bubble', x: tp.x + rnd(-14, 14), y: tp.y + rnd(-10, 10), vx: rnd(-20, 20), vy: rnd(-50, -15), r: rnd(1.5, 4), life: rnd(.6, 1.1), max: 1.1 });
+  ripple(tp.x, tp.y, 11, 400, 1.1);
+  bump(9); sfx.torpHit(panAt(tp.x));
+  const w = tp.w;
+  if (!live(w) || w.layerNo !== tp.layerNo) return;
+  burstLetters(w, C['pen-2'], 90);
+  w.landed = w.fired = w.text.length;
+  complete(w, 'torp');
+}
+function detonate() {
+  G.arsenal.nuke = 0; G.armHeld = false; G.arm = 0; G.stats.used.nuke++;
+  G.nuke = { t: 0, r: 0, id: Math.random() };
+  G.flash = 1; G.spawnHold = 3; bump(14);
+  ripple(S.cx, S.cy, 20, 820, 1.7);
+  sfx.nuke(); G.last = 'nuke detonated';
+}
+
+/* ------------------------------------------------------------ leviathan */
+function bossLayer(w, how) {
+  const p = pos(w), cleared = w.layerTotal - w.layers.length + 1;
+  G.kills++; G.killsRun[G.killsRun.length - 1]++; G.kills5[G.kills5.length - 1]++;
+  // every leviathan layer pays double; each layer's typing speed is timed on its own
+  const sc = how === 'type' ? typedPoints(w, !w.missed, 2) : { pts: addPoints(how === 'nuke' ? 5 : wordBase(w), 'weapons'), sub: 'WEAPON' };
+  w.typeDur = w.typeKeys = w.passes = 0;
+  G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 10, r1: 150, n: 60, col: C['pen-1'], life: .8, max: .8 });
+  G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 6, r1: 100, n: 36, col: C['ink-2'], life: 1, max: 1 });
+  for (let k = 0; k < 16; k++) {
+    const a = Math.random() * TAU, v = rnd(80, 260);
+    G.fx.push({ k: 'chunk', x: p.x + rnd(-40, 40), y: p.y + rnd(-10, 10), vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, rot: a, spin: rnd(-8, 8), w: rnd(8, 16), h: rnd(3, 5), g: 300, col: C['ink-3'], life: rnd(1, 1.5), max: 1.5 });
+  }
+  G.fx.push({ k: 'stamp', x: p.x, y: p.y - 40, text: `+${sc.pts}  LAYER ${cleared}/${w.layerTotal}`, sub: sc.sub, col: C['pen-1'], life: 1.5, max: 1.5, big: true });
+  ripple(p.x, p.y, 12, 380, 1.2); bubbles(p.x, p.y, 14, 40);
+  bump(10); sfx.bossHit(panAt(p.x)); flashUnit('uThreat', 'bad', 700);
+  if (!w.missed && how === 'type') addCharge(1);
+  w.layers.shift();
+  if (!w.layers.length) { bossKilled(w); return; }
+  w.text = w.layers[0]; w.fired = 0; w.landed = 0; w.layerNo++; w.missed = false; w.hitT = .5;
+  if (G.lock === w) G.lock = null;
+  const d = w.dist || 1; w.rx += w.rx / d * 34; w.ry += w.ry / d * 34;
+  G.last = `leviathan layer ${cleared} destroyed`;
+}
+function bossKilled(w) {
+  const p = pos(w);
+  remove(w); G.boss = null;
+  for (let i = 0; i < 4; i++) G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 10, r1: 160 + i * 70, n: 64, col: i % 2 ? C['pen-3'] : C['pen-1'], life: 1.2, max: 1.2, delay: i * .15 });
+  for (let i = 0; i < 70; i++) {
+    const b = Math.random() * TAU, v = rnd(90, 520);
+    G.fx.push({ k: 'dot', x: p.x, y: p.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(1, 3), col: pick([C.ink, C['pen-1'], C['pen-3']]), life: rnd(.6, 1.4), max: 1.4, drag: 2.5 });
+  }
+  for (const e of G.words.filter(o => o.kind === 'enemy')) { burstLetters(e, C['pen-3']); complete(e, 'nuke'); }
+  G.flash = .6; bump(16); sfx.win();
+  const bonus = addPoints((500 + Math.ceil(G.hull) * 5) * bonusScale(), 'bonus');
+  banner('LEVIATHAN DESTROYED', `sector ${pad(G.diff)} clear · +${fmtPts(bonus)} pts`, C['pen-3']);
+  G.sec.stage = 'won'; G.sec.t = 0; G.spawnHold = 99;
+}
+
+/* ------------------------------------------------------------ directors */
+function patrolTick(dt) {
+  G.spawnT -= dt;
+  if (G.spawnT <= 0 && !G.spawnHold && enemies() < maxContacts(G.level)) { spawnEnemy(); G.spawnT = spawnInterval(G.level) * workLoad(G.level) * rnd(.75, 1.25); }
+}
+function sectorTick(dt) {
+  const s = G.sec; s.t += dt;
+  if (s.stage === 'intro') { if (s.t > 2.4) { s.stage = 'wave'; s.t = 0; } }
+  else if (s.stage === 'wave') {
+    G.spawnT -= dt;
+    if (s.spawned < s.quota && G.spawnT <= 0 && !G.spawnHold && enemies() < maxContacts(G.level)) {
+      spawnEnemy(); s.spawned++; G.spawnT = sectorGap(G.level) * workLoad(G.level) * rnd(.75, 1.25);
+    }
+    if (s.spawned >= s.quota && !enemies()) {
+      s.stage = 'break'; s.t = 0; repair(30);
+      const bonus = addPoints(100 * s.wave * bonusScale(), 'bonus');
+      banner('WAVE CLEARED', `+${bonus} pts · +30 hull · wave ${s.wave}/3`, C['pen-3']); sfx.wave();
+    }
+  } else if (s.stage === 'break') {
+    if (s.t > 3.6) {
+      if (s.wave < 3) {
+        s.wave++; s.quota = quotaFor(s.wave, G.diff); s.spawned = 0; G.level = sectorLevel(s.wave); s.stage = 'wave'; s.t = 0;
+        banner(`WAVE ${s.wave}/3`, `sector ${pad(G.diff)} · threat ${pad(G.level)}`, C['pen-2']);
+      } else {
+        s.stage = 'warn'; s.t = 0;
+        banner('LEVIATHAN APPROACHING', 'destroy every layer before it reaches the core', C['pen-1']); sfx.siren();
+      }
+    }
+  } else if (s.stage === 'warn') { if (s.t > 2.8) { spawnBoss(); s.stage = 'boss'; s.t = 0; } }
+  else if (s.stage === 'boss') {
+    if (G.boss) {
+      G.boss.escortT -= dt;
+      G.boss.callT -= dt;
+      if (G.boss.callT <= 0) { G.boss.callT = rnd(5, 8); sfx.bossCall(panAt(pos(G.boss).x)); ripple(pos(G.boss).x, pos(G.boss).y, 5, 260, 1.4); }
+      G.boss.wakeT -= dt;
+      if (G.boss.wakeT <= 0) { G.boss.wakeT = .12; const q = pos(G.boss); bubbles(q.x + rnd(-50, 50), q.y + rnd(-10, 14), 1, 4); }
+      if (G.boss.escortT <= 0 && enemies() < 4) { spawnEnemy({ tier: Math.random() < .5 ? 0 : 1 }); G.boss.escortT = Math.max(2, 5.5 - G.diff * .35); }
+    }
+  } else if (s.stage === 'won') { if (s.t > 2.6 && G.mode === 'play') gameOver('cleared'); }
+}
+
+/* ------------------------------------------------------------ autopilot (title-screen attract loop only) */
+const bot = { t: .6, fresh: null, armRelease: null };
+function botTick(dt) {
+  if (G.mode !== 'demo') return;
+  if (bot.armRelease != null) { bot.armRelease -= dt; if (bot.armRelease <= 0) { G.armHeld = false; bot.armRelease = null; } }
+  const th = threats(), near = f => th.filter(w => w.dist < S.R * f).length;
+  if (G.arsenal.nuke && !G.armHeld && (near(.7) >= 6 || (G.boss && G.boss.dist < S.R * .45))) { G.armHeld = true; bot.armRelease = .85; }
+  if (G.arsenal.pulse && G.slowT <= 0 && near(.55) >= 4) usePulse();
+  if (G.arsenal.torp) {
+    const big = th.find(w => w.dist < S.R * .42 && w.text.length - w.fired >= 6);
+    if (big) useTorp(big);
+  }
+  if (!G.pingCd && th.some(w => sight(w) !== 'clear' && w.dist < S.R * .7)) usePing();
+  bot.t -= dt; if (bot.t > 0) return;
+  bot.t = rnd(.11, .18);
+  let t = G.lock && G.lock.fired < G.lock.text.length && live(G.lock) ? G.lock : null;
+  if (!t) {
+    for (const w of th) if (w.fired < w.text.length && sight(w) !== 'hidden' && (!t || w.dist < t.dist)) t = w;
+    const crate = G.words.find(w => w.kind === 'crate' && w.entered && w.fired < w.text.length);
+    if (crate && (!t || t.dist > S.R * .55)) t = crate;
+    if (t && bot.fresh !== t) { bot.fresh = t; bot.t = .22; return; }
+  }
+  if (!t) return;
+  if (Math.random() < .03) { press('qjzxv'[Math.floor(Math.random() * 5)]); bot.t += .2; return; }
+  press(t.text[t.fired]);
+}
+
+/* ------------------------------------------------------------ update */
+function update(dt) {
+  G.prevSweep = G.sweep;
+  G.sweep = wrap(G.sweep + dt * 1.15 * (G.slowT > 0 ? .45 : 1));
+  if (G.sweep < G.prevSweep) sfx.sweep();
+  G.hurt = Math.max(0, G.hurt - dt * 1.2);
+  for (const r of G.ripples) r.t += dt;
+  G.ripples = G.ripples.filter(r => r.t < r.life);
+  if (!reducedMotion) for (const m of S.snow) {
+    m.y += m.v * dt; m.x += Math.sin(performance.now() / 1000 * .4 + m.ph) * 5 * dt;
+    if (m.y > S.h + 4) { m.y = -4; m.x = Math.random() * S.w; }
+  }
+  G.shake *= Math.exp(-dt * 9);
+  G.flash = Math.max(0, G.flash - dt * 1.3);
+  for (const f of G.fx) {
+    if (f.delay > 0) { f.delay -= dt; continue; }
+    f.life -= dt;
+    if (f.k === 'dot' || f.k === 'glyph' || f.k === 'bubble' || f.k === 'chunk' || f.k === 'twinkle') {
+      f.x += f.vx * dt; f.y += f.vy * dt;
+      if (f.drag) { f.vx *= Math.exp(-dt * f.drag); f.vy *= Math.exp(-dt * f.drag); }
+      if (f.g) f.vy += f.g * dt;
+      if (f.spin) f.rot += f.spin * dt;
+    }
+  }
+  G.fx = G.fx.filter(f => f.life > 0);
+  if (!G.sim) return;
+
+  G.t += dt;
+  G.k5T += dt; if (G.k5T >= 5) { G.k5T = 0; G.kills5.push(0); G.kills5.shift(); }
+  G.kRunT += dt; if (G.kRunT >= 10) { G.kRunT = 0; G.killsRun.push(0); }
+  while (G.keyTimes.length && G.keyTimes[0] < G.t - 15) G.keyTimes.shift();
+  if (G.t > 15) G.peakWpm = Math.max(G.peakWpm, G.keyTimes.length / 5 * 4);
+  G.slowT = Math.max(0, G.slowT - dt);
+  G.spawnHold = Math.max(0, G.spawnHold - dt);
+  G.pingCd = Math.max(0, G.pingCd - dt); G.pingT = Math.max(0, G.pingT - dt);
+  G.alertT = Math.max(0, G.alertT - dt); G.pingGlow = Math.max(0, G.pingGlow - dt * 1.4);
+
+  // sea conditions: a thermocline band from level 3, drifting noise storms from level 5
+  if (G.level >= 3) {
+    G.thermoT -= dt;
+    if (G.thermoT <= 0) { if (G.thermo) { G.thermo = null; G.thermoT = rnd(30, 50); } else { startThermo(); G.thermoT = rnd(25, 35); } }
+  }
+  if (G.level >= 5) {
+    G.stormT -= dt;
+    if (G.stormT <= 0) { if (G.storm) { G.storm = null; G.stormT = rnd(30, 50); } else { startStorm(); G.stormT = rnd(15, 20); } }
+  }
+  if (G.storm) G.storm.a = wrap(G.storm.a + G.storm.drift * dt);
+
+  // shields
+  const ph = G.phase;
+  if (ph.on && ph.charge < PHASE_MAX && G.t - ph.lastHit > 8) ph.charge = Math.min(PHASE_MAX, ph.charge + 5 * dt);
+  ph.forge = Math.min(1, ph.forge + dt / .6);
+  for (const rp of ph.ripples) rp.t += dt;
+  ph.ripples = ph.ripples.filter(rp => rp.t < .7);
+  for (let i = 0; i < 6; i++) G.ironForge[i] = Math.min(1, G.ironForge[i] + dt / .5);
+
+  // nuke: arm while Enter is held, release early to cancel
+  if (G.armHeld && G.arsenal.nuke && !G.nuke) {
+    G.arm = Math.min(1, G.arm + dt / .75);
+    G.armTick -= dt; if (G.armTick <= 0) { G.armTick = .09; sfx.arm(); }
+    if (G.arm >= 1) detonate();
+  } else G.arm = Math.max(0, G.arm - dt * 3);
+  if (G.nuke) {
+    G.nuke.t += dt; G.nuke.r = Math.max(0, G.nuke.t - .35) * 820;
+    for (const w of [...G.words]) {
+      if (!live(w) || w.kind === 'crate' || w.dist > G.nuke.r) continue;
+      if (w.kind === 'boss') { if (w.nukeId !== G.nuke.id) { w.nukeId = G.nuke.id; burstLetters(w, C['pen-1'], 120); bossLayer(w, 'nuke'); } continue; }
+      burstLetters(w, C['pen-1'], 80);
+      const p = pos(w);
+      G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 4, r1: 60, n: 26, col: C['pen-1'], life: .6, max: .6 });
+      complete(w, 'nuke');
+    }
+    if (G.nuke.r > Math.hypot(S.w, S.h) / 2 + 80) G.nuke = null;
+  }
+
+  if (G.game === 'sector') sectorTick(dt); else patrolTick(dt);
+  if (!G.sim) return;
+  G.crateT -= dt;
+  if (G.crateT <= 0 && !G.spawnHold && G.words.filter(w => w.kind === 'crate').length < 2) {
+    spawnCrate(pick(['iron', 'iron', 'phase', 'phase', 'repair'])); G.crateT = rnd(40, 60);
+  }
+
+  const slow = G.slowT > 0 ? .45 : 1, alert = G.alertT > 0 ? 1.3 : 1;
+  for (const w of [...G.words]) {
+    if (!live(w)) continue;
+    if (w.kind === 'crate') {
+      w.rx += w.vx * dt * slow; w.ry += w.vy * dt * slow;
+      const inside = Math.abs(w.rx) < S.w / 2 - 20 && Math.abs(w.ry) < S.h / 2 - 20;
+      if (inside) w.entered = true;
+      else if (w.entered && (Math.abs(w.rx) > S.w / 2 + 90 || Math.abs(w.ry) > S.h / 2 + 90)) { remove(w); G.last = `supply lost: ${w.ctype}`; continue; }
+    } else if (w.fired < w.text.length) {
+      const d = Math.hypot(w.rx, w.ry) || 1, step = w.speed * slow * alert * dt;
+      w.rx -= w.rx / d * step; w.ry -= w.ry / d * step;
+    }
+    w.dist = Math.hypot(w.rx, w.ry);
+    w.hitT = Math.max(0, w.hitT - dt); w.missT = Math.max(0, w.missT - dt);
+    if (w.silent) w.echo = Math.max(0, w.echo - dt / 2.4);
+    w.trailT -= dt;
+    if (w.trailT <= 0) { w.trailT = .32; w.trail.unshift(pos(w)); if (w.trail.length > 9) w.trail.pop(); }
+    const b = wrap(angOf(w)), p0 = G.prevSweep, p1 = G.sweep;
+    if (w.dist <= S.R && (p0 <= p1 ? (b > p0 && b <= p1) : (b > p0 || b <= p1))) {
+      // a silent contact shows only where the sweep last caught it
+      if (w.silent) { w.echo = 1; w.ex = w.rx; w.ey = w.ry; }
+      if (!inStorm(w)) {
+        const p = pos(w), cw = w.kind === 'boss' ? S.cwB : S.cw;
+        G.fx.push({ k: 'ring', x: p.x - (w.text.length * cw + 18) / 2 - 8, y: p.y, r0: 2, r1: 15, col: C['pen-3'], life: .7, max: .7 });
+        // every contact returns a faint blip as the sweep crosses it (silent ones too: listen for them)
+        sfx.blip(panAt(p.x), 520 + (1 - Math.min(1, w.dist / S.R)) * 900);
+      }
+    }
+    // a decoy is only noise: it fades out before it ever reaches the core
+    if (w.trait === 'decoy' && w.dist < S.R * .25) { dissolve(w); continue; }
+    if (w.kind !== 'crate') {
+      const stop = (G.iron[plateAt(angOf(w))] ? STOP_IRON : G.phase.on ? STOP_PHASE : STOP_HULL) + (w.kind === 'boss' ? 16 : 0);
+      if (w.dist < stop) { coreHit(w); if (!G.sim) return; }
+    }
+  }
+  for (const tr of G.tracers) {
+    if (live(tr.w) && tr.layerNo === tr.w.layerNo) { const q = letterPos(tr.w, tr.idx); tr.tx = q.x; tr.ty = q.y; }
+    tr.t += dt / tr.dur;
+    if (tr.t >= 1) { tr.done = true; impact(tr); }
+  }
+  G.tracers = G.tracers.filter(t => !t.done);
+  for (const tp of G.torps) {
+    tp.t += dt;
+    if (live(tp.w)) { const p = pos(tp.w); tp.tx = p.x; tp.ty = p.y; }
+    const dx = tp.tx - tp.x, dy = tp.ty - tp.y, d = Math.hypot(dx, dy) || 1;
+    const spd = Math.min(950, 50 + 1400 * tp.t * tp.t), turn = Math.min(1, dt * (2 + tp.t * 10));
+    tp.vx += (dx / d * spd - tp.vx) * turn; tp.vy += (dy / d * spd - tp.vy) * turn;
+    tp.x += tp.vx * dt; tp.y += tp.vy * dt;
+    tp.bub -= dt;
+    if (tp.bub <= 0) {
+      tp.bub = .025;
+      G.fx.push({ k: 'bubble', x: tp.x, y: tp.y, vx: rnd(-12, 12), vy: rnd(-22, -6), r: rnd(1.2, 3), life: .7, max: .7 });
+      // V-shaped wake spreading out from either side of the hull
+      const sp = Math.hypot(tp.vx, tp.vy) || 1, nx = -tp.vy / sp, ny = tp.vx / sp;
+      for (const s of [-1, 1]) G.fx.push({ k: 'dot', x: tp.x + nx * s * 3, y: tp.y + ny * s * 3, vx: nx * s * 38 - tp.vx * .04, vy: ny * s * 38 - tp.vy * .04, r: .9, col: C['pen-2'], life: .8, max: .8, a0: .55, drag: 1.5 });
+    }
+    tp.snd = (tp.snd || 0) - dt;
+    if (tp.snd <= 0) { tp.snd = .09; sfx.bubble(panAt(tp.x)); }
+    if (d < 16 || tp.t > 4) { tp.done = true; torpImpact(tp); }
+  }
+  G.torps = G.torps.filter(t => !t.done);
+
+  if (G.hull < 25 && screen === 'play') { G.hbT -= dt; if (G.hbT <= 0) { G.hbT = 1.05; sfx.heart(); } }
+  botTick(dt);
+}
+
+/* ------------------------------------------------------------ render */
+function dotPath(c, x, y, r) { c.moveTo(x + r, y); c.arc(x, y, r, 0, TAU); }
+function dottedCircle(c, cx, cy, r, spacing, dr, col, alpha) {
+  const n = Math.floor(TAU * r / spacing);
+  c.globalAlpha = alpha; c.fillStyle = col; c.beginPath();
+  for (let i = 0; i < n; i++) { const a = i / n * TAU; dotPath(c, cx + Math.cos(a) * r, cy + Math.sin(a) * r, dr); }
+  c.fill();
+}
+const hash = n => { const s = Math.sin(n * 12.9898) * 43758.5453; return s - Math.floor(s); };
+function drawScope(c) {
+  const { cx, cy, R } = S, shock = G.nuke ? G.nuke.r : -1;
+  const pingR = G.pingGlow > 0 ? R * 1.08 * easeOut(1 - G.pingGlow) : -1;
+  c.globalAlpha = dark ? 1 : .9; c.fillStyle = C['ink-4']; c.beginPath();
+  const buckets = [[], [], [], [], [], []], blast = [], pinged = [], rip = G.ripples;
+  for (const p0 of S.lattice) {
+    // pressure waves push the lattice dots outward as they pass, and light them up
+    let p = p0, glow = 0;
+    if (rip.length) {
+      let x = p0.x, y = p0.y;
+      for (const r of rip) {
+        const dx = p0.x - r.x, dy = p0.y - r.y, d = Math.hypot(dx, dy) || 1, k = (d - r.t * r.speed) / 22;
+        if (k > -3 && k < 3) {
+          const a = r.amp * (1 - r.t / r.life) * Math.exp(-k * k) * Math.sin(k * 2.2 + 1);
+          x += dx / d * a; y += dy / d * a; glow += Math.abs(a) / 7;
+        }
+      }
+      if (glow > 0) p = { x, y, r: p0.r };
+    }
+    if (shock > 0 && Math.abs(p.r - shock) < 28) { blast.push(p); continue; }
+    if (pingR > 0 && Math.abs(p.r - pingR) < 24) { pinged.push(p); continue; }
+    const lit = Math.max(Math.exp(-wrap(G.sweep - p0.a) * 2.3), Math.min(.85, glow));
+    if (lit < .05) dotPath(c, p.x, p.y, .85);
+    else buckets[Math.min(5, Math.floor(lit * 6))].push(p);
+  }
+  c.fill();
+  buckets.forEach((b, i) => {
+    if (!b.length) return;
+    c.globalAlpha = .18 + i * .16; c.fillStyle = C['pen-3']; c.beginPath();
+    for (const p of b) dotPath(c, p.x, p.y, .9 + i * .2);
+    c.fill();
+  });
+  if (blast.length) { c.globalAlpha = 1; c.fillStyle = C['pen-1']; c.beginPath(); for (const p of blast) dotPath(c, p.x, p.y, 1.8); c.fill(); }
+  if (pinged.length) { c.globalAlpha = 1; c.fillStyle = C['pen-3']; c.beginPath(); for (const p of pinged) dotPath(c, p.x, p.y, 1.7); c.fill(); }
+
+  // marine snow, only inside the scope
+  c.fillStyle = C['ink-3'];
+  for (const m of S.snow) {
+    if (Math.hypot(m.x - cx, m.y - cy) > R) continue;
+    c.globalAlpha = dark ? .32 : .4; c.beginPath(); dotPath(c, m.x, m.y, m.r); c.fill();
+  }
+
+  // sea conditions fade back while a ping is showing everything
+  const view = pinging() ? .3 : 1, now = performance.now() / 1000, flick = reducedMotion ? 0 : Math.floor(now * 12);
+  if (G.thermo) {
+    for (const f of [G.thermo.f0, G.thermo.f1]) {
+      const r0 = f * R, n = Math.floor(TAU * r0 / 5);
+      c.globalAlpha = .75 * view; c.fillStyle = C['pen-6']; c.beginPath();
+      for (let i = 0; i < n; i++) { const a = i / n * TAU, r = r0 + Math.sin(a * 7 + now * 1.3 + f * 9) * 3; dotPath(c, cx + Math.cos(a) * r, cy + Math.sin(a) * r, .8); }
+      c.fill();
+    }
+    c.globalAlpha = .25 * view; c.beginPath();
+    for (let i = 0; i < 280; i++) {
+      const a = hash(i) * TAU, r = R * (G.thermo.f0 + (G.thermo.f1 - G.thermo.f0) * hash(i + .5)) + Math.sin(a * 5 + now * 2) * 2;
+      dotPath(c, cx + Math.cos(a) * r, cy + Math.sin(a) * r, .7);
+    }
+    c.fill();
+    c.globalAlpha = .9 * view; c.font = S.fontSm; c.textAlign = 'right'; c.textBaseline = 'bottom';
+    c.fillText('THERMOCLINE', cx - 6, cy - R * G.thermo.f1 - 4);
+  }
+  if (G.storm) {
+    const { a, hw } = G.storm;
+    for (let i = 0; i < 240; i++) {
+      const ang = a + (hash(i * 3.1 + flick) * 2 - 1) * hw, r = R * (.3 + hash(i * 7.7 + flick * 1.3) * .74);
+      c.globalAlpha = hash(i + flick * .7) * .75 * view; c.fillStyle = hash(i * 1.9) < .3 ? C['pen-6'] : C['ink-2'];
+      c.fillRect(cx + Math.cos(ang) * r, cy + Math.sin(ang) * r, 1.6, 1.6);
+    }
+    for (const e of [a - hw, a + hw]) drawDottedLine(c, cx + Math.cos(e) * R * .3, cy + Math.sin(e) * R * .3, cx + Math.cos(e) * R * 1.02, cy + Math.sin(e) * R * 1.02, 6, C['pen-6'], .5 * view);
+    c.globalAlpha = .9 * view; c.fillStyle = C['pen-6']; c.font = S.fontSm; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('NOISE', cx + Math.cos(a) * R * .66, cy + Math.sin(a) * R * .66);
+  }
+  for (let k = 1; k <= 3; k++) {
+    dottedCircle(c, cx, cy, R * k / 4, 5, .6, C['ink-3'], .55);
+    c.globalAlpha = 1; c.fillStyle = C['ink-3']; c.font = S.fontSm; c.textAlign = 'left'; c.textBaseline = 'bottom';
+    c.fillText((k / 4).toFixed(2), cx + 5, cy - R * k / 4 - 2);
+  }
+  dottedCircle(c, cx, cy, R * .3, 6, .7, C['pen-1'], .45);
+  c.globalAlpha = 1; c.strokeStyle = C['rule-strong']; c.lineWidth = 1;
+  c.beginPath(); c.arc(cx, cy, R + 6, 0, TAU); c.stroke();
+  c.fillStyle = C['ink-3']; c.beginPath();
+  for (let d = 0; d < 360; d += 5) { const a = (d - 90) * Math.PI / 180; dotPath(c, cx + Math.cos(a) * (R + 13), cy + Math.sin(a) * (R + 13), d % 30 ? .8 : 1.5); }
+  c.fill();
+  c.font = S.fontSm; c.textAlign = 'center'; c.textBaseline = 'middle';
+  for (let d = 0; d < 360; d += 30) { const a = (d - 90) * Math.PI / 180; c.fillText(pad(d, 3), cx + Math.cos(a) * (R + 29), cy + Math.sin(a) * (R + 29)); }
+  const ex = cx + Math.cos(G.sweep) * R, ey = cy + Math.sin(G.sweep) * R;
+  c.strokeStyle = C['pen-3']; c.globalAlpha = .75;
+  if (dark) { c.shadowColor = C['pen-3']; c.shadowBlur = 10; }
+  c.beginPath(); c.moveTo(cx, cy); c.lineTo(ex, ey); c.stroke();
+  c.globalAlpha = 1; c.fillStyle = C['pen-3']; c.beginPath(); dotPath(c, ex, ey, 2.4); c.fill();
+  c.shadowBlur = 0;
+  // plate sectors are marked on the bezel so you can see which bearings are armoured
+  for (let i = 0; i < 6; i++) {
+    if (!G.iron[i]) continue;
+    const a0 = PLATE0 + i * TAU / 6 + .05, a1 = a0 + TAU / 6 - .1;
+    c.globalAlpha = .5; c.strokeStyle = C['ink-2']; c.lineWidth = 2;
+    c.beginPath(); c.arc(cx, cy, R + 6, a0, a1); c.stroke();
+  }
+}
+function drawDottedLine(c, x0, y0, x1, y1, step, col, alpha, r = .9) {
+  const d = Math.hypot(x1 - x0, y1 - y0), n = Math.floor(d / step);
+  c.globalAlpha = alpha; c.fillStyle = col; c.beginPath();
+  for (let i = 0; i <= n; i++) dotPath(c, x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n, r);
+  c.fill();
+}
+function drawLines(c, mul) {
+  const line = (w, col, a) => {
+    const s = sight(w);
+    if (s === 'hidden') return;
+    const p = s === 'echo' ? { x: S.cx + w.ex, y: S.cy + w.ey } : pos(w);
+    const d = Math.hypot(p.x - S.cx, p.y - S.cy), an = Math.atan2(p.y - S.cy, p.x - S.cx);
+    drawDottedLine(c, S.cx + Math.cos(an) * 62, S.cy + Math.sin(an) * 62, S.cx + Math.cos(an) * (d - 24), S.cy + Math.sin(an) * (d - 24), 7, col, a * mul);
+  };
+  if (G.boss && live(G.boss)) line(G.boss, C['pen-1'], .55);
+  if (G.lock && live(G.lock) && G.lock !== G.boss) line(G.lock, C['pen-2'], .6);
+}
+// `at` draws the contact somewhere other than where it really is: a silent contact's last echo (ghost),
+// or a specimen in the pause screen's contact key (legend)
+function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
+  const p = at || pos(w), boss = w.kind === 'boss', crate = w.kind === 'crate';
+  const cw = boss ? S.cwB : S.cw, len = w.text.length, padX = boss ? 12 : 9;
+  const chipW = Math.max(1, len) * cw + padX * 2, chipH = boss ? 34 : 26;
+  const jit = w.missT > 0 && !reducedMotion ? Math.sin(w.missT * 90) * 3.5 * (w.missT / .28) : 0;
+  const x = Math.round(p.x - chipW / 2 + jit) + .5, y = Math.round(p.y - chipH / 2) + .5;
+  const isLock = !legend && w === G.lock, danger = !legend && !crate && w.dist < S.R * .3, blink = performance.now() % 500 < 250;
+  const mine = w.trait === 'mine', decoy = w.trait === 'decoy', rev = !!w.rev, exact = !!w.cased;
+  const armoured = w.armour > 0, split = w.trait === 'splitter' && len > 1;
+  const purple = C['pen-5'];
+  const accent = crate ? (w.ctype === 'nuke' ? C['pen-1'] : C['pen-4']) : boss ? C['pen-1'] : mine ? C['pen-6'] : rev ? purple : C['ink-3'];
+  const slowed = !legend && G.slowT > 0;
+
+  if (!ghost && !w.silent && !legend) {
+    c.fillStyle = slowed ? C['pen-3'] : C['ink-3'];
+    w.trail.forEach((q, i) => { c.globalAlpha = mul * (.55 - i * .055); c.beginPath(); dotPath(c, q.x, q.y, 1.1); c.fill(); });
+  }
+  if (mine && !legend) dottedCircle(c, p.x, p.y, MINE_R, 7, 1, C['pen-6'], .45 * mul);
+
+  if (boss) for (let k = w.layers.length - 1; k >= 1; k--) {
+    const o = k * 5;
+    c.globalAlpha = mul * (.95 - k * .1); c.fillStyle = C.paper; c.fillRect(x + o, y - o, chipW, chipH);
+    c.strokeStyle = C['rule-strong']; c.lineWidth = 1; c.strokeRect(x + o, y - o, chipW, chipH);
+  }
+  c.globalAlpha = mul * .95; c.fillStyle = C.paper; c.fillRect(x, y, chipW, chipH);
+  if (armoured) {
+    // armour plating: diagonal hatching behind the letters
+    c.save(); c.beginPath(); c.rect(x, y, chipW, chipH); c.clip();
+    c.globalAlpha = mul * .3; c.strokeStyle = C['ink-2']; c.lineWidth = 1; c.beginPath();
+    for (let k = -chipH; k < chipW + chipH; k += 5) { c.moveTo(x + k, y + chipH); c.lineTo(x + k + chipH, y); }
+    c.stroke(); c.restore();
+  }
+  c.globalAlpha = mul;
+  if (crate || decoy || ghost) {
+    c.setLineDash(ghost ? [4, 3] : decoy ? [2, 3] : [3, 2]);
+    c.strokeStyle = ghost ? C['pen-3'] : decoy ? C['ink-3'] : accent; c.lineWidth = 1; c.strokeRect(x, y, chipW, chipH); c.setLineDash([]);
+  } else {
+    c.strokeStyle = boss ? C['ink-2'] : mine ? C['pen-6'] : rev ? purple : isLock ? C['ink-3'] : C['rule-strong'];
+    c.lineWidth = boss ? 2 : rev ? 1.6 : 1; c.strokeRect(x, y, chipW, chipH);
+  }
+  if (armoured) {
+    // a heavy riveted frame and a solid ×2 badge: this one has to be typed twice
+    c.strokeStyle = C['ink-2']; c.lineWidth = 2.5; c.strokeRect(x - 4, y - 4, chipW + 8, chipH + 8);
+    c.fillStyle = C['ink-2'];
+    for (const [qx, qy] of [[x - 7, y - 7], [x + chipW + 2, y - 7], [x - 7, y + chipH + 2], [x + chipW + 2, y + chipH + 2]]) c.fillRect(qx, qy, 5, 5);
+    const bx = x + chipW + 9;
+    c.fillRect(bx, p.y - 8, 23, 16);
+    c.fillStyle = C.paper; c.font = `700 10.5px ${MONO}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('×2', bx + 11.5, p.y + .5);
+  }
+  if (split) {
+    // splitter: the chip is visibly cut where it will break apart
+    const sx = Math.round(x + padX + cw * Math.floor(len / 2));
+    c.save(); c.globalCompositeOperation = 'destination-out'; c.fillRect(sx - 2, y - 2, 4, chipH + 4); c.restore();
+    c.globalAlpha = mul; c.strokeStyle = C['ink-3']; c.lineWidth = 1; c.beginPath();
+    c.moveTo(sx - 2.5, y); c.lineTo(sx - 2.5, y + chipH); c.moveTo(sx + 2.5, y); c.lineTo(sx + 2.5, y + chipH); c.stroke();
+  }
+  if (rev) {
+    // reversed: chevrons stream right-to-left along the top edge
+    c.save(); c.beginPath(); c.rect(x - 1, y - 10, chipW + 2, 9); c.clip();
+    c.globalAlpha = mul; c.strokeStyle = purple; c.lineWidth = 1.4; c.beginPath();
+    const off = reducedMotion || legend ? 0 : (performance.now() / 1000 * 24) % 9;
+    for (let k = chipW + 9 - off; k > -9; k -= 9) { const cx2 = x + k; c.moveTo(cx2 + 2.5, y - 8.5); c.lineTo(cx2 - 1, y - 5.5); c.lineTo(cx2 + 2.5, y - 2.5); }
+    c.stroke(); c.restore();
+  }
+  if (exact) {
+    // exact: an "Aa." tag above the left corner
+    c.globalAlpha = mul; c.fillStyle = C.paper; c.strokeStyle = C['ink-2']; c.lineWidth = 1;
+    c.fillRect(x, y - 14, 25, 12); c.strokeRect(x, y - 14, 25, 12);
+    c.fillStyle = C.ink; c.font = `700 8.5px ${MONO}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('Aa.', x + 12.5, y - 7.5);
+  }
+  if (mine) {
+    c.fillStyle = C['pen-6']; c.beginPath();
+    c.moveTo(p.x - 4, y); c.lineTo(p.x, y - 6); c.lineTo(p.x + 4, y);
+    c.moveTo(p.x - 4, y + chipH); c.lineTo(p.x, y + chipH + 6); c.lineTo(p.x + 4, y + chipH);
+    c.fill();
+  }
+  const tic = (boss ? 16 : isLock ? 12 : 6) + w.hitT * 30;
+  c.strokeStyle = danger ? (blink ? C['pen-1'] : C['ink-3']) : crate || boss ? accent : isLock ? C['pen-2'] : rev ? purple : C['ink-3'];
+  c.lineWidth = isLock || boss ? 1.5 : 1;
+  c.beginPath();
+  c.moveTo(x - 1, y - 1 + tic); c.lineTo(x - 1, y - 1); c.lineTo(x - 1 + tic, y - 1);
+  c.moveTo(x + chipW + 1, y + chipH + 1 - tic); c.lineTo(x + chipW + 1, y + chipH + 1); c.lineTo(x + chipW + 1 - tic, y + chipH + 1);
+  c.stroke();
+
+  // marker left of the chip: blip, crate box, leviathan mark, or a left-pointing arrowhead for reversed words
+  const mx = x - 10, my = p.y, mxo = armoured ? -4 : 0;
+  if (crate) {
+    c.strokeStyle = accent; c.lineWidth = 1.2; c.strokeRect(mx - 4.5, my - 4.5, 9, 9);
+    c.beginPath(); c.moveTo(mx - 4.5, my - 4.5); c.lineTo(mx + 4.5, my + 4.5); c.moveTo(mx + 4.5, my - 4.5); c.lineTo(mx - 4.5, my + 4.5); c.stroke();
+  } else if (boss) {
+    c.fillStyle = C['pen-1']; c.beginPath(); dotPath(c, mx - 2, my, 3.6); c.fill();
+    c.strokeStyle = C['pen-1']; c.lineWidth = 1; c.beginPath(); c.arc(mx - 2, my, 7 + Math.sin(performance.now() / 160) * 1.5, 0, TAU); c.stroke();
+  } else if (rev) {
+    c.fillStyle = purple; c.beginPath(); c.moveTo(x - 5, my - 5.5); c.lineTo(x - 13, my); c.lineTo(x - 5, my + 5.5); c.fill();
+  } else if (decoy || ghost) {
+    c.strokeStyle = ghost ? C['pen-3'] : C['ink-3']; c.lineWidth = 1; c.beginPath(); c.arc(x - 8 + mxo, my, 2.4, 0, TAU); c.stroke();
+  } else { c.fillStyle = mine ? C['pen-6'] : C['pen-3']; c.beginPath(); dotPath(c, x - 8 + mxo, my, 2); c.fill(); }
+
+  // letters, laid out left to right; reversed words are typed from the right-hand end
+  const garble = !legend && !boss && !crate && inThermo(w) && !pinging(), gk = Math.floor(G.t * 7);
+  c.font = boss ? S.fontB : S.font; c.textAlign = 'center'; c.textBaseline = 'middle';
+  for (let d = 0; d < len; d++) {
+    const i = rev ? len - 1 - d : d, lx = x + padX + cw * (d + .5);
+    let ly = p.y + 1, ch = w.text[i];
+    if (i < w.landed) { c.fillStyle = C['ink-4']; c.beginPath(); dotPath(c, lx, ly, boss ? 1.8 : 1.4); c.fill(); continue; }
+    if (garble) {
+      const h = hash(w.id * 31 + d * 17 + gk * 7);
+      if (h < .45) ch = 'abcdefghijklmnopqrstuvwxyz'[Math.floor(hash(h * 1e4 + d) * 26)];
+      ly += (h - .5) * 4;
+    }
+    // where to start: the locked word's next letter in blue; a reversed word always marks its next (rightmost) letter
+    const next = i === w.fired;
+    if (i < w.fired) c.fillStyle = C['ink-3'];
+    else if (next && (isLock || rev)) { c.fillStyle = isLock ? C['pen-2'] : purple; c.fillRect(lx - cw / 2 + 1.5, y + chipH - 5, cw - 3, isLock ? 1.5 : 2); }
+    else c.fillStyle = crate ? accent : decoy ? C['ink-2'] : C.ink;
+    if (decoy && i >= w.fired) { c.strokeStyle = c.fillStyle; c.lineWidth = .8; c.strokeText(ch, lx, ly); }
+    else c.fillText(ch, lx, ly);
+    // exact words mark the characters that need Shift or punctuation
+    if (exact && i >= w.fired && !next && /[A-Z,.!?;:]/.test(w.text[i])) { c.fillStyle = C['ink-2']; c.beginPath(); dotPath(c, lx, y + chipH - 4, 1.3); c.fill(); }
+  }
+  if (legend) return;
+  c.font = S.fontSm; c.textAlign = 'left'; c.textBaseline = 'top';
+  let meta, mcol;
+  if (crate) { meta = `SUPPLY · ${w.ctype.toUpperCase()}`; mcol = accent; }
+  else if (boss) { meta = `LEVIATHAN · ${w.layers.length}/${w.layerTotal} LAYERS · R ${(w.dist / S.R).toFixed(2)}`; mcol = C['pen-1']; }
+  else {
+    const label = w.trait ? `  ${TRAIT_LABEL[w.trait]}${armoured ? ' ×2' : w.trait === 'armour' ? ' · BROKEN' : ''}` : '';
+    meta = `TK·${pad(w.id, 3)}  ${pad(bearing(w), 3)}°` + (isLock || danger ? `  R ${(w.dist / S.R).toFixed(2)}` : '') + label
+      + (slowed ? '  SLOW' : '') + (decoy ? '' : `  ${hitDamage(w)} DMG`) + (ghost ? '  ECHO' : '');
+    mcol = danger ? C['pen-1'] : mine ? C['pen-6'] : rev ? purple : C['ink-3'];
+  }
+  c.fillStyle = mcol; c.fillText(meta, x, y + chipH + (armoured ? 8 : 5));
+}
+function drawTracer(c, tr) {
+  const e = Math.pow(Math.min(1, tr.t), 1.35), e0 = Math.max(0, e - .34), N = 12;
+  let prev = bez(tr, e0);
+  c.strokeStyle = C['pen-2']; c.lineCap = 'round';
+  for (let i = 1; i <= N; i++) {
+    const q = bez(tr, e0 + (e - e0) * i / N), k = i / N;
+    c.globalAlpha = .15 + .85 * k; c.lineWidth = .4 + 2.6 * k;
+    c.beginPath(); c.moveTo(prev.x, prev.y); c.lineTo(q.x, q.y); c.stroke();
+    prev = q;
+  }
+  c.globalAlpha = 1;
+  if (dark) { c.shadowColor = C['pen-2']; c.shadowBlur = 12; }
+  c.fillStyle = dark ? '#fff' : C['pen-2']; c.beginPath(); dotPath(c, prev.x, prev.y, 2.6); c.fill();
+  c.shadowBlur = 0;
+}
+function drawTorp(c, tp) {
+  const a = Math.atan2(tp.vy, tp.vx);
+  c.save(); c.translate(tp.x, tp.y); c.rotate(a);
+  c.globalAlpha = 1;
+  if (dark) { c.shadowColor = C['pen-2']; c.shadowBlur = 14; }
+  c.fillStyle = C['pen-2'];
+  c.beginPath(); c.moveTo(-11, -3); c.lineTo(6, -3); c.arc(6, 0, 3, -Math.PI / 2, Math.PI / 2); c.lineTo(-11, 3); c.closePath(); c.fill();
+  c.fillStyle = dark ? '#fff' : C.ink; c.beginPath(); dotPath(c, 8, 0, 1.6); c.fill();
+  c.shadowBlur = 0;
+  c.strokeStyle = C['pen-2']; c.lineWidth = 1.2;
+  c.beginPath(); c.moveTo(-11, -3); c.lineTo(-15, -6); c.moveTo(-11, 3); c.lineTo(-15, 6); c.stroke();
+  c.restore();
+}
+function drawFx(c) {
+  // most particles are plain dots: batch them by colour and alpha step into a handful of paths
+  const batches = new Map();
+  for (const f of G.fx) {
+    if (f.k !== 'dot' || f.delay > 0) continue;
+    const q = Math.round(Math.max(0, (f.a0 || 1) * (f.life / f.max)) * 8);
+    if (!q) continue;
+    const key = f.col + '|' + q;
+    let b = batches.get(key);
+    if (!b) batches.set(key, b = []);
+    b.push(f);
+  }
+  for (const [key, list] of batches) {
+    const i = key.lastIndexOf('|');
+    c.globalAlpha = +key.slice(i + 1) / 8; c.fillStyle = key.slice(0, i); c.beginPath();
+    for (const f of list) dotPath(c, f.x, f.y, f.r);
+    c.fill();
+  }
+  for (const f of G.fx) {
+    if (f.delay > 0 || f.k === 'dot') continue;
+    const t = 1 - f.life / f.max;
+    if (f.k === 'ring') {
+      c.globalAlpha = 1 - t; c.strokeStyle = f.col; c.lineWidth = 1;
+      c.beginPath(); c.arc(f.x, f.y, f.r0 + (f.r1 - f.r0) * easeOut(t), 0, TAU); c.stroke();
+    } else if (f.k === 'dring') {
+      const r = f.r0 + (f.r1 - f.r0) * easeOut(t);
+      c.globalAlpha = 1 - t; c.fillStyle = f.col; c.beginPath();
+      for (let i = 0; i < f.n; i++) { const a = i / f.n * TAU; dotPath(c, f.x + Math.cos(a) * r, f.y + Math.sin(a) * r, 1.9 * (1 - t) + .5); }
+      c.fill();
+    } else if (f.k === 'glyph') {
+      const s = 1 + easeOut(t) * 1.4, col = f.col || C['pen-2'];
+      c.save(); c.translate(f.x, f.y); c.scale(s, s);
+      c.globalAlpha = 1 - t; c.fillStyle = col; c.font = f.big ? S.fontB : S.font; c.textAlign = 'center'; c.textBaseline = 'middle';
+      if (dark) { c.shadowColor = col; c.shadowBlur = 10; }
+      c.fillText(f.ch, 0, 0); c.restore();
+    } else if (f.k === 'cross') {
+      const a = t < .7 ? 1 : (1 - t) / .3, s = 14 * (1.5 - .5 * easeOut(Math.min(1, t * 3)));
+      c.globalAlpha = a * .9; c.strokeStyle = C.ink; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(f.x - s, f.y); c.lineTo(f.x - 4, f.y); c.moveTo(f.x + 4, f.y); c.lineTo(f.x + s, f.y);
+      c.moveTo(f.x, f.y - s); c.lineTo(f.x, f.y - 4); c.moveTo(f.x, f.y + 4); c.lineTo(f.x, f.y + s); c.stroke();
+      c.beginPath(); c.arc(f.x, f.y, s * .55, 0, TAU); c.stroke();
+    } else if (f.k === 'stamp') {
+      c.globalAlpha = t < .6 ? 1 : (1 - t) / .4; c.fillStyle = f.col;
+      c.font = `600 ${f.big ? 12 : 10}px ${MONO}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+      if ('letterSpacing' in c) c.letterSpacing = f.big ? '3px' : '0px';
+      const sy = f.y - easeOut(t) * 18;
+      c.fillText(f.text, f.x, sy);
+      if ('letterSpacing' in c) c.letterSpacing = '0px';
+      // the score's reasons, small and quiet under the headline
+      if (f.sub) { c.font = `500 9px ${MONO}`; c.fillStyle = C['ink-2']; c.globalAlpha *= .9; c.fillText(f.sub, f.x, sy + (f.big ? 15 : 13)); }
+    } else if (f.k === 'x') {
+      c.globalAlpha = 1 - t; c.strokeStyle = C['pen-1']; c.lineWidth = 1.5;
+      c.beginPath(); c.moveTo(f.x - 4, f.y - 4); c.lineTo(f.x + 4, f.y + 4); c.moveTo(f.x + 4, f.y - 4); c.lineTo(f.x - 4, f.y + 4); c.stroke();
+    } else if (f.k === 'chunk') {
+      c.save(); c.translate(f.x, f.y); c.rotate(f.rot);
+      c.globalAlpha = Math.min(1, f.life / f.max * 1.6); c.fillStyle = f.col; c.fillRect(-f.w / 2, -f.h / 2, f.w, f.h);
+      c.restore();
+    } else if (f.k === 'bubble') {
+      c.globalAlpha = (1 - t) * .8; c.strokeStyle = C['ink-2']; c.lineWidth = .8;
+      c.beginPath(); c.arc(f.x, f.y, f.r * (1 + t * .6), 0, TAU); c.stroke();
+    } else if (f.k === 'arcflash') {
+      c.globalAlpha = 1 - t; c.strokeStyle = dark ? '#fff' : C.ink; c.lineWidth = 8 * (1 - t) + 1;
+      c.beginPath(); c.arc(S.cx, S.cy, f.r, f.a0, f.a1); c.stroke();
+    } else if (f.k === 'twinkle') {
+      // bioluminescent motes: flicker, then fade
+      c.globalAlpha = (1 - t) * (.45 + .55 * Math.abs(Math.sin(t * 26 + f.seed))); c.fillStyle = C['pen-3'];
+      c.beginPath(); dotPath(c, f.x, f.y, 1.5); c.fill();
+    } else if (f.k === 'echoArc') {
+      // a ping's return: a small arc travelling from the contact back to the core
+      const e = easeOut(t), x = f.x0 + (S.cx - f.x0) * e * .9, y = f.y0 + (S.cy - f.y0) * e * .9, a = Math.atan2(S.cy - y, S.cx - x);
+      c.globalAlpha = (1 - t) * .9; c.strokeStyle = C['pen-3']; c.lineWidth = 1.3;
+      c.beginPath(); c.arc(x, y, 10, a - .7, a + .7); c.stroke();
+    } else if (f.k === 'crack') {
+      c.globalAlpha = (1 - t) * .9; c.fillStyle = C['pen-1']; c.beginPath();
+      let px = 0, py = 0;
+      for (const [qx, qy] of f.pts) {
+        const n = Math.max(1, Math.floor(Math.hypot(qx - px, qy - py) / 3.5));
+        for (let i = 1; i <= n; i++) dotPath(c, S.cx + px + (qx - px) * i / n, S.cy + py + (qy - py) * i / n, .9);
+        px = qx; py = qy;
+      }
+      c.fill();
+    } else if (f.k === 'banner') {
+      const a = t < .08 ? t / .08 : t > .8 ? (1 - t) / .2 : 1, y = S.cy - S.R * .46;
+      c.globalAlpha = a; c.fillStyle = f.col; c.font = `600 19px ${MONO}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+      if ('letterSpacing' in c) c.letterSpacing = '6px';
+      c.fillText(f.title, S.cx, y);
+      if ('letterSpacing' in c) c.letterSpacing = '0px';
+      c.fillStyle = C['ink-3']; c.font = `400 11.5px ${MONO}`; c.fillText(f.sub, S.cx, y + 24);
+    }
+  }
+  c.globalAlpha = 1;
+}
+function drawDefences(c) {
+  const { cx, cy } = S, now = performance.now() / 1000;
+  // iron: the only solid strokes on screen
+  const seg = TAU / 6, gap = .07;
+  for (let i = 0; i < 6; i++) {
+    if (!G.iron[i]) continue;
+    const a0 = PLATE0 + i * seg + gap, a1 = a0 + (seg - 2 * gap) * easeOut(G.ironForge[i]);
+    c.globalAlpha = 1; c.strokeStyle = C['ink-2']; c.lineWidth = 5; c.lineCap = 'butt';
+    c.beginPath(); c.arc(cx, cy, R_IRON, a0, a1); c.stroke();
+    c.fillStyle = C.paper;
+    for (const a of [a0 + .06, (a0 + a1) / 2, a1 - .06]) { c.beginPath(); dotPath(c, cx + Math.cos(a) * R_IRON, cy + Math.sin(a) * R_IRON, 1.1); c.fill(); }
+  }
+  // phase: shimmering dots, ripple outward where hit
+  if (G.phase.on) {
+    const n = 72, f = G.phase.charge / PHASE_MAX, shown = Math.floor(n * G.phase.forge);
+    c.fillStyle = C['pen-3'];
+    for (let i = 0; i < shown; i++) {
+      const a = i / n * TAU;
+      let r = R_PHASE;
+      for (const rp of G.phase.ripples) {
+        const da = Math.abs(wrap(a - rp.a + Math.PI) - Math.PI);
+        r += 8 * Math.exp(-((da / .35) ** 2)) * (1 - rp.t / .7) * Math.sin(rp.t * 30 - da * 8);
+      }
+      c.globalAlpha = (.18 + .72 * f) * (.75 + .25 * Math.sin(now * 3 + i * .7));
+      c.beginPath(); dotPath(c, cx + Math.cos(a) * r, cy + Math.sin(a) * r, 1.15); c.fill();
+    }
+    if (G.phase.charge < PHASE_MAX && G.t - G.phase.lastHit > 8) {
+      const a = now * 4; c.globalAlpha = .95;
+      c.beginPath(); dotPath(c, cx + Math.cos(a) * R_PHASE, cy + Math.sin(a) * R_PHASE, 2.3); c.fill();
+    }
+  }
+  // hull: 40 dots, lost ones stay visible
+  const N = 40, lit = Math.ceil(G.hull / HULL_MAX * N), low = G.hull < 25;
+  const lowPulse = low ? .55 + .45 * Math.sin(now * 6) : 1;
+  for (let i = 0; i < N; i++) {
+    const a = -Math.PI / 2 + i / N * TAU, on = i < lit;
+    c.globalAlpha = on ? lowPulse : 1; c.fillStyle = on ? (low ? C['pen-1'] : C['ink-2']) : C['ink-4'];
+    c.beginPath(); dotPath(c, cx + Math.cos(a) * R_HULL, cy + Math.sin(a) * R_HULL, on ? 1.6 : 1); c.fill();
+  }
+  c.globalAlpha = .6; c.strokeStyle = C['ink-3']; c.lineWidth = 1;
+  c.beginPath(); c.arc(cx, cy, 10, 0, TAU); c.stroke();
+  c.globalAlpha = 1; c.fillStyle = C.ink;
+  if (dark) { c.shadowColor = low ? C['pen-1'] : C['pen-3']; c.shadowBlur = 14; }
+  c.beginPath(); dotPath(c, cx, cy, 4.6); c.fill(); c.shadowBlur = 0;
+  // nuke arming ring
+  if (G.arm > 0) {
+    const n = 48;
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI / 2 + i / n * TAU, on = i / n < G.arm;
+      c.globalAlpha = on ? 1 : .5; c.fillStyle = on ? C['pen-1'] : C['ink-4'];
+      c.beginPath(); dotPath(c, cx + Math.cos(a) * 64, cy + Math.sin(a) * 64, on ? 2 : 1.1); c.fill();
+    }
+    c.globalAlpha = 1; c.fillStyle = C['pen-1']; c.font = `600 9px ${MONO}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    if ('letterSpacing' in c) c.letterSpacing = '3px';
+    c.fillText('ARMING', cx, cy + 80);
+    if ('letterSpacing' in c) c.letterSpacing = '0px';
+  }
+}
+function render() {
+  const c = ctx;
+  c.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);
+  c.clearRect(0, 0, S.w, S.h);
+  if (G.shake > .3) c.translate((Math.random() - .5) * G.shake, (Math.random() - .5) * G.shake);
+  drawScope(c);
+  const mul = screen === 'play' ? 1 : screen === 'paused' ? .55 : screen === 'title' ? .45 : .3;
+  drawLines(c, mul);
+  const order = [...G.words].sort((a, b) => b.dist - a.dist);
+  for (const w of [G.boss, G.lock]) { const i = order.indexOf(w); if (w && i >= 0) order.push(order.splice(i, 1)[0]); }
+  for (const w of order) {
+    const s = sight(w);
+    if (s === 'echo') drawContact(c, w, mul * Math.min(1, w.echo * 1.4), { x: S.cx + w.ex, y: S.cy + w.ey });
+    else if (s === 'clear') drawContact(c, w, mul);
+  }
+  for (const tr of G.tracers) drawTracer(c, tr);
+  for (const tp of G.torps) drawTorp(c, tp);
+  drawFx(c);
+  drawDefences(c);
+  c.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);
+  // red edge glow: a pulse when the hull is hit, a slow throb while it is critical
+  const low = screen === 'play' && G.hull < 25, edge = Math.max(G.hurt * .5, low ? .18 + .12 * Math.sin(performance.now() / 160) : 0);
+  if (edge > .01) {
+    const g = c.createRadialGradient(S.cx, S.cy, Math.min(S.w, S.h) * .32, S.cx, S.cy, Math.hypot(S.w, S.h) * .55);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, C['pen-1']);
+    c.globalAlpha = edge; c.fillStyle = g; c.fillRect(0, 0, S.w, S.h); c.globalAlpha = 1;
+  }
+  if (G.flash > 0) {
+    // the nuke briefly inverts the screen: paper on Backlit, ink on Paper
+    c.globalAlpha = Math.min(.9, G.flash * .9); c.fillStyle = dark ? '#FFFFFF' : '#12141A';
+    c.fillRect(0, 0, S.w, S.h); c.globalAlpha = 1;
+  }
+}
+
+/* ------------------------------------------------------------ HUD */
+let hudT = 0;
+function fitCanvas(el) {
+  const w = el.clientWidth, h = el.clientHeight, d = Math.min(2, devicePixelRatio || 1);
+  if (el.width !== Math.round(w * d) || el.height !== Math.round(h * d)) { el.width = Math.round(w * d); el.height = Math.round(h * d); }
+  const c = el.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, w, h);
+  return { c, w, h };
+}
+function dotCols(el, vals, col, cols = vals.length) {
+  const { c, w, h } = fitCanvas(el); if (!w) return;
+  const cw = w / Math.max(cols, 1), max = Math.max(1, ...vals), rows = Math.floor(h / 3.4);
+  vals.forEach((v, i) => {
+    const x = i * cw + cw / 2, lit = Math.round(Math.sqrt(v / max) * rows);
+    if (!lit) { c.globalAlpha = 1; c.fillStyle = C['ink-4']; c.beginPath(); dotPath(c, x, h - 2, .8); c.fill(); return; }
+    for (let j = 0; j < lit; j++) {
+      const top = j === lit - 1;
+      c.globalAlpha = top ? .95 : .2 + .35 * j / rows; c.fillStyle = col;
+      c.beginPath(); dotPath(c, x, h - 2 - j * 3.4, top ? 1.4 : 1); c.fill();
+    }
+  });
+}
+function dotArc(el, frac, label, sub, col) {
+  const { c, w, h } = fitCanvas(el); if (!w) return;
+  const cx = w / 2, cy = h * .56, R = Math.min(w, h) * .44, n = 27, a0 = .78 * Math.PI, sw = 1.44 * Math.PI;
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1), a = a0 + sw * t, x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R;
+    c.beginPath();
+    if (t <= frac + 1e-6 && frac > 0) { c.globalAlpha = .45 + .55 * t / Math.max(frac, .01); c.fillStyle = col; dotPath(c, x, y, 1.6 + .6 * t / Math.max(frac, .01)); }
+    else { c.globalAlpha = 1; c.fillStyle = C['ink-4']; dotPath(c, x, y, 1.1); }
+    c.fill();
+  }
+  c.globalAlpha = 1; c.fillStyle = C.ink; c.font = `600 ${label.length > 3 ? 18 : 24}px ${MONO}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(label, cx, cy - 2);
+  c.fillStyle = C['ink-3']; c.font = `600 7.5px ${MONO}`; c.fillText(sub, cx, cy + 17);
+}
+function dotBar(frac, n = 10, pen = 'var(--ink)', r = 2) {
+  const lit = Math.round(clamp(frac, 0, 1) * n), gap = r * 2 + 2.2;
+  let s = `<svg width="${n * gap}" height="${r * 2 + 2}" aria-hidden="true">`;
+  for (let i = 0; i < n; i++) s += i < lit
+    ? `<circle cx="${i * gap + r + 1}" cy="${r + 1}" r="${r}" style="fill:${pen}"/>`
+    : `<circle cx="${i * gap + r + 1}" cy="${r + 1}" r="${r * .55}" style="fill:var(--ink-4)"/>`;
+  return s + '</svg>';
+}
+function chargeSvg(v) {
+  const n = CHARGE_MAX, gap = Math.min(6.8, 204 / n), r = Math.min(2.1, gap * .34);
+  let s = `<svg width="${n * gap}" height="22" aria-hidden="true">`;
+  for (let i = 0; i < n; i++) {
+    const tick = TICKS.find(t => t[0] === i + 1), on = i < v, x = i * gap + r + 1;
+    const col = tick ? `var(${tick[3]})` : 'var(--ink)';
+    s += on ? `<circle cx="${x}" cy="${r + 1}" r="${r}" style="fill:${col}"/>`
+            : tick ? `<circle cx="${x}" cy="${r + 1}" r="${r - .4}" style="fill:none;stroke:${col};stroke-width:1"/>`
+                   : `<circle cx="${x}" cy="${r + 1}" r="${r * .55}" style="fill:var(--ink-4)"/>`;
+    if (tick) s += `<text x="${x}" y="19" text-anchor="middle" style="font:600 8px var(--mono);fill:${col}">${tick[2]}</text>`;
+  }
+  return s + '</svg>';
+}
+function ironSvg() {
+  let s = '<svg width="52" height="8" aria-hidden="true">';
+  for (let i = 0; i < 6; i++) s += G.iron[i] ? `<rect x="${i * 8.6}" y="1.5" width="7" height="5" style="fill:var(--ink-2)"/>` : `<rect x="${i * 8.6 + .5}" y="2" width="6" height="4" style="fill:none;stroke:var(--ink-4)"/>`;
+  return s + '</svg>';
+}
+function medalSvg(m, size = 14) {
+  if (!m) return '';
+  const col = { gold: 'var(--pen-4)', silver: 'var(--ink-2)', bronze: 'var(--pen-6)' }[m], c = size / 2;
+  let s = `<svg width="${size}" height="${size}" aria-hidden="true">`;
+  for (let i = 0; i < 12; i++) { const a = i / 12 * TAU; s += `<circle cx="${c + Math.cos(a) * (c - 1.5)}" cy="${c + Math.sin(a) * (c - 1.5)}" r="1" style="fill:${col}"/>`; }
+  return s + `<circle cx="${c}" cy="${c}" r="${size * .2}" style="fill:${col}"/></svg>`;
+}
+const padN = (n, w) => { const s = pad(n, w), k = Math.max(0, s.length - String(n).length); return `<i>${s.slice(0, k)}</i>${s.slice(k)}`; };
+function flashUnit(id, cls, ms) {
+  if (G.mode !== 'play') return;
+  const el = document.getElementById(id); el.classList.remove('ok', 'bad', 'warn', 'good'); el.classList.add(cls);
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove(cls), ms);
+}
+const accuracy = () => G.correct + G.miss ? 100 * G.correct / (G.correct + G.miss) : null;
+const fmtAcc = a => a >= 99.95 ? '100' : a.toFixed(1);
+const wpm = () => G.t >= 5 ? Math.round((G.correct / 5) / (G.t / 60)) : null;
+const dash = '<span style="color:var(--ink-3)">–</span>';
+function hud(dt) {
+  hudT -= dt; if (hudT > 0) return; hudT = .1;
+  chrome();
+  if (screen !== 'play' && screen !== 'paused') return;
+  $('#score').innerHTML = padN(G.points, 6);
+  { const b = prefs.hi[G.game][G.diff], m = G.game === 'sector' && prefs.medals[G.diff];
+    $('#mBest').innerHTML = (m ? medalSvg(m, 11) + ' ' : '') + (b == null ? 'first run' : `best <b>${fmtPts(b)}</b>`); }
+  dotCols($('#cvKills'), G.kills5, C['pen-2']);
+  $('#capKills').innerHTML = `<b>${G.kills}</b> destroyed`;
+  $('#capStreak').innerHTML = G.combo >= 2 ? `streak <b style="color:var(--pen-2)">${G.combo}</b>${G.combo >= 2 ? ` ×${(1 + Math.min(20, G.combo) * .05).toFixed(2)}` : ''}` : 'streak –';
+
+  const th = threats().filter(w => w.kind !== 'boss');
+  if (G.game === 'sector') {
+    const s = G.sec;
+    if (G.boss) {
+      $('#tHead').textContent = 'Leviathan';
+      $('#mFloor').innerHTML = `<b>${G.boss.layers.length}</b>/${G.boss.layerTotal} layers`;
+      dotArc($('#cvGauge'), 1 - G.boss.layers.length / G.boss.layerTotal, pad(G.boss.layers.length), 'LAYERS', C['pen-1']);
+    } else {
+      $('#tHead').textContent = `Sector ${pad(G.diff)}`;
+      $('#mFloor').innerHTML = `threat <b>${pad(G.level)}</b>`;
+      const prog = s.stage === 'wave' ? clamp((s.spawned - enemies()) / s.quota, 0, 1) : s.stage === 'intro' ? 0 : 1;
+      dotArc($('#cvGauge'), prog, `${s.wave}/3`, s.stage === 'warn' ? 'LEVIATHAN' : 'WAVE', C['pen-2']);
+    }
+  } else {
+    $('#tHead').textContent = 'Threat';
+    $('#mFloor').innerHTML = `floor <b>${pad(G.diff)}</b>`;
+    dotArc($('#cvGauge'), (G.level - 1) / 11, pad(G.level), 'OF 12', C['pen-4']);
+  }
+  $('#vTracked').innerHTML = `${th.length}<small class="u">/ ${maxContacts(G.level)}</small>`;
+  const near = threats().reduce((m, w) => Math.min(m, w.dist / S.R), Infinity);
+  $('#vNearest').innerHTML = isFinite(near) ? `<span style="color:${near < .3 ? 'var(--pen-1)' : 'inherit'}">${near.toFixed(2)}</span><small class="u">R</small>` : '<span style="color:var(--ink-3)">clear</span>';
+
+  const low = G.hull < 25;
+  $('#vHull').innerHTML = `<span style="color:${low ? 'var(--pen-1)' : 'inherit'}">${Math.ceil(G.hull)}</span>`;
+  $('#sHull').innerHTML = dotBar(G.hull / HULL_MAX, 10, low ? 'var(--pen-1)' : 'var(--ink)', 1.8);
+  $('#vPhase').innerHTML = G.phase.on ? Math.round(G.phase.charge) : dash;
+  $('#sPhase').innerHTML = G.phase.on ? dotBar(G.phase.charge / PHASE_MAX, 8, 'var(--pen-3)', 1.8) : 'none';
+  const plates = G.iron.filter(Boolean).length;
+  $('#vIron').innerHTML = plates ? `${plates}<small class="u">/6</small>` : dash;
+  $('#sIron').innerHTML = plates ? ironSvg() : 'none';
+  $('#mCore').innerHTML = low ? '<span style="color:var(--pen-1)">hull critical</span>'
+    : G.phase.on && G.phase.charge < PHASE_MAX && G.t - G.phase.lastHit > 8 ? 'phase recharging'
+    : `accuracy ${accuracy() == null ? '–' : fmtAcc(accuracy()) + '%'}`;
+
+  $('#mCharge').innerHTML = `charge <b>${G.charge}</b>/${CHARGE_MAX}`;
+  $('#chargeBar').innerHTML = chargeSvg(G.charge);
+  const row = (id, n, max, extra) => {
+    const el = $(id); el.classList.toggle('ready', n > 0); el.classList.toggle('active', !!extra);
+    el.querySelector('.wc').innerHTML = extra || (n ? dotBar(n / max, max, `var(${el.id === 'wPulse' ? '--pen-3' : el.id === 'wTorp' ? '--pen-2' : '--pen-1'})`, 2.4) : 'none');
+  };
+  const pr = $('#wPing');
+  pr.classList.toggle('ready', !G.pingCd); pr.classList.toggle('active', G.pingT > 0);
+  pr.querySelector('.wc').textContent = G.pingT > 0 ? `reveal ${G.pingT.toFixed(1)} s` : G.pingCd ? `${Math.ceil(G.pingCd)} s` : 'ready';
+  row('#wPulse', G.arsenal.pulse, 3, G.slowT > 0 ? `slow ${G.slowT.toFixed(1)} s` : '');
+  row('#wTorp', G.arsenal.torp, 3, G.torps.length ? 'running' : '');
+  row('#wNuke', G.arsenal.nuke, 1, G.arm > 0 ? `arming ${Math.round(G.arm * 100)}%` : '');
+}
+function chrome() {
+  const lk = G.lock && live(G.lock) ? G.lock : null, name = DIFF_NAMES[G.diff - 1];
+  const where = G.game === 'sector' ? `sector <b>${pad(G.diff)}</b> ${name} · wave <b>${G.sec.wave}/3</b>` : `patrol · difficulty <b>${pad(G.diff)}</b> ${name} · threat <b>${pad(G.level)}</b>`;
+  const crumb = { title: 'standing by · choose a mode and difficulty', play: `engaged · ${where}`, paused: `paused · ${where}`, over: `debrief · run <b>${prefs.runs}</b>` }[screen];
+  if ($('#crumb').innerHTML !== crumb) $('#crumb').innerHTML = crumb;
+  const hint = screen === 'play' ? '<kbd>/</kbd> ping <kbd>Space</kbd> pulse <kbd>Tab</kbd> torpedo <kbd>hold ⏎</kbd> nuke <kbd>Esc</kbd> pause' : '<kbd>M</kbd> sound <kbd>U</kbd> music <kbd>T</kbd> theme';
+  if ($('#hint').innerHTML !== hint) $('#hint').innerHTML = hint;
+  const st = { title: ['STANDBY', 'var(--ink-3)'], play: ['SONAR ACTIVE', 'var(--pen-3)'], paused: ['PAUSED', 'var(--pen-4)'], over: ['SIGNAL LOST', 'var(--pen-1)'] }[screen];
+  $('#sbState').textContent = st[0]; $('#led').style.background = st[1];
+  const inRun = screen !== 'title';
+  $('#sbTracked').innerHTML = inRun ? `tracked <b>${threats().length}</b>` : '';
+  $('#sbLock').innerHTML = inRun ? (lk ? `lock <b>${lk.kind === 'crate' ? 'SUPPLY' : lk.kind === 'boss' ? 'LEVIATHAN' : 'TK·' + pad(lk.id, 3)}</b> ${esc(shown(lk))}` : 'no lock') : '';
+  $('#sbLast').innerHTML = inRun && G.last ? `last <b>${esc(G.last)}</b>` : '';
+  const marks = document.querySelectorAll('#mark i'), seg = Math.floor(G.sweep / TAU * 8), ring = [0, 1, 2, 5, 8, 7, 6, 3];
+  marks.forEach((m, i) => m.classList.toggle('on', i === 4 || ring[seg] === i));
+}
+
+/* ------------------------------------------------------------ first-time tips */
+const TIPS = {
+  hull:   ['HULL', 'Damage comes from the letters still standing. Chip a long word down before it lands and it hurts far less.'],
+  crate:  ['SUPPLY CRATE', 'Gold-marked contacts drift across the scope. Type one before it leaves to collect what it carries.'],
+  pulse:  ['PULSE READY · SPACE', 'Slows every contact to half speed for 5 seconds.'],
+  torp:   ['TORPEDO READY · TAB', 'Finishes off the word you are locked on, or the nearest one.'],
+  nuke:   ['NUKE ARMED · HOLD ENTER', 'Hold Enter until the ring fills. Every word on screen is destroyed. Let go early to cancel.'],
+  iron:   ['IRON SHIELD', 'Each plate stops any single hit from its side, then breaks. Broken plates stay broken.'],
+  phase:  ['PHASE SHIELD', 'Soaks small hits and recharges when you are not hit for 8 s. One big hit pops it.'],
+  repair: ['REPAIR KIT', '+35 hull. Clean words also patch the hull a little.'],
+  boss:   ['LEVIATHAN', 'Destroy each layer in turn. If it reaches the core, the sector is lost.'],
+  ping:     ['ACTIVE PING · /', 'Reveals everything for 4 s, through noise and thermoclines. Contacts hear it and speed up. Recharges in 14 s.'],
+  silent:   ['SILENT CONTACT', 'Shows only for a moment after the sweep passes, and the echo stays where it was, not where it is. Press / to ping.'],
+  thermo:   ['THERMOCLINE', 'A warm layer of water that scrambles letters passing through it. Type from memory, or ping to read clearly.'],
+  storm:    ['NOISE STORM', 'Contacts inside the drifting wedge of static are hidden. Ping to see through it.'],
+  armour:   ['ARMOURED · ×2', 'Hatched plating and a ×2 badge: type it twice. The first pass breaks the plating. Torpedoes go straight through.'],
+  splitter: ['SPLITTER', 'A chip cut in two: it breaks into two small contacts when destroyed.'],
+  mine:     ['MINE', 'Type it to detonate it: it blows 3 letters off every contact inside its ring. If it reaches the core it hits twice as hard.'],
+  decoy:    ['DECOY', 'Outlined letters are a fake contact. Leave it and it fades away; finish typing it and it springs an ambush. Backspace drops a lock.'],
+  reversed: ['REVERSED ←', 'Purple, with chevrons running left: type it backwards, starting from the underlined last letter.'],
+  cased:    ['EXACT · Aa.', 'Capitals and punctuation count on words with the Aa. tag. Dots mark the characters that need Shift or punctuation.'],
+};
+const tipQ = []; let tipT = 0, tipShowing = false;
+function tip(k) { if (prefs.seen[k] || G.mode !== 'play') return; prefs.seen[k] = true; savePrefs(); tipQ.push(TIPS[k]); }
+function tipTick(dt) {
+  tipT -= dt;
+  if (tipShowing && tipT <= 0) { $('#callout').classList.remove('on'); tipShowing = false; tipT = .5; }
+  else if (!tipShowing && tipT <= 0 && tipQ.length && screen === 'play') {
+    const [no, tx] = tipQ.shift(); $('#coNo').textContent = no; $('#coTx').textContent = tx;
+    $('#callout').classList.add('on'); tipShowing = true; tipT = 4.6;
+  }
+}
+
+/* ------------------------------------------------------------ screens */
+let screen = 'title', sel = clamp(prefs.diff | 0 || 1, 1, 10), inputGuard = 0;
+function setScreen(s) {
+  screen = s; document.body.dataset.screen = s;
+  G.sim = s === 'title' || s === 'play';
+  if (s === 'title') buildTiles();
+  hudT = 0;
+}
+function buildTiles() {
+  document.querySelectorAll('[data-game]').forEach(b => b.classList.toggle('on', b.dataset.game === prefs.game));
+  $('#tiles').innerHTML = DIFF_NAMES.map((nm, i) => {
+    const d = i + 1, avg = avgLen(d);
+    let st;
+    if (prefs.game === 'sector') { const m = prefs.medals[d]; st = m ? `${medalSvg(m)}<b>${m}</b>` : 'not cleared'; }
+    else st = prefs.hi.patrol[d] != null ? `best <b>${fmtPts(prefs.hi.patrol[d])}</b>`
+      : prefs.best[d] != null ? `old best <b>${prefs.best[d]}</b> kills` : 'no run yet';
+    if (prefs.game === 'sector' && prefs.hi.sector[d] != null) st += ` <span class="hi">${fmtPts(prefs.hi.sector[d])}</span>`;
+    return `<button class="unit tile rise ${d === sel ? 'sel' : ''}" data-d="${d}" style="--i:${i}">
+      <div class="top"><span class="no">${pad(d)}</span><span class="st">${st}</span></div>
+      <div class="nm">${nm}</div>
+      <div class="spec"><span>words</span>${dotBar(avg / 11)}</div>
+      <div class="spec"><span>pace</span>${dotBar(d / 10)}</div>
+      <div class="spec"><span>swarm</span>${dotBar(maxContacts(d) / 10, 10, d >= 8 ? 'var(--pen-1)' : 'var(--ink)')}</div>
+    </button>`;
+  }).join('');
+  document.querySelectorAll('.tile').forEach(t => {
+    t.onmouseenter = () => { if (sel !== +t.dataset.d) sfx.ui(); select(+t.dataset.d); };
+    t.onclick = () => startRun(+t.dataset.d, prefs.game);
+  });
+  const medals = Object.keys(prefs.medals).length;
+  $('#runsNote').textContent = `${prefs.runs} run${prefs.runs === 1 ? '' : 's'} · ${medals} sector${medals === 1 ? '' : 's'} cleared`;
+}
+function select(d) {
+  sel = d;
+  document.querySelectorAll('.tile').forEach(t => t.classList.toggle('sel', +t.dataset.d === d));
+  G.diff = d; G.level = d;
+}
+function setGame(g) { prefs.game = g; savePrefs(); buildTiles(); }
+function startRun(d, game) {
+  ensureAudio(); sfx.engage();
+  sel = d; prefs.diff = d; savePrefs();
+  newGame(d, 'play', game);
+  bot.fresh = null; bot.armRelease = null;
+  setScreen('play');
+  if (game === 'sector') banner(`SECTOR ${pad(d)} · WAVE 1/3`, `${DIFF_NAMES[d - 1].toLowerCase()} · three waves, then the leviathan`, C['pen-2']);
+}
+function pause() { if (screen === 'play') { G.armHeld = false; setScreen('paused'); syncToggles(); requestAnimationFrame(drawKey); } }
+// the pause screen's contact key: each type drawn exactly as it appears on the scope
+const KEY = [
+  ['anchor', {}, 'Plain', 'Type it once.'],
+  ['harbour', { trait: 'armour', armour: 1 }, 'Armoured', 'Hatched plating, heavy frame, ×2 badge: type it twice. The plating falls off after the first pass.'],
+  ['signal', { trait: 'reversed', rev: true }, 'Reversed', 'Purple, with chevrons running left: type it backwards, starting from the underlined last letter.'],
+  ['Signal.', { trait: 'cased', cased: true }, 'Exact', 'Aa. tag: capitals and punctuation must match. Dots mark the characters that need them.'],
+  ['lighthouse', { trait: 'splitter' }, 'Splitter', 'Cut in two: breaks into two small words when destroyed.'],
+  ['ox', { trait: 'mine' }, 'Mine', 'Orange spikes: type it to blast 3 letters off everything in its ring.'],
+  ['beacon', { trait: 'decoy' }, 'Decoy', 'Outlined letters: leave it alone and it fades away.'],
+  ['vessel', { trait: 'silent', silent: true }, 'Silent', 'Dashed teal echo: shows where it was, not where it is. Ping with /.'],
+];
+function buildKey() {
+  $('#keyList').innerHTML = KEY.map(([, , name, rule], i) => `<div class="keyrow"><canvas data-k="${i}"></canvas><div><b>${name}</b><span>${rule}</span></div></div>`).join('');
+}
+function drawKey() {
+  document.querySelectorAll('#keyList canvas').forEach(el => {
+    const [word, traits] = KEY[+el.dataset.k], { c, w, h } = fitCanvas(el);
+    if (!w) return;
+    const text = traits.rev ? [...word].reverse().join('') : word;
+    const mock = { id: 0, kind: 'enemy', text, fired: 0, landed: 0, trail: [], hitT: 0, missT: 0, dist: 1e9, rx: 0, ry: -1e9, ...traits };
+    drawContact(c, mock, 1, { x: w / 2 + 4 - (traits.armour ? 14 : 0), y: h / 2 + 4 }, !!traits.silent, true);
+    c.globalAlpha = 1;
+  });
+}
+function resume() { if (screen === 'paused') setScreen('play'); }
+function quitToTitle() { newGame(sel, 'demo', 'patrol'); setScreen('title'); }
+
+function gameOver(kind) {
+  const acc = accuracy() ?? 0, name = DIFF_NAMES[G.diff - 1];
+  const medal = kind === 'cleared' ? (acc >= 97 && G.hull >= 50 ? 'gold' : acc >= 92 ? 'silver' : 'bronze') : null;
+  const rank = { bronze: 1, silver: 2, gold: 3 };
+  const hi = prefs.hi[G.game], prevBest = hi[G.diff], prevMedal = prefs.medals[G.diff];
+  let isNew = false;
+  if (G.points > 0 && (prevBest == null || G.points > prevBest)) { hi[G.diff] = G.points; isNew = true; }
+  if (medal && (!prevMedal || rank[medal] > rank[prevMedal])) { prefs.medals[G.diff] = medal; isNew = true; }
+  prefs.runs++; savePrefs();
+  G.result = { kind, medal };
+  G.lock = null; G.armHeld = false;
+  setScreen('over');
+  inputGuard = performance.now() + 900;
+
+  const no = $('#dNo');
+  no.className = 'no ' + (kind === 'cleared' ? 'good' : 'bad');
+  no.textContent = kind === 'cleared' ? `SECTOR ${pad(G.diff)} CLEARED · LEVIATHAN DESTROYED`
+    : kind === 'rammed' ? 'SIGNAL LOST · THE LEVIATHAN REACHED THE CORE'
+    : G.game === 'sector' ? `SIGNAL LOST · HULL BREACHED · WAVE ${G.sec.wave}/3` : 'SIGNAL LOST · HULL BREACHED';
+  $('#dTitle').textContent = kind === 'cleared' ? 'Sector cleared' : 'Debrief';
+  $('#dSub').textContent = `${G.game} · difficulty ${pad(G.diff)} · ${name} · ${Math.floor(G.t / 60)} m ${Math.floor(G.t % 60)} s`;
+  $('#dActs').innerHTML = (medal ? `<span class="chip medal" style="color:${{ gold: 'var(--pen-4)', silver: 'var(--ink-2)', bronze: 'var(--pen-6)' }[medal]};border-color:currentColor">${medalSvg(medal, 16)} ${medal.toUpperCase()}</span>` : '')
+    + (isNew ? '<span class="chip" style="color:var(--pen-2);border-color:var(--pen-2)">● new best</span>' : '');
+  const w = wpm();
+  $('#dScore').textContent = fmtPts(G.points);
+  $('#dScoreS').textContent = prevBest == null ? 'first run here' : isNew && G.points > prevBest ? `was ${fmtPts(prevBest)}` : `best ${fmtPts(prevBest)}`;
+  $('#dWpm').innerHTML = w == null ? dash : w;
+  $('#dWpmS').textContent = G.peakWpm ? `peak ${Math.round(G.peakWpm)}` : 'run too short';
+  $('#dAcc').innerHTML = accuracy() == null ? dash : `${fmtAcc(acc)}<small class="u">%</small>`;
+  $('#dAccS').textContent = `${G.miss} miss${G.miss === 1 ? '' : 'es'}`;
+  $('#dKills').textContent = G.kills;
+  $('#dKillsS').textContent = G.game === 'sector'
+    ? (kind === 'cleared' ? 'all 3 waves + boss' : G.sec.stage === 'boss' || kind === 'rammed' ? 'reached the boss' : `reached wave ${G.sec.wave}/3`)
+    : `reached threat ${pad(G.level)}`;
+  $('#dLong').textContent = G.bestWord ? G.bestWord.text : '–';
+  $('#dLongS').textContent = G.bestWord ? `+${fmtPts(G.bestWord.pts)} pts` : 'none typed';
+  $('#dHull').innerHTML = Math.ceil(G.hull);
+  $('#dHullS').textContent = medal && medal !== 'gold' ? 'gold: 97%, 50 hull' : 'of 100';
+  const st = G.stats, r = (dot, nm, val) => `<div class="row"><span class="nm">${dot ? `<i class="p" style="background:${dot}"></i>` : ''}${nm}</span><span class="val">${val}</span></div>`;
+  $('#dDamage').innerHTML =
+    r('var(--pen-1)', 'Hull took', `${st.hullDmg} <small class="u">in ${st.hullHits} hit${st.hullHits === 1 ? '' : 's'}</small>`) +
+    r('var(--pen-3)', 'Phase absorbed', Math.round(st.phaseAbs)) +
+    r('var(--ink-2)', 'Iron stopped', `${st.ironHits} hit${st.ironHits === 1 ? '' : 's'}`) +
+    r('', st.hardest ? `Hardest hit <b>${esc(st.hardest.word)}</b>` : 'Hardest hit', st.hardest ? st.hardest.dmg : '–');
+  // where the score came from: the letters, then what speed, range and the streak did to them, then the extras
+  const pb = G.ptsBy, sgn = n => (n > 0 ? '+' : n < 0 ? '−' : '') + fmtPts(Math.abs(n));
+  $('#dPoints').innerHTML = [
+    ['var(--ink)', 'Words typed', 'words', 'letters × word difficulty'],
+    ['var(--pen-2)', 'Speed', 'speed', 'how fast each word was typed'],
+    ['var(--pen-3)', 'Range', 'range', 'how far out it was destroyed'],
+    ['var(--pen-2)', 'Streak', 'streak', 'clean words in a row'],
+    ['var(--pen-1)', 'Weapon kills', 'weapons', 'half value, no speed'],
+    ['var(--pen-4)', 'Supply crates', 'crates', ''],
+    ['var(--pen-3)', 'Wave & sector bonus', 'bonus', ''],
+  ].filter(([, , k], i) => i < 4 || pb[k]).map(([dot, nm, k, why]) => r(dot, why ? `${nm} <small class="u">${why}</small>` : nm, sgn(pb[k] || 0))).join('');
+  $('#dArsenal').innerHTML =
+    r('var(--pen-2)', 'Weapons used', `${st.used.pulse} pulse · ${st.used.torp} torp · ${st.used.nuke} nuke`) +
+    r('var(--pen-4)', 'Supply crates', `${st.crates.got} <small class="u">of ${st.crates.seen}</small>`) +
+    r('var(--pen-6)', 'Pings · mines · decoys', `${st.used.ping} · ${st.mines} · ${st.decoys}`);
+  $('#btnAgain').innerHTML = `${kind === 'cleared' ? 'Play again' : 'Re-engage'} at ${pad(G.diff)} <kbd>⏎</kbd>`;
+  $('#dRuns').textContent = `run saved · ${prefs.runs} run${prefs.runs === 1 ? '' : 's'} on this computer`;
+  requestAnimationFrame(() => dotCols($('#cvTimeline'), G.killsRun, C['pen-2'], Math.max(24, G.killsRun.length)));
+  if (kind === 'cleared') sfx.win();
+}
+function copyResult() {
+  const acc = accuracy(), w = wpm(), res = G.result || {};
+  const outcome = res.kind === 'cleared' ? `cleared with ${res.medal}` : G.game === 'sector' ? `lost on ${G.sec.stage === 'boss' || res.kind === 'rammed' ? 'the leviathan' : 'wave ' + G.sec.wave + '/3'}` : `${G.kills} destroyed`;
+  const text = `Sonar Type · ${G.game} ${pad(G.diff)} (${DIFF_NAMES[G.diff - 1]}): ${fmtPts(G.points)} points, ${outcome}, ` +
+    `${w ?? '–'} wpm, ${acc == null ? '–' : fmtAcc(acc) + '%'} accuracy, ${fmtClock(G.t)}.`;
+  const done = () => toast('Result copied');
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+  else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done) {
+  const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch {} ta.remove();
+}
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 1600);
+}
+function toggleFull() {
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  else document.documentElement.requestFullscreen().catch(() => {});
+}
+
+/* ------------------------------------------------------------ settings */
+const SOUND_ON = '<svg viewBox="0 0 16 16"><path d="M3 6h2.5L9 3v10L5.5 10H3z"/><path d="M11.5 5.5a3.5 3.5 0 0 1 0 5"/></svg>';
+const SOUND_OFF = '<svg viewBox="0 0 16 16"><path d="M3 6h2.5L9 3v10L5.5 10H3z"/><path d="M11.5 6l3 4M14.5 6l-3 4"/></svg>';
+function applyTheme() {
+  document.documentElement.dataset.theme = prefs.theme; readColors(); resize();
+  if (screen === 'over') dotCols($('#cvTimeline'), G.killsRun, C['pen-2'], Math.max(24, G.killsRun.length));
+  if (screen === 'paused') requestAnimationFrame(drawKey);
+  hudT = 0;
+}
+function toggleTheme() { prefs.theme = prefs.theme === 'dark' ? 'light' : 'dark'; savePrefs(); applyTheme(); syncToggles(); }
+function toggleSound() { prefs.sound = !prefs.sound; savePrefs(); syncToggles(); audioActive(prefs.sound && document.hasFocus()); }
+function toggleShake() { prefs.shake = !prefs.shake; savePrefs(); syncToggles(); }
+function toggleMusic() { prefs.music = !prefs.music; savePrefs(); syncToggles(); }
+function syncToggles() {
+  $('#btnSound').innerHTML = prefs.sound ? SOUND_ON : SOUND_OFF;
+  $('#togSound').classList.toggle('on', prefs.sound);
+  $('#vTheme').innerHTML = prefs.theme === 'dark' ? '<b>backlit</b> · paper' : 'backlit · <b>paper</b>';
+  $('#togShake').classList.toggle('on', prefs.shake);
+  $('#togMusic').classList.toggle('on', prefs.music);
+}
+
+/* ------------------------------------------------------------ input */
+addEventListener('keydown', e => {
+  if (e.key === 'F11') { e.preventDefault(); toggleFull(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  ensureAudio();
+  if (screen === 'play') {
+    if (e.key === 'Escape') { pause(); return; }
+    if (e.key === 'Tab') { e.preventDefault(); if (!e.repeat) useTorp(); return; }
+    if (e.key === ' ') { e.preventDefault(); if (!e.repeat) usePulse(); return; }
+    if (e.key === 'Enter') { e.preventDefault(); if (!e.repeat && G.arsenal.nuke) G.armHeld = true; return; }
+    if (e.key === 'Backspace') { e.preventDefault(); dropLock(); return; }
+    if (e.key === '/') { e.preventDefault(); if (!e.repeat) usePing(); return; }
+    if (e.repeat) return;
+    if (/^[a-z]$/i.test(e.key) || PUNCT.includes(e.key)) { e.preventDefault(); press(e.key); }
+    return;
+  }
+  if (e.repeat) return;
+  const k = e.key.toLowerCase();
+  if (k === 'm') { toggleSound(); return; }
+  if (k === 'u') { toggleMusic(); return; }
+  if (k === 't') { toggleTheme(); return; }
+  if (screen === 'title') {
+    if (/^[0-9]$/.test(e.key)) select(e.key === '0' ? 10 : +e.key);
+    else if (e.key === 'ArrowRight') select(Math.min(10, sel + 1));
+    else if (e.key === 'ArrowLeft') select(Math.max(1, sel - 1));
+    else if (e.key === 'ArrowDown') select(Math.min(10, sel + 5));
+    else if (e.key === 'ArrowUp') select(Math.max(1, sel - 5));
+    else if (e.key === 'Tab') { e.preventDefault(); setGame(prefs.game === 'sector' ? 'patrol' : 'sector'); }
+    else if (e.key === 'Enter') startRun(sel, prefs.game);
+  } else if (screen === 'paused') {
+    if (e.key === 'Escape' || e.key === 'Enter') resume();
+    else if (k === 'q') quitToTitle();
+    else if (k === 's') toggleShake();
+  } else if (screen === 'over') {
+    if (performance.now() < inputGuard) return;
+    if (e.key === 'Enter') startRun(G.diff, G.game);
+    else if (e.key === 'Escape') quitToTitle();
+  }
+});
+addEventListener('keyup', e => { if (e.key === 'Enter' && G.mode === 'play') G.armHeld = false; });
+// never let a run tick on, or any sound play, while the player is looking elsewhere. The audio is suspended
+// directly here because the frame loop that normally fades it out stops running when the window is hidden.
+function audioActive(on) {
+  if (!actx) return;
+  if (on && prefs.sound) actx.resume().catch(() => {}); else actx.suspend().catch(() => {});
+}
+addEventListener('blur', () => { pause(); audioActive(false); });
+addEventListener('focus', () => audioActive(!document.hidden));
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { pause(); audioActive(false); } else audioActive(document.hasFocus());
+});
+addEventListener('pagehide', () => { if (actx) actx.close().catch(() => {}); });
+
+$('#btnSound').onclick = () => { ensureAudio(); toggleSound(); };
+$('#btnTheme').onclick = toggleTheme;
+$('#btnFull').onclick = toggleFull;
+$('#btnCopy').onclick = copyResult;
+$('#togSound').onclick = toggleSound;
+$('#togTheme').onclick = toggleTheme;
+$('#togShake').onclick = toggleShake;
+$('#togMusic').onclick = toggleMusic;
+$('#btnResume').onclick = resume;
+$('#btnQuit').onclick = quitToTitle;
+$('#btnAgain').onclick = () => startRun(G.diff, G.game);
+$('#btnChange').onclick = quitToTitle;
+document.querySelectorAll('[data-game]').forEach(b => b.onclick = () => setGame(b.dataset.game));
+// window controls exist only inside the installed app (see sonar-type-app/preload.js)
+if (window.sonarShell) {
+  $('#winctl').hidden = false; $('#tbr').classList.add('shell');
+  document.querySelectorAll('[data-win]').forEach(b => b.onclick = () => {
+    const a = b.dataset.win;
+    if (a === 'min') sonarShell.minimize(); else if (a === 'max') sonarShell.maximize(); else sonarShell.close();
+  });
+}
+
+/* ------------------------------------------------------------ boot */
+$('#mark').innerHTML = '<i></i>'.repeat(9);
+buildKey();
+$('#sbBank').innerHTML = `word bank <b>${POOLS.reduce((s, t) => s + t.length, 0).toLocaleString('en-US')}</b> · v${VERSION}`;
+applyTheme();
+syncToggles();
+document.fonts && document.fonts.ready.then(resize);
+newGame(sel, 'demo', 'patrol');
+setScreen('title');
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  update(dt); render(); hud(dt); tipTick(dt); audioTick();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
