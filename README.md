@@ -15,6 +15,15 @@ Every letter fires a tracer, and the score rewards hard words, fast typing and d
 - **Salvage and the Dry Dock**: every run banks a hundredth of its score as salvage, spent on hulls (Skiff,
   Bastion, Wraith, Lancer, Choir), arsenal variants (Swarm, Harpoon, Freeze, Shockwave, Depth charge) and rare
   cards. Tracer styles come with hulls or are earned with medals.
+- **Leviathans**: four kinds, each with its own attack. The Leviathan lunges, the Archerfish fires short words
+  at the hull, the Siren circles and sings (speeding up everything else), the Ironback is plated and its broken
+  plates fly at you. Sectors rotate through them; expeditions end at one of three.
+- **Retargeting**: start typing a clearly more dangerous word and the lock jumps to it; Backspace drops the lock.
+- **Adaptive words + Drill**: every letter's speed and accuracy is remembered; words lean towards your weakest
+  letters, and Drill is 90 seconds of no-damage practice built from them.
+- **Logbook** (L): speed and accuracy charts across runs, week by week, a keyboard heatmap, and the story.
+- **Story**: *The Drowned Archive*, told in station logs unlocked by clearing sectors and beating leviathans.
+- **Cosmetics**: scope colours, kill effects and tracer styles in the Dry Dock.
 - **Pressure**: switches unlocked by clearing sectors (Deep water, Fragile, Typo tax, Blackout, Bare hull) that
   make a run harder and multiply its score.
 

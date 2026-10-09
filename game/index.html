@@ -174,6 +174,23 @@ body[data-screen="play"] .stage{cursor:none}
 /* progression: upgrade picks, the Dry Dock, the title's kit line and pressure switches, the sea chart */
 body[data-screen="pick"] #ovPick,body[data-screen="dock"] #ovDock,body[data-screen="chart"] #ovChart{display:flex}
 body[data-screen="pick"] .hud.unit{display:block}
+body[data-screen="log"] #ovLog{display:flex}
+.storyline{display:flex;gap:10px;align-items:baseline;margin:-4px 0 14px;font-size:11.5px;color:var(--ink-3);cursor:pointer;min-width:0}
+.storyline .no{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--pen-3);white-space:nowrap}
+.storyline .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.storyline:hover .t{color:var(--ink-2)}
+.chartbox{margin-top:4px}
+.chartbox canvas{width:100%;display:block}
+.kb{display:flex;flex-direction:column;gap:6px;align-items:center;margin:6px 0 4px}
+.kb .r{display:flex;gap:6px}
+.key{width:58px;height:58px;border:1px solid var(--rule-strong);border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:var(--mono)}
+.key b{font-size:17px;font-weight:600;color:var(--ink)}
+.key span{font-size:8.5px;color:var(--ink-3);white-space:nowrap}
+.key.na{border-style:dashed;opacity:.55}
+.lglegend{display:flex;gap:14px;justify-content:center;font-size:10px;color:var(--ink-3);margin-top:8px}
+.lglegend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.txlist .tx.locked{border-left-color:var(--rule-strong)}
+.txlist .tx.locked .no{color:var(--ink-3)}
 #ovPick{background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--paper) 30%,transparent),color-mix(in srgb,var(--paper) 80%,transparent) 70%)}
 .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .card{text-align:left;display:flex;flex-direction:column;gap:8px;padding:14px 14px 13px;transition:border-color .2s,transform .2s}
@@ -216,6 +233,11 @@ body[data-screen="pick"] .hud.unit{display:block}
 .press .mult{font-family:var(--mono);font-size:10.5px;color:var(--pen-1);margin-left:4px}
 .chartwrap{position:relative}
 #cvChart{width:100%;height:330px;display:block}
+#ovOver .panel,#ovLog .panel{max-height:100%;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--rule-strong) transparent}
+.tx{border-left:2px solid var(--pen-3);padding:8px 0 8px 12px;margin-top:14px}
+.tx .no{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--pen-3)}
+.tx p{margin:6px 0 0;font-size:12px;line-height:1.55;color:var(--ink-2)}
+.row .val kbd{font-size:9px;padding:0 4px}
 .buildl{font-size:11px;color:var(--ink-3);line-height:1.55;margin-top:8px}
 .buildl b{color:var(--ink);font-weight:600}
 .buildl .lbl{margin-right:6px}
@@ -292,13 +314,15 @@ body[data-screen="pick"] .hud.unit{display:block}
             <div class="no">SELECT DIFFICULTY</div>
             <h1>Sonar Type <span>type the incoming words before they reach the core</span></h1>
           </div>
-          <div class="acts"><kbd>1</kbd>–<kbd>0</kbd> choose <kbd>Tab</kbd> mode <kbd>⏎</kbd> engage <button class="btn" id="btnDock" style="margin-left:8px">Dry Dock <kbd>D</kbd></button></div>
+          <div class="acts"><kbd>1</kbd>–<kbd>0</kbd> choose <kbd>Tab</kbd> mode <kbd>⏎</kbd> engage <button class="btn" id="btnLog" style="margin-left:8px">Logbook <kbd>L</kbd></button><button class="btn" id="btnDock">Dry Dock <kbd>D</kbd></button></div>
         </div>
+        <div class="storyline" id="storyLine"></div>
         <div class="modebar">
           <span class="lbl">Mode</span>
           <button class="chip" data-game="sector">Sector · 3 waves + leviathan</button>
           <button class="chip" data-game="patrol">Patrol · endless</button>
           <button class="chip" data-game="expedition">Expedition · sea chart</button>
+          <button class="chip" data-game="drill">Drill · 90 s practice</button>
         </div>
         <div class="tiles" id="tiles"></div>
         <div class="press" id="pressBar"></div>
@@ -331,8 +355,24 @@ body[data-screen="pick"] .hud.unit{display:block}
         <div id="dkBody"></div>
         <div class="foot">
           <button class="btn pri" id="btnDockBack">Back <kbd>Esc</kbd></button>
-          <span><kbd>1</kbd>–<kbd>4</kbd> shelves</span>
+          <span><kbd>1</kbd>–<kbd>5</kbd> shelves</span>
           <span class="r mono" id="dkNote"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="ovLog">
+      <div class="unit panel rise" style="width:min(920px,100%)">
+        <div class="th">
+          <div><div class="no good">LOGBOOK</div><h1>Station log <span id="lgSub"></span></h1></div>
+          <div class="acts"><button class="tog" id="togAdaptive" style="width:auto;border:0;padding:0;gap:8px"><span class="k">Adaptive words <kbd>A</kbd></span><span class="sw"></span></button></div>
+        </div>
+        <div class="dtabs" id="lgTabs"></div>
+        <div id="lgBody"></div>
+        <div class="foot">
+          <button class="btn pri" id="btnLogBack">Back <kbd>Esc</kbd></button>
+          <span><kbd>1</kbd>–<kbd>3</kbd> pages</span>
+          <span class="r mono" id="lgNote"></span>
         </div>
       </div>
     </div>
@@ -359,6 +399,7 @@ body[data-screen="pick"] .hud.unit{display:block}
             <button class="tog" id="togMusic"><span class="k">Music <kbd>U</kbd></span><span class="sw"></span></button>
             <button class="tog" id="togTheme"><span class="k">Theme <kbd>T</kbd></span><span class="val" id="vTheme"></span></button>
             <button class="tog" id="togShake"><span class="k">Screen shake <kbd>S</kbd></span><span class="sw"></span></button>
+            <button class="tog" id="togAdapt2"><span class="k">Adaptive words <kbd>A</kbd></span><span class="sw"></span></button>
           </div>
           <div>
             <div class="sech" style="margin-top:0"><span class="lbl">Contact key</span></div>
@@ -393,8 +434,11 @@ body[data-screen="pick"] .hud.unit{display:block}
             </div>
             <div class="sech"><span class="lbl">Kills per 10 s</span></div>
             <canvas id="cvTimeline"></canvas>
+            <div id="dStory"></div>
             <div class="sech"><span class="lbl">Salvage</span></div>
             <div id="dSalvage"></div>
+            <div class="sech"><span class="lbl">Letters</span></div>
+            <div id="dLetters"></div>
           </div>
           <div>
             <div class="sech" style="margin-top:0"><span class="lbl">Score</span></div>
@@ -434,7 +478,7 @@ body[data-screen="pick"] .hud.unit{display:block}
    clean typing (pulse / torpedo / nuke), supply crates, and a
    sector mode that ends with a leviathan.
    ============================================================ */
-const VERSION = '4.0';
+const VERSION = '4.1';
 const TAU = Math.PI * 2;
 const $ = s => document.querySelector(s);
 const wrap = a => ((a % TAU) + TAU) % TAU;
@@ -452,7 +496,7 @@ const STORE = 'sonar-type.v2';
 const prefs = { theme: 'dark', sound: true, music: true, shake: true, diff: 1, game: 'sector', best: {}, medals: {}, runs: 0, seen: {} };
 try { Object.assign(prefs, JSON.parse(localStorage.getItem(STORE) || '{}')); } catch {}
 // v3.4 scores points; `best` keeps the old destroyed-count records, `hi` holds the point records per mode and level
-prefs.hi = Object.assign({ patrol: {}, sector: {}, expedition: {} }, prefs.hi);
+prefs.hi = Object.assign({ patrol: {}, sector: {}, expedition: {}, drill: {} }, prefs.hi);
 // v4 progression: salvage, what has been bought, the chosen kit and the pressure switches
 prefs.salvage = prefs.salvage | 0; prefs.salvageTotal = prefs.salvageTotal | 0;
 prefs.owned = Object.assign({}, prefs.owned);
@@ -460,6 +504,15 @@ prefs.loadout = Object.assign({ hull: 'skiff', torp: 'torpedo', pulse: 'pulse', 
 prefs.pressure = Object.assign({}, prefs.pressure);
 prefs.expeditions = prefs.expeditions | 0;
 prefs.expEnds = Object.assign({}, prefs.expEnds);
+// v4.1: per-letter memory, run history, lifetime totals, story transmissions heard, adaptive words switch
+prefs.letters = Object.assign({}, prefs.letters);
+prefs.history = Array.isArray(prefs.history) ? prefs.history : [];
+prefs.life = Object.assign({ words: 0, keys: 0, secs: 0, bestStreak: 0, bestWpm: 0, bestAcc: 0 }, prefs.life);
+prefs.heard = Object.assign({}, prefs.heard);
+if (prefs.adaptive == null) prefs.adaptive = true;
+prefs.beaten = Object.assign({}, prefs.beaten);
+if (Object.keys(prefs.medals).length) prefs.beaten.leviathan = true;
+for (const ends of Object.values(prefs.expEnds)) for (const k of Object.keys(ends)) prefs.beaten[k] = true;
 // first launch of v4 on a computer with history: bank salvage for the records already set, so past play counts
 let legacyGrant = 0;
 if (!prefs.v4) {
@@ -486,6 +539,8 @@ function readColors() {
     C[k] = cs.getPropertyValue('--' + k).trim();
   MONO = cs.getPropertyValue('--mono').trim();
   dark = document.documentElement.dataset.theme === 'dark';
+  const sc = typeof SCOPES !== 'undefined' && prefs.loadout && owns('scope', prefs.loadout.scope) ? SCOPES[prefs.loadout.scope] : null;
+  C.sonar = sc && sc.dark ? (dark ? sc.dark : sc.light) : C['pen-3'];
   S.font = `500 16px ${MONO}`; S.fontB = `600 20px ${MONO}`; S.fontSm = `500 9px ${MONO}`;
 }
 
@@ -545,6 +600,7 @@ function traitOdds(lv) {
   return opts.map(([name, p]) => [name, p * scale]);
 }
 function rollTrait(lv) {
+  if (G.game === 'drill') return null;
   let r = Math.random();
   for (const [name, p] of traitOdds(lv)) { r -= p; if (r < 0) return name; }
   return null;
@@ -633,6 +689,23 @@ const TRACERS = {
   sine:     { name: 'Sine wave', from: 'choir' },
   comet:    { name: 'Comet', feat: () => golds() >= 1, req: 'win a gold medal' },
   bubbles:  { name: 'Bubble chain', feat: () => clears() >= 5, req: 'clear five different sectors' },
+  ribbon:   { name: 'Ribbon', cost: 250, blurb: 'Two strands that twist around each other in flight.' },
+  zigzag:   { name: 'Lightning', cost: 300, blurb: 'A jagged, flickering bolt.' },
+};
+// scope colours recolour the sweep, the lit lattice and the ping; kill effects change how a destroyed word breaks up
+const SCOPES = {
+  teal:   { name: 'Teal', cost: 0, blurb: 'The standard sonar green-blue.' },
+  amber:  { name: 'Amber phosphor', cost: 150, dark: '#FFB547', light: '#A66300', blurb: 'Old radar-room amber.' },
+  green:  { name: 'Green CRT', cost: 200, dark: '#5BEA74', light: '#1E8F3A', blurb: 'A cathode-ray tube, freshly warmed up.' },
+  ice:    { name: 'Ice', cost: 200, dark: '#8AD8FF', light: '#1B6FA0', blurb: 'Cold, clear, polar water.' },
+  violet: { name: 'Violet', cost: 250, dark: '#B48CF2', light: '#6B3FA0', blurb: 'Deep-water bioluminescence.' },
+  ember:  { name: 'Ember', cost: 250, dark: '#FF7A4D', light: '#C2410C', blurb: 'Running hot. Red lighting, battle stations.' },
+};
+const KILLFX = {
+  burst:   { name: 'Burst', cost: 0, blurb: 'A spray of dots and a ring.' },
+  shatter: { name: 'Shatter', cost: 250, blurb: 'The chip breaks into tumbling shards.' },
+  bloom:   { name: 'Bloom', cost: 300, blurb: 'Three rings of petals open outward.' },
+  ink:     { name: 'Ink', cost: 300, blurb: 'Heavy blots of ink that spread and fade.' },
 };
 // upgrade cards are offered three at a time after each wave; rare ones must be bought in the Dry Dock first
 const CARDS = {
@@ -666,7 +739,9 @@ const golds = () => Object.values(prefs.medals).filter(m => m === 'gold').length
 function owns(kind, key) {
   if (kind === 'hull') return !!HULLS[key] && (!HULLS[key].cost || !!prefs.owned['hull:' + key]);
   if (kind === 'card') return !!CARDS[key] && (!CARDS[key].rare || !!prefs.owned['card:' + key]);
-  if (kind === 'tracer') { const t = TRACERS[key]; return !!t && (t.from ? owns('hull', t.from) : t.feat()); }
+  if (kind === 'tracer') { const t = TRACERS[key]; return !!t && (t.from ? owns('hull', t.from) : t.feat ? t.feat() : !!prefs.owned['tracer:' + key]); }
+  if (kind === 'scope') return !!SCOPES[key] && (!SCOPES[key].cost || !!prefs.owned['scope:' + key]);
+  if (kind === 'killfx') return !!KILLFX[key] && (!KILLFX[key].cost || !!prefs.owned['killfx:' + key]);
   const g = GEAR[kind] && GEAR[kind][key];
   return !!g && (!g.cost || !!prefs.owned[kind + ':' + key]);
 }
@@ -678,6 +753,7 @@ function applyKit(mode) {
   G.gear = {};
   for (const slot of Object.keys(GEAR)) G.gear[slot] = owns(slot, lo[slot]) ? lo[slot] : Object.keys(GEAR[slot])[0];
   G.tracer = lo.tracer && lo.tracer !== 'hull' && owns('tracer', lo.tracer) ? lo.tracer : h.tracer;
+  G.killfx = lo.killfx && owns('killfx', lo.killfx) ? lo.killfx : 'burst';
   G.press = Object.fromEntries(press.map(k => [k, true]));
   G.pressMul = press.reduce((m, k) => m * PRESSURE[k].mul, 1);
   G.hullMax = Math.round(h.hull * (G.press.fragile ? .6 : 1)); G.hull = G.hullMax;
@@ -854,6 +930,10 @@ const sfx = {
     tone('sawtooth', 156, 110, 2.2, .035, .1, { pan: p, filter: 'lowpass', ff: 420, wet: .8, attack: .5 });
     tone('sine', 52, 70, 1.6, .15, 1.2, { pan: p, lfo: 3, depth: .06, wet: .8, attack: .3 });
   },
+  growl:   p => { tone('sawtooth', 55, 48, .9, .16, 0, { pan: p, filter: 'lowpass', ff: 300, wet: .6 }); noise(.8, .12, 300, 0, 'lowpass', { pan: p, wet: .5 }); },
+  lunge:   p => { noise(.6, .3, 700, 0, 'lowpass', { pan: p, f1: 2400, wet: .5 }); tone('sine', 60, 110, .5, .3, 0, { pan: p }); },
+  aim:     p => { tone('square', 900, 1800, .4, .025, 0, { pan: p, filter: 'bandpass', ff: 1600, q: 4 }); },
+  shot:    p => { tone('triangle', 1400, 300, .18, .09, 0, { pan: p, wet: .3 }); noise(.12, .15, 2600, 0, 'bandpass', { pan: p, q: 2 }); },
   // the Siren's call: a high, wavering glissando that climbs and falls back
   sirenCall: p => {
     tone('sine', 660, 990, 1.2, .07, 0, { pan: p, lfo: 7, depth: .03, wet: .9, attack: .3 });
@@ -941,7 +1021,8 @@ function newGame(diff, mode, game) {
     charge: 0, arsenal: { pulse: 0, torp: 0, nuke: 0 }, arm: 0, armHeld: false, armTick: 0, nuke: null, spawnHold: 0,
     crateT: game === 'sector' ? 14 : 30, hbT: 0,
     pingCd: 0, pingT: 0, alertT: 0, pingGlow: 0, thermo: null, thermoT: rnd(20, 35), storm: null, stormT: rnd(25, 40),
-    combo: 0, ripples: [], hurt: 0,
+    combo: 0, ripples: [], hurt: 0, letters: {}, bestCombo: 0, drillT: 90,
+    weak: mode === 'play' && prefs.adaptive ? letterWeakness() : null,
     kills5: Array(24).fill(0), k5T: 0, killsRun: [0], kRunT: 0, keyTimes: [], peakWpm: 0, recent: [], longest: '', last: '',
     stats: { hullDmg: 0, hullHits: 0, phaseAbs: 0, ironHits: 0, hardest: null, used: { pulse: 0, torp: 0, nuke: 0, ping: 0 }, earned: { pulse: 0, torp: 0, nuke: 0 }, crates: { got: 0, seen: 0 }, mines: 0, decoys: 0 },
     sec: { wave: 1, quota: 0, spawned: 0, stage: 'intro', t: 0 }, exp: null, freezeT: 0, aimS: null,
@@ -993,12 +1074,42 @@ function bestBearing() {
 function pickFromTier(tier, minLen = 0) {
   const pool = POOLS[tier];
   const taken = new Set(G.words.filter(w => w.fired < w.text.length).map(w => w.text[w.fired].toLowerCase()));
-  for (let k = 0; k < 30; k++) {
-    const c = pick(pool);
-    if (c.length >= minLen && !taken.has(c[0]) && !G.recent.includes(c) && !G.words.some(w => w.text === c)) return c;
-  }
-  return pool.filter(c => c.length >= minLen)[0] || pick(pool);
+  const ok = c => c.length >= minLen && !taken.has(c[0]) && !G.recent.includes(c) && !G.words.some(w => w.text === c);
+  // adaptive words: draw a few candidates and lean towards the ones full of this typist's weakest letters
+  const want = G.weak ? (G.game === 'drill' ? 8 : 4) : 1, cands = [];
+  for (let k = 0; k < 40 && cands.length < want; k++) { const c = pick(pool); if (ok(c) && !cands.includes(c)) cands.push(c); }
+  if (!cands.length) return pool.filter(c => c.length >= minLen)[0] || pick(pool);
+  if (cands.length === 1) return cands[0];
+  const bias = G.game === 'drill' ? 12 : 3;
+  const wts = cands.map(c => { let s = 0; for (const ch of c.toLowerCase()) s += G.weak[ch] || 0; return 1 + bias * s / c.length; });
+  let r = Math.random() * wts.reduce((a, b) => a + b, 0), i = 0;
+  while (r > wts[i] && i < cands.length - 1) { r -= wts[i]; i++; }
+  return cands[i];
 }
+/* ------------------------------------------------------------ letter memory */
+// how fast and how cleanly each letter gets typed, remembered across runs as slow-moving averages;
+// it drives adaptive words, Drill mode and the Logbook's keyboard
+function recordKey(ch, gap, ok) {
+  if (G.mode !== 'play') return;
+  ch = ch.toLowerCase();
+  if (!/^[a-z]$/.test(ch)) return;
+  const L = prefs.letters[ch] || (prefs.letters[ch] = { n: 0, ms: 0, miss: 0 });
+  const R = G.letters[ch] || (G.letters[ch] = { n: 0, t: 0, k: 0, miss: 0 });
+  const timed = gap != null && gap > .02 && gap < 1.5;
+  if (ok) {
+    L.n++; L.miss *= .96; R.n++;
+    if (timed) { L.ms = L.ms ? L.ms * .94 + gap * 60 : gap * 1000; R.t += gap; R.k++; }
+  } else { L.miss = L.miss * .96 + .04; R.miss++; }
+}
+// how much harder than average each letter is for this typist (0 = no harder); null until there is enough data
+function letterWeakness() {
+  const ls = Object.entries(prefs.letters).filter(([, L]) => L.n >= 8 && L.ms);
+  if (ls.length < 8) return null;
+  const mean = ls.reduce((s, [, L]) => s + L.ms, 0) / ls.length, w = {};
+  for (const [ch, L] of ls) w[ch] = Math.max(0, L.ms / mean - 1) * 1.5 + L.miss * 4;
+  return w;
+}
+const weakestLetters = (n = 5) => { const w = letterWeakness(); return w ? Object.entries(w).sort((a, b) => b[1] - a[1]).filter(e => e[1] > .05).slice(0, n).map(e => e[0]) : []; };
 function pickWord() {
   const wts = LEVEL_WEIGHTS[Math.min(G.level, 12) - 1];
   let r = Math.random(), tier = 0, acc = 0;
@@ -1053,14 +1164,14 @@ function spawnBoss(type = 'leviathan') {
   const n = Math.max(2, 3 + Math.floor(G.diff / 2) - (type === 'ironback' ? 1 : 0));
   let layers = [];
   for (let i = 0; i < n; i++) layers.push(pickFromTier(clamp(top + 1 + (i === n - 1 ? 1 : 0) - (type === 'siren' ? 1 : 0), 0, 4)));
-  const extra = { layers, layerTotal: n, speed: (12 + G.diff * 1.9) * (type === 'ironback' ? .85 : 1), escortT: 2, btype: type };
+  const extra = { layers, layerTotal: n, speed: (15 + G.diff * 2.3) * (type === 'ironback' ? .78 : 1), escortT: 2, btype: type, actT: 4, warnT: 0, lungeT: 0, orbit: Math.random() < .5 ? 1 : -1 };
   if (type === 'siren') { extra.rev = true; extra.layers = layers = layers.map(t => [...t].reverse().join('')); }
   if (type === 'ironback') extra.armour = 1;
   const a = bestBearing(), d = edgeDist(a) + 50;
   G.boss = mk('boss', layers[0], Math.cos(a) * d, Math.sin(a) * d, extra);
   G.words.push(G.boss);
-  G.boss.callT = .6; G.boss.wakeT = 0;
-  tip('boss');
+  G.boss.callT = .6; G.boss.wakeT = 0; G.bossType = type;
+  tip('boss'); if (type !== 'leviathan') tip('boss_' + type);
 }
 function remove(w) { G.words = G.words.filter(o => o !== w); if (G.lock === w) G.lock = null; }
 
@@ -1070,13 +1181,37 @@ function wants(w, ch) { const n = w.text[w.fired]; return w.cased ? ch === n : c
 function press(ch) {
   if (G.lock && (G.lock.fired >= G.lock.text.length || !live(G.lock))) G.lock = null;
   let target = null;
-  if (G.lock) { if (wants(G.lock, ch)) target = G.lock; }
+  if (G.lock) {
+    if (wants(G.lock, ch)) target = G.lock;
+    else {
+      // retarget: a letter that is wrong for the locked word but right for a clearly more dangerous one moves the
+      // lock there instead of counting as a miss. The old word keeps the letters already typed into it.
+      const cur = G.lock, threat = w => w.kind !== 'crate' && w.trait !== 'decoy' && sight(w) !== 'hidden';
+      for (const w of G.words) {
+        if (w === cur || w.fired >= w.text.length || !wants(w, ch) || !threat(w)) continue;
+        const urgent = cur.kind === 'crate' || w.dist < cur.dist * .75 || w.dist < S.R * .3 || (w.shot && w.dist < cur.dist);
+        if (urgent && (!target || w.dist < target.dist)) target = w;
+      }
+      if (target) retarget(cur, target);
+    }
+  }
   else for (const w of G.words) if (w.fired < w.text.length && wants(w, ch) && (!target || w.dist < target.dist)) target = w;
   if (target) { G.lock = target; fire(target); } else miss();
 }
+function retarget(from, to) {
+  G.stats.retargets = (G.stats.retargets || 0) + 1;
+  const p = pos(to), q = pos(from);
+  drawLater(c => drawDottedLine(c, q.x, q.y, p.x, p.y, 6, C['pen-2'], .6), .25);
+  G.fx.push({ k: 'stamp', x: p.x, y: p.y + 26, text: 'RETARGET', col: C['pen-2'], life: .9, max: .9 });
+  sfx.drop();
+}
+// a one-off drawing for a short time (used for the retarget link)
+function drawLater(fn, life) { G.fx.push({ k: 'draw', fn, life, max: life }); }
 function dropLock() { if (G.lock) { G.lock = null; sfx.drop(); } }
 function fire(w) {
   const idx = w.fired++;
+  recordKey(w.text[idx], idx > 0 && w.lastKeyT != null ? G.t - w.lastKeyT : null, true);
+  w.lastKeyT = G.t;
   // time each typing pass (armour has two) from its first keystroke to its last, for the speed score
   if (idx === 0) w.passT = G.t;
   if (w.fired === w.text.length) { w.typeDur = (w.typeDur || 0) + (G.t - w.passT); w.typeKeys = (w.typeKeys || 0) + w.text.length; w.passes = (w.passes || 0) + 1; }
@@ -1095,6 +1230,7 @@ function fire(w) {
 }
 function miss() {
   G.miss++;
+  if (G.lock && G.lock.fired < G.lock.text.length) recordKey(G.lock.text[G.lock.fired], null, false);
   // Streak keeper spends a banked miss: the word stays clean, and the streak and charge survive
   if (G.mods.keeper && G.forgive > 0) {
     G.forgive--;
@@ -1253,7 +1389,7 @@ function kill(w, how) {
   if (shown(w).length > G.longest.length) G.longest = shown(w);
   // a clean word (no miss while engaged) charges the arsenal, patches the hull and extends the streak
   const clean = how === 'type' && !w.missed;
-  if (clean) G.combo++;
+  if (clean) { G.combo++; G.bestCombo = Math.max(G.bestCombo, G.combo); }
   // weapon kills pay half the letters (as the word was before a mine stripped it) and nothing for speed; a nuke pays a flat salvage fee
   const whole = w.orig ? { ...w, text: w.orig } : w;
   const sc = how === 'type' ? typedPoints(w, clean)
@@ -1263,10 +1399,7 @@ function kill(w, how) {
     G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 2, r1: 52, n: 24, col: C['ink-2'], life: .8, max: .8 });
     G.fx.push({ k: 'cross', x: p.x, y: p.y, life: 1, max: 1 });
     G.fx.push({ k: 'stamp', x: p.x, y: p.y - 26, text: `+${sc.pts}  ${shown(whole)}`, sub: sc.sub, col: C['pen-2'], life: 1.3, max: 1.3 });
-    for (let i = 0; i < 26; i++) {
-      const b = Math.random() * TAU, v = rnd(70, 400);
-      G.fx.push({ k: 'dot', x: p.x, y: p.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(1, 2.6), col: Math.random() < .35 ? C.ink : C['pen-2'], life: rnd(.4, .9), max: .9, drag: 3.5 });
-    }
+    killFx(p, w);
     // the spent letter dots scatter, glowing motes linger, and bubbles rise
     for (let i = 0; i < w.text.length; i++) {
       const q = letterPos(w, i), b = Math.atan2(q.y - p.y, q.x - p.x + .01);
@@ -1288,6 +1421,30 @@ function kill(w, how) {
   if (G.game === 'patrol') {
     const lv = rampLevel(); if (lv > G.level) levelUp(lv);
     if (G.mods.riveter && G.kills % 15 === 0) regrowPlate();
+  }
+}
+// how a destroyed word breaks up, per the kill effect fitted in the Dry Dock
+function killFx(p, w) {
+  const style = G.killfx || 'burst';
+  if (style === 'shatter') {
+    const n = Math.max(8, w.text.length * 2);
+    for (let i = 0; i < n; i++) {
+      const b = Math.random() * TAU, v = rnd(80, 300);
+      G.fx.push({ k: 'chunk', x: p.x + rnd(-20, 20), y: p.y + rnd(-6, 6), vx: Math.cos(b) * v, vy: Math.sin(b) * v - 60, rot: b, spin: rnd(-12, 12), w: rnd(4, 9), h: rnd(1.5, 3), g: 380, col: Math.random() < .35 ? C['pen-2'] : C['ink-2'], life: rnd(.7, 1.1), max: 1.1 });
+    }
+  } else if (style === 'bloom') {
+    [[C['pen-5'], 70], [C['pen-3'], 120], [C['pen-2'], 170]].forEach(([col, v], k) => {
+      for (let i = 0; i < 12; i++) { const an = i / 12 * TAU + k * .26; G.fx.push({ k: 'dot', x: p.x, y: p.y, vx: Math.cos(an) * v, vy: Math.sin(an) * v, r: 2.4 - k * .4, col, life: .9, max: .9, drag: 2.2 }); }
+    });
+    for (let i = 0; i < 8; i++) G.fx.push({ k: 'twinkle', x: p.x + rnd(-30, 30), y: p.y + rnd(-14, 14), vx: rnd(-10, 10), vy: rnd(-16, -4), seed: Math.random() * 9, life: rnd(1, 1.8), max: 1.8 });
+  } else if (style === 'ink') {
+    for (let i = 0; i < 10; i++) { const b = Math.random() * TAU, v = rnd(20, 120); G.fx.push({ k: 'dot', x: p.x, y: p.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(2.5, 6), col: C.ink, life: rnd(.9, 1.4), max: 1.4, drag: 4, a0: .85 }); }
+    for (let i = 0; i < 22; i++) { const b = Math.random() * TAU, v = rnd(120, 340); G.fx.push({ k: 'dot', x: p.x, y: p.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(.8, 1.6), col: C.ink, life: rnd(.4, .8), max: .8, drag: 3.5 }); }
+  } else {
+    for (let i = 0; i < 26; i++) {
+      const b = Math.random() * TAU, v = rnd(70, 400);
+      G.fx.push({ k: 'dot', x: p.x, y: p.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(1, 2.6), col: Math.random() < .35 ? C.ink : C['pen-2'], life: rnd(.4, .9), max: .9, drag: 3.5 });
+    }
   }
 }
 function levelUp(lv) {
@@ -1363,6 +1520,7 @@ function cracks(n) {
 }
 
 function addCharge(n) {
+  if (G.game === 'drill') return;
   const before = G.charge;
   G.charge = Math.min(G.chargeMax, G.charge + n);
   for (const [th, award] of G.ticks) if (before < th && G.charge >= th) grant(award);
@@ -1414,6 +1572,12 @@ function collect(w) {
 function coreHit(w) {
   const p = pos(w), a = angOf(w), pi = plateAt(a);
   remove(w);
+  // a drill never hurts: a word that gets through just breaks the streak
+  if (G.game === 'drill') {
+    burstLetters(w, C['pen-1']); G.combo = 0; G.cleanRun = 0; G.stats.leaks = (G.stats.leaks || 0) + 1;
+    G.fx.push({ k: 'stamp', x: p.x, y: p.y - 22, text: 'LEAKED', col: C['pen-1'], life: .9, max: .9 });
+    sfx.miss(); return;
+  }
   if (w.kind === 'boss') {
     G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 30, r1: S.R, n: 72, col: C['pen-1'], life: 1, max: 1 });
     burstLetters(w, C['pen-1'], 120);
@@ -1620,7 +1784,12 @@ function detonate() {
 /* ------------------------------------------------------------ leviathan */
 function bossLayer(w, how) {
   // the Ironback's plating comes off first, then the same layer has to be typed again
-  if (w.armour > 0 && how === 'type') { breakArmour(w); w.missed = false; return; }
+  if (w.armour > 0 && how === 'type') {
+    breakArmour(w); w.missed = false;
+    // the Ironback's broken plates come at the hull as two small words
+    for (const sgn of [-1, 1]) { const f = spawnEnemy({ text: pickFromTier(0), trait: null, ang: angOf(w) + sgn * .22, dist: Math.max(S.R * .3, w.dist - 16), speed: wordSpeed(G.level) * 1.25 }); f.shot = true; }
+    return;
+  }
   const p = pos(w), cleared = w.layerTotal - w.layers.length + 1;
   G.kills++; G.killsRun[G.killsRun.length - 1]++; G.kills5[G.kills5.length - 1]++;
   // every leviathan layer pays double; each layer's typing speed is timed on its own
@@ -1641,12 +1810,13 @@ function bossLayer(w, how) {
   w.text = w.layers[0]; w.fired = 0; w.landed = 0; w.layerNo++; w.missed = false; w.hitT = .5;
   if (w.btype === 'ironback') w.armour = 1;
   if (G.lock === w) G.lock = null;
-  const d = w.dist || 1; w.rx += w.rx / d * 34; w.ry += w.ry / d * 34;
+  const d = w.dist || 1; w.rx += w.rx / d * 24; w.ry += w.ry / d * 24;
   G.last = `leviathan layer ${cleared} destroyed`;
 }
 function bossKilled(w) {
   const p = pos(w);
   remove(w); G.boss = null;
+  if (G.mode === 'play') prefs.beaten[w.btype || 'leviathan'] = true;
   for (let i = 0; i < 4; i++) G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 10, r1: 160 + i * 70, n: 64, col: i % 2 ? C['pen-3'] : C['pen-1'], life: 1.2, max: 1.2, delay: i * .15 });
   for (let i = 0; i < 70; i++) {
     const b = Math.random() * TAU, v = rnd(90, 520);
@@ -1660,6 +1830,52 @@ function bossKilled(w) {
 }
 
 /* ------------------------------------------------------------ directors */
+// Drill: 90 seconds of practice at a steady level, words weighted hard towards your weakest letters
+function drillTick(dt) {
+  G.drillT -= dt;
+  if (G.drillT <= 0) { G.drillT = 0; if (G.mode === 'play') gameOver('drill'); return; }
+  G.spawnT -= dt;
+  if (G.spawnT <= 0 && enemies() < maxContacts(G.level)) { spawnEnemy({ speed: wordSpeed(G.level) * .8 }); G.spawnT = spawnInterval(G.level) * rnd(.8, 1.2); }
+}
+// each leviathan fights in its own way; telegraphs come first so a sharp player can react
+function bossAct(b, dt) {
+  b.actT -= dt;
+  const p = pos(b), pan = panAt(p.x);
+  if (b.btype === 'leviathan') {
+    if (b.lungeT > 0) { b.lungeT -= dt; if (Math.random() < .5) bubbles(p.x + rnd(-40, 40), p.y + rnd(-8, 12), 2, 6); }
+    if (b.warnT > 0) { b.warnT -= dt; if (b.warnT <= 0) { b.lungeT = 1.1; ripple(p.x, p.y, 9, 420, 1); bump(5); sfx.lunge(pan); } }
+    else if (b.actT <= 0 && b.lungeT <= 0) { b.actT = Math.max(6.5, 12 - G.diff * .4); b.warnT = .9; G.fx.push({ k: 'stamp', x: p.x, y: p.y + 40, text: 'LUNGE', col: C['pen-1'], life: .9, max: .9, big: true }); sfx.growl(pan); }
+  } else if (b.btype === 'archer') {
+    if (b.warnT > 0) { b.warnT -= dt; if (b.warnT <= 0) fireShot(b); }
+    else if (b.actT <= 0 && b.dist < S.R * 1.02) { b.actT = Math.max(2.6, 6.8 - G.diff * .38); b.warnT = .65; sfx.aim(pan); }
+  } else if (b.btype === 'siren') {
+    if (b.actT <= 0 && b.dist < S.R) {
+      b.actT = rnd(8, 11); G.songT = 3;
+      for (let i = 0; i < 3; i++) G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 20, r1: S.R * .9, n: 80, col: C['pen-5'], life: 1.3, max: 1.3, delay: i * .25 });
+      G.fx.push({ k: 'stamp', x: p.x, y: p.y + 40, text: 'SONG', col: C['pen-5'], life: 1.2, max: 1.2, big: true });
+      sfx.sirenCall(pan);
+    }
+  }
+}
+// the Archerfish's shot: a short word fired fast and straight at the hull
+function fireShot(b) {
+  const p = pos(b);
+  const w = spawnEnemy({ text: pickFromTier(0), trait: null, ang: angOf(b) + rnd(-.1, .1), dist: Math.max(S.R * .25, b.dist - 30), speed: 95 + G.diff * 9 });
+  w.shot = true;
+  G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 6, r1: 50, n: 26, col: C['pen-1'], life: .45, max: .45 });
+  bubbles(p.x, p.y, 6); sfx.shot(panAt(p.x)); tip('shot');
+}
+// how a leviathan moves this frame: returns its speed multiplier (the Siren also circles)
+function bossMove(w, dt) {
+  if (w.btype === 'archer') return w.dist < S.R * .5 ? 0 : 1;
+  if (w.btype === 'siren') {
+    const a = .22 * w.orbit * dt, c = Math.cos(a), sn = Math.sin(a), x = w.rx;
+    w.rx = x * c - w.ry * sn; w.ry = x * sn + w.ry * c;
+    return .8;
+  }
+  if (w.btype === 'leviathan' && w.lungeT > 0) return 3.2;
+  return 1;
+}
 function patrolTick(dt) {
   G.spawnT -= dt;
   if (G.spawnT <= 0 && !G.spawnHold && enemies() < maxContacts(G.level)) { spawnEnemy(); G.spawnT = spawnInterval(G.level) * workLoad(G.level) * rnd(.75, 1.25); }
@@ -1691,10 +1907,10 @@ function sectorTick(dt) {
       } else if (G.game === 'expedition') { endLeg(); return; }
       else {
         s.stage = 'warn'; s.t = 0;
-        banner('LEVIATHAN APPROACHING', 'destroy every layer before it reaches the core', C['pen-1']); sfx.siren();
+        banner(`${BOSSES[bossOf()].name.toUpperCase()} APPROACHING`, BOSSES[bossOf()].blurb.toLowerCase(), C['pen-1']); sfx.siren();
       }
     }
-  } else if (s.stage === 'warn') { if (s.t > 2.8) { spawnBoss(G.game === 'expedition' ? G.exp.boss : 'leviathan'); s.stage = 'boss'; s.t = 0; } }
+  } else if (s.stage === 'warn') { if (s.t > 2.8) { spawnBoss(bossOf()); s.stage = 'boss'; s.t = 0; } }
   else if (s.stage === 'boss') {
     if (G.boss) {
       G.boss.escortT -= dt;
@@ -1702,6 +1918,8 @@ function sectorTick(dt) {
       if (G.boss.callT <= 0) { G.boss.callT = rnd(5, 8); (G.boss.btype === 'siren' ? sfx.sirenCall : sfx.bossCall)(panAt(pos(G.boss).x)); ripple(pos(G.boss).x, pos(G.boss).y, 5, 260, 1.4); }
       G.boss.wakeT -= dt;
       if (G.boss.wakeT <= 0) { G.boss.wakeT = .12; const q = pos(G.boss); bubbles(q.x + rnd(-50, 50), q.y + rnd(-10, 14), 1, 4); }
+      bossAct(G.boss, dt);
+      if (!G.boss) return;
       if (G.boss.escortT <= 0 && enemies() < 4) { spawnEnemy({ tier: Math.random() < .5 ? 0 : 1 }); G.boss.escortT = Math.max(2, 5.5 - G.diff * .35); }
     }
   } else if (s.stage === 'won') { if (s.t > 2.6 && G.mode === 'play') gameOver('cleared'); }
@@ -1766,7 +1984,7 @@ function update(dt) {
   G.kRunT += dt; if (G.kRunT >= 10) { G.kRunT = 0; G.killsRun.push(0); }
   while (G.keyTimes.length && G.keyTimes[0] < G.t - 15) G.keyTimes.shift();
   if (G.t > 15) G.peakWpm = Math.max(G.peakWpm, G.keyTimes.length / 5 * 4);
-  G.slowT = Math.max(0, G.slowT - dt); G.freezeT = Math.max(0, (G.freezeT || 0) - dt);
+  G.slowT = Math.max(0, G.slowT - dt); G.freezeT = Math.max(0, (G.freezeT || 0) - dt); G.songT = Math.max(0, (G.songT || 0) - dt);
   // patrol offers its upgrade card the moment the threat level rises
   if (G.pickQ && G.game === 'patrol' && G.mode === 'play' && screen === 'play') { openPick(); return; }
   G.spawnHold = Math.max(0, G.spawnHold - dt);
@@ -1775,11 +1993,11 @@ function update(dt) {
 
   // sea conditions: a thermocline band from level 3, drifting noise storms from level 5
   const stormy = legType() === 'storm';
-  if (G.level >= 3 || stormy) {
+  if ((G.level >= 3 || stormy) && G.game !== 'drill') {
     G.thermoT -= dt;
     if (G.thermoT <= 0) { if (G.thermo) { G.thermo = null; G.thermoT = rnd(30, 50); } else { startThermo(); G.thermoT = rnd(25, 35); } }
   }
-  if (G.level >= 5 || stormy) {
+  if ((G.level >= 5 || stormy) && G.game !== 'drill') {
     G.stormT -= dt;
     if (G.stormT <= 0) { if (G.storm) { G.storm = null; G.stormT = stormy ? rnd(4, 8) : rnd(30, 50); } else { startStorm(); G.stormT = stormy ? rnd(22, 30) : rnd(15, 20); } }
   }
@@ -1812,10 +2030,10 @@ function update(dt) {
     if (G.nuke.r > Math.min(G.nuke.maxR + 60, Math.hypot(S.w, S.h) / 2 + 80)) G.nuke = null;
   }
 
-  if (G.game === 'patrol') patrolTick(dt); else sectorTick(dt);
+  if (G.game === 'patrol') patrolTick(dt); else if (G.game === 'drill') drillTick(dt); else sectorTick(dt);
   if (!G.sim) return;
   G.crateT -= dt;
-  if (G.crateT <= 0 && !G.spawnHold && G.words.filter(w => w.kind === 'crate').length < 2) {
+  if (G.crateT <= 0 && G.game !== 'drill' && !G.spawnHold && G.words.filter(w => w.kind === 'crate').length < 2) {
     spawnCrate(pick(['iron', 'iron', 'phase', 'phase', 'repair'])); G.crateT = legType() === 'wreck' ? rnd(12, 18) : rnd(40, 60);
   }
 
@@ -1838,10 +2056,13 @@ function update(dt) {
       else if (w.entered && (Math.abs(w.rx) > S.w / 2 + 90 || Math.abs(w.ry) > S.h / 2 + 90)) { remove(w); G.last = `supply lost: ${w.ctype}`; continue; }
     } else if (w.stunT > 0) w.stunT -= dt;
     else if (w.fired < w.text.length) {
-      const d = Math.hypot(w.rx, w.ry) || 1, step = w.speed * slow * alert * pace * dt;
+      const bm = w.kind === 'boss' ? bossMove(w, dt) : G.songT > 0 ? 1.5 : 1;
+      const d = Math.hypot(w.rx, w.ry) || 1, step = w.speed * slow * alert * pace * bm * dt;
       w.rx -= w.rx / d * step; w.ry -= w.ry / d * step;
     }
     w.dist = Math.hypot(w.rx, w.ry);
+    // first time something gets close while the lock sits on a farther word, explain how to switch
+    if (G.lock && w !== G.lock && w.kind !== 'crate' && w.trait !== 'decoy' && w.dist < S.R * .3 && G.lock.dist > S.R * .45) tip('switch');
     w.hitT = Math.max(0, w.hitT - dt); w.missT = Math.max(0, w.missT - dt);
     if (w.silent) w.echo = Math.max(0, w.echo - dt / (G.mods.sweep ? 4 : 2.4));
     w.trailT -= dt;
@@ -1852,7 +2073,7 @@ function update(dt) {
       if (w.silent) { w.echo = 1; w.ex = w.rx; w.ey = w.ry; }
       if (!inStorm(w)) {
         const p = pos(w), cw = w.kind === 'boss' ? S.cwB : S.cw;
-        G.fx.push({ k: 'ring', x: p.x - (w.text.length * cw + 18) / 2 - 8, y: p.y, r0: 2, r1: 15, col: C['pen-3'], life: .7, max: .7 });
+        G.fx.push({ k: 'ring', x: p.x - (w.text.length * cw + 18) / 2 - 8, y: p.y, r0: 2, r1: 15, col: C.sonar, life: .7, max: .7 });
         // every contact returns a faint blip as the sweep crosses it (silent ones too: listen for them)
         sfx.blip(panAt(p.x), 520 + (1 - Math.min(1, w.dist / S.R)) * 900);
       }
@@ -1934,12 +2155,12 @@ function drawScope(c) {
   c.fill();
   buckets.forEach((b, i) => {
     if (!b.length) return;
-    c.globalAlpha = .18 + i * .16; c.fillStyle = C['pen-3']; c.beginPath();
+    c.globalAlpha = .18 + i * .16; c.fillStyle = C.sonar; c.beginPath();
     for (const p of b) dotPath(c, p.x, p.y, .9 + i * .2);
     c.fill();
   });
   if (blast.length) { c.globalAlpha = 1; c.fillStyle = G.nuke.col; c.beginPath(); for (const p of blast) dotPath(c, p.x, p.y, 1.8); c.fill(); }
-  if (pinged.length) { c.globalAlpha = 1; c.fillStyle = C['pen-3']; c.beginPath(); for (const p of pinged) dotPath(c, p.x, p.y, 1.7); c.fill(); }
+  if (pinged.length) { c.globalAlpha = 1; c.fillStyle = C.sonar; c.beginPath(); for (const p of pinged) dotPath(c, p.x, p.y, 1.7); c.fill(); }
 
   // marine snow, only inside the scope
   c.fillStyle = C['ink-3'];
@@ -1991,10 +2212,10 @@ function drawScope(c) {
   c.font = S.fontSm; c.textAlign = 'center'; c.textBaseline = 'middle';
   for (let d = 0; d < 360; d += 30) { const a = (d - 90) * Math.PI / 180; c.fillText(pad(d, 3), cx + Math.cos(a) * (R + 29), cy + Math.sin(a) * (R + 29)); }
   const ex = cx + Math.cos(G.sweep) * R, ey = cy + Math.sin(G.sweep) * R;
-  c.strokeStyle = C['pen-3']; c.globalAlpha = .75;
-  if (dark) { c.shadowColor = C['pen-3']; c.shadowBlur = 10; }
+  c.strokeStyle = C.sonar; c.globalAlpha = .75;
+  if (dark) { c.shadowColor = C.sonar; c.shadowBlur = 10; }
   c.beginPath(); c.moveTo(cx, cy); c.lineTo(ex, ey); c.stroke();
-  c.globalAlpha = 1; c.fillStyle = C['pen-3']; c.beginPath(); dotPath(c, ex, ey, 2.4); c.fill();
+  c.globalAlpha = 1; c.fillStyle = C.sonar; c.beginPath(); dotPath(c, ex, ey, 2.4); c.fill();
   c.shadowBlur = 0;
   // Blackout: the outer 40% of the scope is shrouded unless a ping is showing
   if (G.press.blackout && !pinging()) {
@@ -2028,6 +2249,12 @@ function drawLines(c, mul) {
   };
   if (G.boss && live(G.boss)) line(G.boss, C['pen-1'], .55);
   if (G.lock && live(G.lock) && G.lock !== G.boss) line(G.lock, C['pen-2'], .6);
+  // the Archerfish takes aim: a blinking line from it to the hull just before it fires
+  const b = G.boss;
+  if (b && live(b) && b.btype === 'archer' && b.warnT > 0 && sight(b) !== 'hidden' && performance.now() % 160 < 100) {
+    const p = pos(b), an = Math.atan2(p.y - S.cy, p.x - S.cx);
+    drawDottedLine(c, S.cx + Math.cos(an) * 50, S.cy + Math.sin(an) * 50, p.x, p.y, 5, C['pen-1'], .9 * mul, 1.1);
+  }
 }
 // `at` draws the contact somewhere other than where it really is: a silent contact's last echo (ghost),
 // or a specimen in the pause screen's contact key (legend)
@@ -2042,10 +2269,10 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
   const armoured = w.armour > 0, split = w.trait === 'splitter' && len > 1;
   const purple = C['pen-5'];
   const accent = crate ? (w.ctype === 'nuke' ? C['pen-1'] : C['pen-4']) : boss ? C['pen-1'] : mine ? C['pen-6'] : rev ? purple : C['ink-3'];
-  const slowed = !legend && G.slowT > 0;
+  const slowed = !legend && G.slowT > 0, sung = !legend && G.songT > 0 && !boss;
 
   if (!ghost && !w.silent && !legend) {
-    c.fillStyle = slowed ? C['pen-3'] : C['ink-3'];
+    c.fillStyle = sung ? C['pen-5'] : slowed ? C['pen-3'] : w.shot ? C['pen-1'] : C['ink-3'];
     w.trail.forEach((q, i) => { c.globalAlpha = mul * (.55 - i * .055); c.beginPath(); dotPath(c, q.x, q.y, 1.1); c.fill(); });
   }
   if (mine && !legend) dottedCircle(c, p.x, p.y, mineR(), 7, 1, C['pen-6'], .45 * mul);
@@ -2068,8 +2295,20 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
     c.setLineDash(ghost ? [4, 3] : decoy ? [2, 3] : [3, 2]);
     c.strokeStyle = ghost ? C['pen-3'] : decoy ? C['ink-3'] : accent; c.lineWidth = 1; c.strokeRect(x, y, chipW, chipH); c.setLineDash([]);
   } else {
-    c.strokeStyle = boss ? C['ink-2'] : mine ? C['pen-6'] : rev ? purple : isLock ? C['ink-3'] : C['rule-strong'];
-    c.lineWidth = boss ? 2 : rev ? 1.6 : 1; c.strokeRect(x, y, chipW, chipH);
+    c.strokeStyle = w.shot ? C['pen-1'] : boss ? C['ink-2'] : mine ? C['pen-6'] : rev ? purple : isLock ? C['ink-3'] : C['rule-strong'];
+    c.lineWidth = boss ? 2 : rev || w.shot ? 1.6 : 1; c.strokeRect(x, y, chipW, chipH);
+  }
+  if (w.shot && !legend) {
+    // a shot carries an arrowhead pointing at the hull
+    const an = Math.atan2(S.cy - p.y, S.cx - p.x), ax = p.x + Math.cos(an) * (chipW / 2 + 9), ay = p.y + Math.sin(an) * (chipH / 2 + 9);
+    c.save(); c.translate(ax, ay); c.rotate(an); c.globalAlpha = mul; c.fillStyle = C['pen-1'];
+    c.beginPath(); c.moveTo(6, 0); c.lineTo(-3, -4.5); c.lineTo(-3, 4.5); c.closePath(); c.fill(); c.restore();
+  } else if (w.shot && legend) {
+    c.fillStyle = C['pen-1']; c.beginPath(); c.moveTo(x + chipW + 13, p.y); c.lineTo(x + chipW + 5, p.y - 4.5); c.lineTo(x + chipW + 5, p.y + 4.5); c.closePath(); c.fill();
+  }
+  if (boss && !legend && w.btype === 'leviathan' && w.warnT > 0 && performance.now() % 200 < 120) {
+    // the lunge warning: a hot red frame around the stack
+    c.globalAlpha = mul; c.strokeStyle = C['pen-1']; c.lineWidth = 2.5; c.strokeRect(x - 6, y - 6, chipW + 12, chipH + 12);
   }
   if (!legend && !crate && (G.freezeT > 0 || w.stunT > 0)) {
     // frozen by Freeze, or stunned on a harpoon line: a frosty dashed frame
@@ -2162,17 +2401,18 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
   c.font = S.fontSm; c.textAlign = 'left'; c.textBaseline = 'top';
   let meta, mcol;
   if (crate) { meta = `SUPPLY · ${w.ctype.toUpperCase()}`; mcol = accent; }
+  else if (w.shot) { meta = `SHOT  ${hitDamage(w)} DMG`; mcol = C['pen-1']; }
   else if (boss) { meta = `${(BOSSES[w.btype] || BOSSES.leviathan).name.toUpperCase()} · ${w.layers.length}/${w.layerTotal} LAYERS · R ${(w.dist / S.R).toFixed(2)}`; mcol = C['pen-1']; }
   else {
     const label = w.trait ? `  ${TRAIT_LABEL[w.trait]}${armoured ? ' ×2' : w.trait === 'armour' ? ' · BROKEN' : ''}` : '';
     meta = `TK·${pad(w.id, 3)}  ${pad(bearing(w), 3)}°` + (isLock || danger ? `  R ${(w.dist / S.R).toFixed(2)}` : '') + label
-      + (slowed ? '  SLOW' : '') + (decoy ? '' : `  ${hitDamage(w)} DMG`) + (ghost ? '  ECHO' : '');
+      + (slowed ? '  SLOW' : '') + (decoy || G.game === 'drill' ? '' : `  ${hitDamage(w)} DMG`) + (ghost ? '  ECHO' : '');
     mcol = danger ? C['pen-1'] : mine ? C['pen-6'] : rev ? purple : C['ink-3'];
   }
   c.fillStyle = mcol; c.fillText(meta, x, y + chipH + (armoured ? 8 : 5));
 }
 // tracer styles: each hull brings its own, and any unlocked style can be worn in the Dry Dock
-const TRACER_PEN = { standard: 'pen-2', slug: 'ink-2', ghost: 'pen-3', needle: 'pen-2', sine: 'pen-3', comet: 'pen-4', bubbles: 'pen-2' };
+const TRACER_PEN = { standard: 'pen-2', slug: 'ink-2', ghost: 'pen-3', needle: 'pen-2', sine: 'pen-3', comet: 'pen-4', bubbles: 'pen-2', ribbon: 'pen-5', zigzag: 'pen-6' };
 const tracerCol = (style = G.tracer) => C[TRACER_PEN[style] || 'pen-2'];
 function drawTracer(c, tr, style = tr.pierce ? 'standard' : G.tracer) {
   const col = tracerCol(style), e = Math.pow(Math.min(1, tr.t), 1.35), N = 14;
@@ -2186,8 +2426,28 @@ function drawTracer(c, tr, style = tr.pierce ? 'standard' : G.tracer) {
       pts[i] = { x: pts[i].x - (b.y - a.y) / d * w, y: pts[i].y + (b.x - a.x) / d * w };
     }
   }
+  if (style === 'zigzag') {
+    // lightning: the path is redrawn jagged every frame so it flickers
+    const flick = Math.floor(performance.now() / 45);
+    for (let i = 1; i < N; i++) {
+      const a = pts[i - 1], b = pts[i + 1], d = Math.hypot(b.x - a.x, b.y - a.y) || 1, j = (hash(i * 7.3 + flick + (tr.idx || 0)) - .5) * 10;
+      pts[i] = { x: pts[i].x - (b.y - a.y) / d * j, y: pts[i].y + (b.x - a.x) / d * j };
+    }
+  }
   c.lineCap = 'round'; c.strokeStyle = col; c.fillStyle = col;
   const head = pts[N];
+  if (style === 'ribbon') {
+    // two strands twisting around the path
+    for (const sg of [-1, 1]) {
+      let prev = null;
+      for (let i = 0; i <= N; i++) {
+        const a = pts[Math.max(0, i - 1)], b = pts[Math.min(N, i + 1)], d = Math.hypot(b.x - a.x, b.y - a.y) || 1, k = i / N;
+        const off = sg * Math.sin(i * .9 - tr.t * 22) * 4 * k, q = { x: pts[i].x - (b.y - a.y) / d * off, y: pts[i].y + (b.x - a.x) / d * off };
+        if (prev) { c.globalAlpha = .15 + .8 * k; c.lineWidth = .5 + 1.4 * k; c.beginPath(); c.moveTo(prev.x, prev.y); c.lineTo(q.x, q.y); c.stroke(); }
+        prev = q;
+      }
+    }
+  } else
   if (style === 'ghost' || style === 'bubbles') {
     for (let i = 1; i <= N; i++) {
       const k = i / N, q = pts[i]; c.globalAlpha = .1 + .8 * k; c.beginPath();
@@ -2305,6 +2565,8 @@ function drawFx(c) {
       // bioluminescent motes: flicker, then fade
       c.globalAlpha = (1 - t) * (.45 + .55 * Math.abs(Math.sin(t * 26 + f.seed))); c.fillStyle = C['pen-3'];
       c.beginPath(); dotPath(c, f.x, f.y, 1.5); c.fill();
+    } else if (f.k === 'draw') {
+      c.save(); c.globalAlpha = 1 - t; f.fn(c); c.restore();
     } else if (f.k === 'ice') {
       // six-armed ice crystals that grow fast, hold, then thaw
       const a = Math.min(1, t * 8) * (t > .82 ? (1 - t) / .18 : 1), s = f.s * easeOut(Math.min(1, t * 5));
@@ -2610,7 +2872,12 @@ function hud(dt) {
   $('#capStreak').innerHTML = G.combo >= 2 ? `streak <b style="color:var(--pen-2)">${G.combo}</b>${G.combo >= 2 ? ` ×${(1 + Math.min(20, G.combo) * .05).toFixed(2)}` : ''}` : 'streak –';
 
   const th = threats().filter(w => w.kind !== 'boss');
-  if (G.game !== 'patrol') {
+  if (G.game === 'drill') {
+    $('#tHead').textContent = 'Drill';
+    const weak = G.weak ? Object.entries(G.weak).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]).join(' ') : '';
+    $('#mFloor').innerHTML = weak ? `focus <b>${weak}</b>` : 'practice';
+    dotArc($('#cvGauge'), G.drillT / 90, String(Math.ceil(G.drillT)), 'SECONDS', C['pen-3']);
+  } else if (G.game !== 'patrol') {
     const s = G.sec, exp = G.game === 'expedition' && G.exp && G.exp.node;
     if (G.boss) {
       $('#tHead').textContent = (BOSSES[G.boss.btype] || BOSSES.leviathan).name;
@@ -2665,20 +2932,20 @@ function hud(dt) {
 function chrome() {
   const lk = G.lock && live(G.lock) ? G.lock : null, name = DIFF_NAMES[G.diff - 1];
   const en = G.exp && G.exp.node;
-  const where = G.game === 'sector' ? `sector <b>${pad(G.diff)}</b> ${name} · wave <b>${G.sec.wave}/3</b>`
+  const where = G.game === 'drill' ? `drill · difficulty <b>${pad(G.diff)}</b> · <b>${fmtClock(G.drillT)}</b> left` : G.game === 'sector' ? `sector <b>${pad(G.diff)}</b> ${name} · wave <b>${G.sec.wave}/3</b>`
     : G.game === 'expedition' ? `expedition <b>${pad(G.diff)}</b>${en ? ` · leg <b>${G.exp.col + 1}/${CHART_COLS}</b> ${en.name}${en.waves ? ` · wave <b>${G.sec.wave}/${en.waves}</b>` : ''}` : ''}`
     : `patrol · difficulty <b>${pad(G.diff)}</b> ${name} · threat <b>${pad(G.level)}</b>`;
   const pr = G.pressMul > 1 && G.mode === 'play' ? ` · pressure <b>×${G.pressMul.toFixed(2)}</b>` : '';
   const crumb = {
-    title: 'standing by · choose a mode and difficulty', dock: `dry dock · salvage <b>${prefs.salvage.toLocaleString('en-US')}</b>`,
+    title: 'standing by · choose a mode and difficulty', log: `logbook · <b>${prefs.history.length}</b> runs logged`, dock: `dry dock · salvage <b>${prefs.salvage.toLocaleString('en-US')}</b>`,
     pick: `upgrade · ${where}`, chart: `sea chart · ${where}`, play: `engaged · ${where}${pr}`, paused: `paused · ${where}${pr}`, over: `debrief · run <b>${prefs.runs}</b>`,
   }[screen];
   if ($('#crumb').innerHTML !== crumb) $('#crumb').innerHTML = crumb;
-  const hint = screen === 'play' ? '<kbd>/</kbd> ping <kbd>Space</kbd> pulse <kbd>Tab</kbd> torpedo <kbd>hold ⏎</kbd> nuke <kbd>Esc</kbd> pause' : '<kbd>M</kbd> sound <kbd>U</kbd> music <kbd>T</kbd> theme';
+  const hint = screen === 'play' ? '<kbd>/</kbd> ping <kbd>Space</kbd> pulse <kbd>Tab</kbd> torpedo <kbd>hold ⏎</kbd> nuke <kbd>⌫</kbd> drop lock <kbd>Esc</kbd> pause' : '<kbd>M</kbd> sound <kbd>U</kbd> music <kbd>T</kbd> theme';
   if ($('#hint').innerHTML !== hint) $('#hint').innerHTML = hint;
-  const st = { title: ['STANDBY', 'var(--ink-3)'], dock: ['DRY DOCK', 'var(--pen-4)'], pick: ['REFIT', 'var(--pen-2)'], chart: ['SEA CHART', 'var(--pen-3)'], play: ['SONAR ACTIVE', 'var(--pen-3)'], paused: ['PAUSED', 'var(--pen-4)'], over: ['SIGNAL LOST', 'var(--pen-1)'] }[screen];
+  const st = { title: ['STANDBY', 'var(--ink-3)'], dock: ['DRY DOCK', 'var(--pen-4)'], log: ['LOGBOOK', 'var(--pen-3)'], pick: ['REFIT', 'var(--pen-2)'], chart: ['SEA CHART', 'var(--pen-3)'], play: ['SONAR ACTIVE', 'var(--pen-3)'], paused: ['PAUSED', 'var(--pen-4)'], over: ['SIGNAL LOST', 'var(--pen-1)'] }[screen];
   $('#sbState').textContent = st[0]; $('#led').style.background = st[1];
-  const inRun = screen !== 'title' && screen !== 'dock';
+  const inRun = screen !== 'title' && screen !== 'dock' && screen !== 'log';
   $('#sbTracked').innerHTML = inRun ? `tracked <b>${threats().length}</b>` : '';
   $('#sbLock').innerHTML = inRun ? (lk ? `lock <b>${lk.kind === 'crate' ? 'SUPPLY' : lk.kind === 'boss' ? (BOSSES[lk.btype] || BOSSES.leviathan).name.toUpperCase() : 'TK·' + pad(lk.id, 3)}</b> ${esc(shown(lk))}` : 'no lock') : '';
   $('#sbLast').innerHTML = inRun && G.last ? `last <b>${esc(G.last)}</b>` : '';
@@ -2696,7 +2963,12 @@ const TIPS = {
   iron:   ['IRON SHIELD', 'Each plate stops any single hit from its side, then breaks. Broken plates stay broken.'],
   phase:  ['PHASE SHIELD', 'Soaks small hits and recharges when you are not hit for 8 s. One big hit pops it.'],
   repair: ['REPAIR KIT', '+35 hull. Clean words also patch the hull a little.'],
-  boss:   ['LEVIATHAN', 'Destroy each layer in turn. If it reaches the core, the sector is lost.'],
+  boss:   ['LEVIATHAN', 'Destroy each layer in turn. If it reaches the core, the sector is lost. When it flashes red, it is about to lunge.'],
+  boss_archer:   ['ARCHERFISH', 'It stops at mid-range and fires short words at the hull. A red line means a shot is coming: type the shot first.'],
+  boss_siren:    ['SIREN', 'Its layers are reversed, it circles as it closes, and every song speeds up the other contacts for 3 s.'],
+  boss_ironback: ['IRONBACK', 'Each layer is plated: type it twice. Every plate you break flies at the hull as two small words.'],
+  shot:   ['SHOT', 'A short word fired straight at the hull. Start typing it even mid-word: the lock jumps to the more dangerous contact.'],
+  switch: ['SWITCH TARGETS', 'Locked onto the wrong word? Just start typing the closer one and the lock jumps to it. Backspace drops the lock completely.'],
   ping:     ['ACTIVE PING · /', 'Reveals everything for 4 s, through noise and thermoclines. Contacts hear it and speed up. Recharges in 14 s.'],
   silent:   ['SILENT CONTACT', 'Shows only for a moment after the sweep passes, and the echo stays where it was, not where it is. Press / to ping.'],
   thermo:   ['THERMOCLINE', 'A warm layer of water that scrambles letters passing through it. Type from memory, or ping to read clearly.'],
@@ -2723,7 +2995,7 @@ function tipTick(dt) {
 let screen = 'title', sel = clamp(prefs.diff | 0 || 1, 1, 10), inputGuard = 0;
 function setScreen(s) {
   screen = s; document.body.dataset.screen = s;
-  G.sim = s === 'title' || s === 'play' || s === 'dock';
+  G.sim = s === 'title' || s === 'play' || s === 'dock' || (s === 'log' && G.mode === 'demo');
   if (s === 'title') buildTiles();
   hudT = 0;
 }
@@ -2733,6 +3005,10 @@ function buildTiles() {
     const d = i + 1, avg = avgLen(d);
     let st;
     if (prefs.game === 'sector') { const m = prefs.medals[d]; st = m ? `${medalSvg(m)}<b>${m}</b>` : 'not cleared'; }
+    else if (prefs.game === 'drill') {
+      const runs = prefs.history.filter(h => h.game === 'drill' && h.diff === d && h.wpm);
+      st = runs.length ? `best <b>${Math.max(...runs.map(h => h.wpm))}</b> wpm` : 'no drill yet';
+    }
     else if (prefs.game === 'expedition') {
       // one medal dot per leviathan beaten from this difficulty
       const ends = prefs.expEnds[d] || {}, beaten = Object.keys(BOSSES).filter(k => ends[k]);
@@ -2754,7 +3030,7 @@ function buildTiles() {
     t.onmouseenter = () => { if (sel !== +t.dataset.d) sfx.ui(); select(+t.dataset.d); };
     t.onclick = () => startRun(+t.dataset.d, prefs.game);
   });
-  buildKitLine(); buildPress();
+  buildKitLine(); buildPress(); buildStoryLine();
   const medals = Object.keys(prefs.medals).length;
   $('#runsNote').textContent = `${prefs.runs} run${prefs.runs === 1 ? '' : 's'} · ${medals} sector${medals === 1 ? '' : 's'} cleared`;
 }
@@ -2764,7 +3040,7 @@ function select(d) {
   G.diff = d; G.level = d;
 }
 function setGame(g) { prefs.game = g; savePrefs(); buildTiles(); }
-const GAMES = ['sector', 'patrol', 'expedition'];
+const GAMES = ['sector', 'patrol', 'expedition', 'drill'];
 const wavesTotal = () => G.game === 'expedition' && G.exp && G.exp.node ? G.exp.node.waves : 3;
 function startRun(d, game) {
   ensureAudio(); sfx.engage(); legacyGrant = 0;
@@ -2773,6 +3049,11 @@ function startRun(d, game) {
   bot.fresh = null; bot.armRelease = null;
   setScreen('play');
   if (game === 'expedition') { G.exp = makeChart(d); openChart(); return; }
+  if (game === 'drill') {
+    const weak = weakestLetters(4);
+    banner('DRILL · 90 SECONDS', weak.length ? `no damage · words lean on ${weak.join(' ')}` : 'no damage · type a few runs and it will learn your weak letters', C['pen-3']);
+    return;
+  }
   if (game === 'sector') banner(`SECTOR ${pad(d)} · WAVE 1/3`, `${DIFF_NAMES[d - 1].toLowerCase()} · three waves, then the leviathan`, C['pen-2']);
 }
 function pause() { if (screen === 'play') { G.armHeld = false; setScreen('paused'); syncToggles(); requestAnimationFrame(drawKey); } }
@@ -2786,6 +3067,7 @@ const KEY = [
   ['ox', { trait: 'mine' }, 'Mine', 'Orange spikes: type it to blast 3 letters off everything in its ring.'],
   ['beacon', { trait: 'decoy' }, 'Decoy', 'Outlined letters: leave it alone and it fades away.'],
   ['vessel', { trait: 'silent', silent: true }, 'Silent', 'Dashed teal echo: shows where it was, not where it is. Ping with /.'],
+  ['ox', { shot: true }, 'Shot', 'Red, with an arrowhead: fired by a leviathan, fast and straight. Type it first.'],
 ];
 function buildKey() {
   $('#keyList').innerHTML = KEY.map(([, , name, rule], i) => `<div class="keyrow"><canvas data-k="${i}"></canvas><div><b>${name}</b><span>${rule}</span></div></div>`).join('');
@@ -2816,24 +3098,34 @@ function gameOver(kind) {
   if (medal && (!prevMedal || rank[medal] > rank[prevMedal])) { if (exp) ends[exp.boss] = medal; else prefs.medals[G.diff] = medal; isNew = true; }
   // salvage: a hundredth of the score, plus a medal bonus, plus what rich expedition legs paid on top
   const affordBefore = new Set(shopList().filter(i => i.cost <= prefs.salvage).map(i => i.kind + i.key));
-  const salv = Math.max(0, Math.round(G.points / 100 * (G.mods.salvager ? 1.5 : 1)) + (medal ? { bronze: 10, silver: 20, gold: 40 }[medal] * (exp ? 2 : 1) : 0) + (exp ? exp.bonusSalv : 0));
+  const drill = G.game === 'drill';
+  const salv = drill ? 0 : Math.max(0, Math.round(G.points / 100 * (G.mods.salvager ? 1.5 : 1)) + (medal ? { bronze: 10, silver: 20, gold: 40 }[medal] * (exp ? 2 : 1) : 0) + (exp ? exp.bonusSalv : 0));
   prefs.salvage += salv; prefs.salvageTotal += salv;
   const newlyAffordable = shopList().filter(i => i.cost <= prefs.salvage && !affordBefore.has(i.kind + i.key));
   if (exp && kind === 'cleared') prefs.expeditions++;
+  // the logbook: one line per run, plus lifetime totals and records
+  const runWpm = wpm(), L = prefs.life;
+  prefs.history.push({ at: Date.now(), game: G.game, diff: G.diff, pts: G.points, wpm: runWpm, acc: accuracy() == null ? null : Math.round(acc * 10) / 10,
+    kills: G.kills, secs: Math.round(G.t), medal, kind, combo: G.bestCombo });
+  if (prefs.history.length > 600) prefs.history.splice(0, prefs.history.length - 600);
+  L.words += G.kills; L.keys += G.correct; L.secs += Math.round(G.t); L.bestStreak = Math.max(L.bestStreak, G.bestCombo);
+  if (G.t >= 30 && runWpm) L.bestWpm = Math.max(L.bestWpm, runWpm);
+  if (G.correct >= 100) L.bestAcc = Math.max(L.bestAcc, Math.round(acc * 10) / 10);
+  const heardNow = storyUnheard();
   prefs.runs++; savePrefs();
   G.result = { kind, medal };
   G.lock = null; G.armHeld = false;
   setScreen('over');
   inputGuard = performance.now() + 900;
 
-  const no = $('#dNo'), bossName = exp ? BOSSES[exp.boss].name.toUpperCase() : 'LEVIATHAN';
+  const no = $('#dNo'), bossName = (BOSSES[exp ? exp.boss : G.bossType] || BOSSES.leviathan).name.toUpperCase();
   no.className = 'no ' + (kind === 'cleared' ? 'good' : 'bad');
-  no.textContent = kind === 'cleared' ? (exp ? `EXPEDITION COMPLETE · ${bossName} DESTROYED` : `SECTOR ${pad(G.diff)} CLEARED · LEVIATHAN DESTROYED`)
+  no.textContent = drill ? `DRILL · 90 SECONDS${G.stats.leaks ? ` · ${G.stats.leaks} LEAKED` : ''}` : kind === 'cleared' ? (exp ? `EXPEDITION COMPLETE · ${bossName} DESTROYED` : `SECTOR ${pad(G.diff)} CLEARED · ${bossName} DESTROYED`)
     : kind === 'rammed' ? `SIGNAL LOST · THE ${bossName} REACHED THE CORE`
     : G.game === 'sector' ? `SIGNAL LOST · HULL BREACHED · WAVE ${G.sec.wave}/3`
     : exp ? `SIGNAL LOST · HULL BREACHED · LEG ${exp.col + 1}/${CHART_COLS}` : 'SIGNAL LOST · HULL BREACHED';
-  $('#dTitle').textContent = kind === 'cleared' ? (exp ? 'Expedition complete' : 'Sector cleared') : 'Debrief';
-  $('#dSub').textContent = `${G.game} · difficulty ${pad(G.diff)} · ${name} · ${Math.floor(G.t / 60)} m ${Math.floor(G.t % 60)} s${G.pressMul > 1 ? ` · pressure ×${G.pressMul.toFixed(2)}` : ''}`;
+  $('#dTitle').textContent = drill ? 'Drill complete' : kind === 'cleared' ? (exp ? 'Expedition complete' : 'Sector cleared') : 'Debrief';
+  $('#dSub').textContent = `${G.game} · difficulty ${pad(G.diff)}${drill ? '' : ' · ' + name} · ${Math.floor(G.t / 60)} m ${Math.floor(G.t % 60)} s${G.pressMul > 1 ? ` · pressure ×${G.pressMul.toFixed(2)}` : ''}`;
   $('#dActs').innerHTML = (medal ? `<span class="chip medal" style="color:${{ gold: 'var(--pen-4)', silver: 'var(--ink-2)', bronze: 'var(--pen-6)' }[medal]};border-color:currentColor">${medalSvg(medal, 16)} ${medal.toUpperCase()}</span>` : '')
     + (isNew ? '<span class="chip" style="color:var(--pen-2);border-color:var(--pen-2)">● new best</span>' : '')
     + (newlyAffordable.length ? '<span class="chip" style="color:var(--pen-4);border-color:var(--pen-4)">● new in the Dry Dock <kbd>D</kbd></span>' : '');
@@ -2848,6 +3140,7 @@ function gameOver(kind) {
   $('#dKillsS').textContent = G.game === 'sector'
     ? (kind === 'cleared' ? 'all 3 waves + boss' : G.sec.stage === 'boss' || kind === 'rammed' ? 'reached the boss' : `reached wave ${G.sec.wave}/3`)
     : exp ? (kind === 'cleared' ? `all ${CHART_COLS} legs` : `reached leg ${exp.col + 1}/${CHART_COLS}`)
+    : drill ? `${G.stats.leaks || 0} leaked`
     : `reached threat ${pad(G.level)}`;
   $('#dLong').textContent = G.bestWord ? G.bestWord.text : '–';
   $('#dLongS').textContent = G.bestWord ? `+${fmtPts(G.bestWord.pts)} pts` : 'none typed';
@@ -2872,11 +3165,23 @@ function gameOver(kind) {
     ['var(--pen-1)', 'Pressure', 'pressure', `×${G.pressMul.toFixed(2)} on everything`],
   ].filter(([, , k], i) => i < 4 || pb[k]).map(([dot, nm, k, why]) => r(dot, why ? `${nm} <small class="u">${why}</small>` : nm, sgn(pb[k] || 0))).join('');
   const nx = shopList()[0];
-  $('#dSalvage').innerHTML = r('var(--pen-4)', `Banked this run <small class="u">score ÷ 100${medal ? ' + medal' : ''}${exp && exp.bonusSalv ? ' + rich legs' : ''}${G.mods.salvager ? ' · Salvager ×1.5' : ''}</small>`, `+${salv}`)
+  $('#dSalvage').innerHTML = drill ? r('', 'Practice', 'drills bank no salvage') + r('', 'In the Dry Dock', `<b>${prefs.salvage.toLocaleString('en-US')}</b>`) : r('var(--pen-4)', `Banked this run <small class="u">score ÷ 100${medal ? ' + medal' : ''}${exp && exp.bonusSalv ? ' + rich legs' : ''}${G.mods.salvager ? ' · Salvager ×1.5' : ''}</small>`, `+${salv}`)
     + r('', 'In the Dry Dock', `<b>${prefs.salvage.toLocaleString('en-US')}</b>`)
     + (nx ? r('', `Next up: <b>${esc(nx.name)}</b>`, prefs.salvage >= nx.cost ? '<span style="color:var(--pen-4)">affordable now</span>' : `${nx.cost - prefs.salvage} to go`) : '')
     + `<div class="buildl"><span class="lbl">Build</span> ${buildLine()}</div>`;
-  $('#dArsenal').innerHTML =
+  // letters: this run's slowest and most-missed, and what adaptive words will lean on next time
+  const runSlow = Object.entries(G.letters).filter(([, R]) => R.k >= 3).map(([ch, R]) => [ch, R.t / R.k * 1000]).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const runMiss = Object.entries(G.letters).filter(([, R]) => R.miss).sort((a, b) => b[1].miss - a[1].miss).slice(0, 5), weak = weakestLetters();
+  $('#dLetters').innerHTML = r('', 'Slowest this run', runSlow.length ? runSlow.map(([ch, ms]) => `<kbd>${ch}</kbd> ${Math.round(ms)}`).join(' ') + ' <small class="u">ms</small>' : 'not enough typing yet')
+    + (runMiss.length ? r('', 'Most missed', runMiss.map(([ch, R]) => `<kbd>${ch}</kbd> ×${R.miss}`).join(' ')) : '')
+    + r('', 'Adaptive words lean on', !prefs.adaptive ? 'switched off' : weak.length ? weak.map(ch => `<kbd>${ch}</kbd>`).join(' ') : 'still learning your hands');
+  // any part of the story this run unlocked
+  $('#dStory').innerHTML = heardNow.map(e => `<div class="tx"><div class="no">TRANSMISSION RECEIVED · ${e.no} · ${esc(e.title.toUpperCase())}</div><p>${esc(e.text)}</p></div>`).join('');
+  markHeard(heardNow);
+  if (drill) {
+    $('#dDamage').innerHTML = r('', 'Words that got through', `${st.leaks || 0} <small class="u">no damage in a drill</small>`);
+    $('#dArsenal').innerHTML = r('', 'Retargets', st.retargets || 0) + r('', 'Longest clean streak', G.bestCombo);
+  } else $('#dArsenal').innerHTML =
     r('var(--pen-2)', 'Weapons used', `${st.used.pulse} pulse · ${st.used.torp} torp · ${st.used.nuke} nuke`) +
     r('var(--pen-4)', 'Supply crates', `${st.crates.got} <small class="u">of ${st.crates.seen}</small>`) +
     r('var(--pen-6)', 'Pings · mines · decoys', `${st.used.ping} · ${st.mines} · ${st.decoys}`);
@@ -2908,15 +3213,60 @@ function toggleFull() {
   else document.documentElement.requestFullscreen().catch(() => {});
 }
 
+/* ------------------------------------------------------------ the story: The Drowned Archive */
+// A thin story told in station logs. Each one arrives as a "transmission" when its condition is first met.
+const beat = type => !!prefs.beaten[type];
+const STORY = [
+  { id: 'p0', no: 'LOG 00', title: 'Listening post Pelagia', req: () => true, need: '',
+    text: 'Three weeks ago the Archive went down off the continental shelf: every book, every record, a whole language sealed in one hull. Since then the water has been full of words. They rise from the wreck and drift towards anything that makes a sound, and Pelagia is the loudest station on the shelf. Type them out before they reach the hull.' },
+  { id: 's1', no: 'LOG 01', title: 'Small ones', req: () => maxClear() >= 1, need: 'clear sector 01',
+    text: 'The first ones are small. Ox. Bay. Ice. Harmless on their own. The hydrophones say there are a great many more below us, and that the deeper ones are longer.' },
+  { id: 's2', no: 'LOG 02', title: 'No relief', req: () => maxClear() >= 2, need: 'clear sector 02',
+    text: 'The relief boat did not come. The radio says every lane on the shelf is choked with drifting words and nothing bigger than a skiff can move. We are on our own until the water clears. Keep the scope lit.' },
+  { id: 's3', no: 'LOG 03', title: 'Something big', req: () => maxClear() >= 3, need: 'clear sector 03',
+    text: 'Something big passed under us tonight, slow, at the edge of the scope. Its echo came back as a stack of words pressed one on top of another. The crew are calling it a leviathan. It is made of the same stuff as the rest. There is just more of it.' },
+  { id: 's4', no: 'LOG 04', title: 'Paying attention', req: () => maxClear() >= 4, need: 'clear sector 04',
+    text: 'Some of them have learned to hide. They run silent between sweeps, or sit in the warm layer where the letters smear. Whatever is down there is not just drifting any more. It is paying attention.' },
+  { id: 's5', no: 'LOG 05', title: 'The seal', req: () => maxClear() >= 5, need: 'clear sector 05',
+    text: 'We salvaged a crate today stamped with the Archive\u2019s seal. Inside, a reel of tape, water-damaged, one sentence on a loop: catalogue everything, lose nothing. The Archive was built to keep words. It may still be trying to.' },
+  { id: 's6', no: 'LOG 06', title: 'Backwards', req: () => maxClear() >= 6, need: 'clear sector 06',
+    text: 'New contacts are coming in backwards. The linguist says that is how the deep remembers, playing everything back from the end. She has stopped sleeping. She sits by the scope with a notebook and writes each word down before you type it out.' },
+  { id: 's7', no: 'LOG 07', title: 'Deleting', req: () => maxClear() >= 7, need: 'clear sector 07',
+    text: 'Every word we type out goes quiet for good. Tonight the linguist asked whether we are defending the station or deleting a language. I said I would think about it after the next wave. There is always a next wave.' },
+  { id: 's8', no: 'LOG 08', title: 'Names', req: () => maxClear() >= 8, need: 'clear sector 08',
+    text: 'The big ones have names now, or the crew has given them names. The one that spits. The one that sings. The plated one that will not die on the first pass. They wait at the far end of every route off the shelf.' },
+  { id: 's9', no: 'LOG 09', title: 'Deliveries', req: () => maxClear() >= 9, need: 'clear sector 09',
+    text: 'We have stopped calling them attacks. They are deliveries. The Archive is sending its catalogue up the water column to the only reader left on the shelf. That reader is you.' },
+  { id: 's10', no: 'LOG 10', title: 'Read', req: () => maxClear() >= 10, need: 'clear sector 10',
+    text: 'Full assault, all night. By morning the water was quiet for the first time in a month. On the scope, faint and very deep, one last echo: a single word, repeating. Read.' },
+  { id: 'b_leviathan', no: 'LOG L', title: 'The Leviathan', req: () => beat('leviathan'), need: 'destroy a Leviathan',
+    text: 'The oldest of them: the first stack the Archive ever pressed together. Its last layer was a word nobody on the crew recognised. The linguist wrote it on the wall above the scope and has not stopped looking at it.' },
+  { id: 'b_archer', no: 'LOG A', title: 'The Archerfish', req: () => beat('archer'), need: 'destroy an Archerfish',
+    text: 'It never came close. It hung at mid-range and fired short words at the hull, quick and exact, as if it were correcting our spelling. The last thing it fired before it broke up was: ok.' },
+  { id: 'b_siren', no: 'LOG S', title: 'The Siren', req: () => beat('siren'), need: 'destroy a Siren',
+    text: 'It sang every layer backwards and you answered every one. When it broke apart, the hydrophones caught a phrase under the song, the right way round for once: thank you for listening.' },
+  { id: 'b_ironback', no: 'LOG I', title: 'The Ironback', req: () => beat('ironback'), need: 'destroy an Ironback',
+    text: 'Plated twice over, as if something had worked very hard to keep it whole. Under the plating the words were the Archive\u2019s own index: the list of everything it ever held.' },
+  { id: 'end', no: 'LOG \u221e', title: 'Pelagia', req: () => Object.keys(BOSSES).every(beat) && maxClear() >= 10, need: 'clear sector 10 and destroy all four leviathans',
+    text: 'All four are quiet. The Archive has finished sending. The words still rise, slower now, and the crew have started writing them down instead of only typing them out. Pelagia is a library now. Somebody has to keep it.' },
+];
+const storyUnlocked = () => STORY.filter(e => e.req());
+const storyUnheard = () => storyUnlocked().filter(e => !prefs.heard[e.id]);
+function markHeard(list) { for (const e of list) prefs.heard[e.id] = true; savePrefs(); }
+
 /* ------------------------------------------------------------ expedition: the sea chart */
 // One long run across a chart: four legs chosen from branching routes, then the lair at the route's end.
 // Hull, arsenal, charge and upgrade cards carry from leg to leg.
 const CHART_COLS = 5;
 const BOSSES = {
-  siren:     { name: 'Siren', row: 0, blurb: 'It sings backwards: every layer must be typed in reverse.' },
-  leviathan: { name: 'Leviathan', row: 1, blurb: 'The classic: stacked layers and a growing escort.' },
-  ironback:  { name: 'Ironback', row: 2, blurb: 'Plated: every layer must be typed twice.' },
+  leviathan: { name: 'Leviathan', blurb: 'Stacked layers, and it lunges: watch for the red flash, then a burst of speed.' },
+  archer:    { name: 'Archerfish', blurb: 'Hangs back at mid-range and fires short words straight at the hull.' },
+  siren:     { name: 'Siren', blurb: 'Every layer typed in reverse. It circles as it closes, and its song speeds up everything else.' },
+  ironback:  { name: 'Ironback', blurb: 'Plated: every layer typed twice, and each broken plate flies at you as two small words.' },
 };
+// which leviathan guards each sector
+const SECTOR_BOSS = ['leviathan', 'archer', 'leviathan', 'archer', 'ironback', 'siren', 'ironback', 'archer', 'siren', 'leviathan'];
+const bossOf = () => G.game === 'expedition' ? G.exp.boss : SECTOR_BOSS[G.diff - 1];
 const LEGS = {
   open:    { name: 'Open water', blurb: 'An ordinary leg.', lv: 0, salv: 1 },
   calm:    { name: 'Calm passage', blurb: 'Easier water, thinner salvage.', lv: -1, salv: .75 },
@@ -2934,7 +3284,7 @@ function makeChart(d) {
   // one harbour, somewhere in the middle of the voyage
   const mid = cols[pick([1, 2])]; mid[Math.floor(Math.random() * mid.length)].type = 'harbour';
   // the lair: which leviathan you meet depends on which side of the chart you arrive from
-  cols.push(Object.entries(BOSSES).map(([k, b]) => ({ col: CHART_COLS - 1, row: b.row, type: 'boss', boss: k })));
+  cols.push(Object.keys(BOSSES).sort(() => Math.random() - .5).slice(0, 3).map((k, row) => ({ col: CHART_COLS - 1, row, type: 'boss', boss: k })));
   cols.forEach((nodes, col) => nodes.forEach(n => {
     const L = LEGS[n.type];
     n.level = clamp(d + Math.floor(col / 2) + (L ? L.lv : 1), 1, 12);
@@ -3095,19 +3445,25 @@ function buildLine() {
 }
 
 /* ------------------------------------------------------------ the Dry Dock */
-const DOCK_TABS = [['hulls', 'Hulls'], ['arsenal', 'Arsenal'], ['cards', 'Upgrade cards'], ['tracers', 'Tracers']];
+const DOCK_TABS = [['hulls', 'Hulls'], ['arsenal', 'Arsenal'], ['cards', 'Upgrade cards'], ['tracers', 'Tracers'], ['scope', 'Scope & effects']];
 let dockTab = 'hulls';
-function itemOf(kind, key) { return kind === 'hull' ? HULLS[key] : kind === 'card' ? CARDS[key] : kind === 'tracer' ? TRACERS[key] : GEAR[kind][key]; }
-const priceOf = (kind, key) => kind === 'card' ? CARDS[key].rare || 0 : kind === 'tracer' ? 0 : itemOf(kind, key).cost;
+function itemOf(kind, key) { return kind === 'hull' ? HULLS[key] : kind === 'card' ? CARDS[key] : kind === 'tracer' ? TRACERS[key] : kind === 'scope' ? SCOPES[key] : kind === 'killfx' ? KILLFX[key] : GEAR[kind][key]; }
+const priceOf = (kind, key) => kind === 'card' ? CARDS[key].rare || 0 : (itemOf(kind, key).cost || 0);
 // everything that can be bought and is not owned yet, cheapest first
 function shopList() {
   const out = [];
   for (const k of Object.keys(HULLS)) if (!owns('hull', k)) out.push(['hull', k]);
   for (const s of Object.keys(GEAR)) for (const k of Object.keys(GEAR[s])) if (!owns(s, k)) out.push([s, k]);
   for (const k of Object.keys(CARDS)) if (!owns('card', k)) out.push(['card', k]);
+  for (const k of Object.keys(TRACERS)) if (TRACERS[k].cost && !owns('tracer', k)) out.push(['tracer', k]);
+  for (const k of Object.keys(SCOPES)) if (!owns('scope', k)) out.push(['scope', k]);
+  for (const k of Object.keys(KILLFX)) if (!owns('killfx', k)) out.push(['killfx', k]);
   return out.map(([kind, key]) => ({ kind, key, name: itemOf(kind, key).name, cost: priceOf(kind, key) })).sort((a, b) => a.cost - b.cost);
 }
-function openDock(tab) { if (tab) dockTab = tab; ensureAudio(); setScreen('dock'); renderDock(); sfx.ui(); }
+function openDock(tab) {
+  if (tab) dockTab = tab;
+  // leaving a finished run's debrief: the attract loop takes over behind the panel
+  if (screen === 'over') newGame(sel, 'demo', 'patrol'); ensureAudio(); setScreen('dock'); renderDock(); sfx.ui(); }
 function closeDock() { setScreen('title'); }
 function dockItems() {
   const lo = prefs.loadout;
@@ -3134,7 +3490,11 @@ function renderDock() {
   $('#dkSalv').textContent = prefs.salvage.toLocaleString('en-US');
   $('#dkTabs').innerHTML = DOCK_TABS.map(([k, nm], i) => `<button class="chip ${k === dockTab ? 'on' : ''}" data-tab="${k}"><kbd>${i + 1}</kbd> ${nm}</button>`).join('');
   document.querySelectorAll('#dkTabs [data-tab]').forEach(b => b.onclick = () => { dockTab = b.dataset.tab; renderDock(); sfx.ui(); });
-  if (dockTab === 'arsenal') {
+  if (dockTab === 'scope') {
+    const row = (label, kind, cat) => `<div class="slotrow"><span class="lbl">${label}</span><div class="shop">${
+      Object.keys(cat).map(k => itemHtml({ kind, key: k, owned: owns(kind, k), on: (prefs.loadout[kind] || Object.keys(cat)[0]) === k, prev: `${kind}:${k}` })).join('')}</div></div>`;
+    $('#dkBody').innerHTML = row('Scope colour', 'scope', SCOPES) + row('Kill effect', 'killfx', KILLFX);
+  } else if (dockTab === 'arsenal') {
     $('#dkBody').innerHTML = Object.keys(GEAR).map(slot => `<div class="slotrow"><span class="lbl">${SLOT_NAMES[slot]}</span><div class="shop">${
       Object.keys(GEAR[slot]).map(k => itemHtml({ kind: slot, key: k, owned: owns(slot, k), on: prefs.loadout[slot] === k, prev: `gear:${slot}:${k}` })).join('')}</div></div>`).join('');
   } else $('#dkBody').innerHTML = `<div class="shop ${dockTab === 'cards' ? 'c4' : ''}">${dockItems().map(itemHtml).join('')}</div>`;
@@ -3160,6 +3520,8 @@ function buy(kind, key) {
 function equip(kind, key, quiet) {
   if (kind === 'hull') prefs.loadout.hull = key;
   else if (kind === 'tracer') prefs.loadout.tracer = key;
+  else if (kind === 'scope') { prefs.loadout.scope = key; readColors(); }
+  else if (kind === 'killfx') prefs.loadout.killfx = key;
   else if (GEAR[kind]) prefs.loadout[kind] = key;
   else return;
   savePrefs();
@@ -3176,6 +3538,13 @@ function drawDock() {
     if (type === 'hull') { dottedCircle(c, x, y, R_HULL * 1.45, 4, .8, C['ink-4'], 1); drawHull(c, x, y, a, 1.45, { aim: -Math.PI / 4 + Math.sin(now) * .4 }); }
     else if (type === 'card') { dottedCircle(c, x, y, 26, 5, .8, C['ink-3'], .5); drawModule(c, a, x, y, 0, 3.4); }
     else if (type === 'gear') drawGearIcon(c, a, b, x, y, now);
+    else if (type === 'scope') {
+      const col = a === 'teal' ? C['pen-3'] : dark ? SCOPES[a].dark : SCOPES[a].light, sw = now * 1.2 % TAU;
+      for (let rr = 10; rr <= 34; rr += 8) dottedCircle(c, x, y + 4, rr, 5, .7, C['ink-4'], 1);
+      c.fillStyle = col;
+      for (let rr = 10; rr <= 34; rr += 4) for (let k = 0; k < 10; k++) { const an = sw - k * .09; c.globalAlpha = (1 - k / 10) * .9; c.beginPath(); dotPath(c, x + Math.cos(an) * rr, y + 4 + Math.sin(an) * rr, 1); c.fill(); }
+      c.globalAlpha = .9; c.strokeStyle = col; c.beginPath(); c.moveTo(x, y + 4); c.lineTo(x + Math.cos(sw) * 36, y + 4 + Math.sin(sw) * 36); c.stroke();
+    } else if (type === 'killfx') drawKillPreview(c, a, x, y + 2, (now * .7) % 1);
     else if (type === 'tracer') {
       const style = a === 'hull' ? HULLS[owns('hull', prefs.loadout.hull) ? prefs.loadout.hull : 'skiff'].tracer : a;
       const tr = { sx: 14, sy: h - 12, tx: w - 18, ty: 16, kick: .22, t: .25 + ((now * .55) % 1) * .75, idx: 0 };
@@ -3184,6 +3553,29 @@ function drawDock() {
     }
     c.globalAlpha = 1;
   });
+}
+// a looping picture of each kill effect: t runs 0 → 1
+function drawKillPreview(c, key, x, y, t) {
+  const e = easeOut(t), fade = 1 - t;
+  if (key === 'shatter') {
+    for (let i = 0; i < 12; i++) {
+      const b = hash(i) * TAU, v = 26 + hash(i * 3.7) * 22, gx = x + Math.cos(b) * v * e, gy = y + Math.sin(b) * v * e + 30 * t * t;
+      c.save(); c.translate(gx, gy); c.rotate(b + t * 6 * (hash(i * 9) - .5)); c.globalAlpha = fade; c.fillStyle = i % 3 ? C['ink-2'] : C['pen-2']; c.fillRect(-4, -1.5, 8, 3); c.restore();
+    }
+  } else if (key === 'bloom') {
+    [[C['pen-5'], 14], [C['pen-3'], 24], [C['pen-2'], 34]].forEach(([col, rr], k) => {
+      c.fillStyle = col; c.globalAlpha = fade;
+      for (let i = 0; i < 12; i++) { const an = i / 12 * TAU + k * .26 + t * .8; c.beginPath(); dotPath(c, x + Math.cos(an) * rr * e, y + Math.sin(an) * rr * e, 2.2 - k * .4); c.fill(); }
+    });
+  } else if (key === 'ink') {
+    c.fillStyle = C.ink;
+    for (let i = 0; i < 9; i++) { const b = hash(i * 1.3) * TAU, v = 8 + hash(i * 5.1) * 24; c.globalAlpha = fade * .85; c.beginPath(); dotPath(c, x + Math.cos(b) * v * e, y + Math.sin(b) * v * e, (2.5 + hash(i) * 4) * (.6 + e * .6)); c.fill(); }
+  } else {
+    dottedCircle(c, x, y, 6 + 30 * e, 4, 1.4 * fade + .3, C['pen-2'], fade);
+    c.fillStyle = C['pen-2'];
+    for (let i = 0; i < 16; i++) { const b = hash(i * 2.2) * TAU, v = 14 + hash(i * 4.4) * 26; c.globalAlpha = fade; c.beginPath(); dotPath(c, x + Math.cos(b) * v * e, y + Math.sin(b) * v * e, 1.5); c.fill(); }
+  }
+  c.globalAlpha = 1;
 }
 // a small picture of each arsenal option
 function drawGearIcon(c, slot, key, x, y, now) {
@@ -3222,6 +3614,111 @@ function drawGearIcon(c, slot, key, x, y, now) {
   }
   c.restore();
 }
+
+/* ------------------------------------------------------------ the Logbook: progress over time, letters, story */
+const LOG_TABS = [['progress', 'Progress'], ['letters', 'Letters'], ['story', 'Transmissions']];
+let logTab = 'progress', logFrom = 'title';
+function openLog(tab) {
+  if (tab) logTab = tab;
+  logFrom = screen === 'over' ? 'over' : 'title';
+  ensureAudio(); setScreen('log'); renderLog(); sfx.ui();
+}
+function closeLog() { setScreen(logFrom); }
+const fmtDur = s => s >= 3600 ? `${Math.floor(s / 3600)} h ${Math.floor(s % 3600 / 60)} m` : `${Math.floor(s / 60)} m ${Math.floor(s % 60)} s`;
+function renderLog() {
+  const H = prefs.history, L = prefs.life, unheard = storyUnheard().length;
+  $('#lgSub').textContent = `${H.length} run${H.length === 1 ? '' : 's'} logged`;
+  $('#lgTabs').innerHTML = LOG_TABS.map(([k, nm], i) => `<button class="chip ${k === logTab ? 'on' : ''}" data-ltab="${k}"><kbd>${i + 1}</kbd> ${nm}${k === 'story' && unheard ? ` <b style="color:var(--pen-3)">● ${unheard}</b>` : ''}</button>`).join('');
+  document.querySelectorAll('[data-ltab]').forEach(b => b.onclick = () => { logTab = b.dataset.ltab; renderLog(); sfx.ui(); });
+  $('#togAdaptive').classList.toggle('on', !!prefs.adaptive);
+  const r = (dot, nm, val) => `<div class="row"><span class="nm">${dot ? `<i class="p" style="background:${dot}"></i>` : ''}${nm}</span><span class="val">${val}</span></div>`;
+  let html = '';
+  if (logTab === 'progress') {
+    const ro = (k, v, sub) => `<div class="ro"><span class="k">${k}</span><span class="v">${v}</span><span class="s">${sub}</span></div>`;
+    html = `<div class="readouts" style="grid-template-columns:repeat(6,1fr)">
+      ${ro('Runs', prefs.runs, `${H.length} in the log`)}${ro('At the scope', L.secs ? fmtDur(L.secs) : '–', 'logged time')}
+      ${ro('Destroyed', L.words.toLocaleString('en-US'), `${L.keys.toLocaleString('en-US')} keys`)}${ro('Best WPM', L.bestWpm || '–', 'one run, 30 s+')}
+      ${ro('Best accuracy', L.bestAcc ? L.bestAcc + '%' : '–', '100 keys+')}${ro('Longest streak', L.bestStreak || '–', 'clean words')}</div>`;
+    if (H.length < 2) html += `<p style="color:var(--ink-3);font-size:12px;margin:18px 0 6px">The log fills in as you play: every run adds a point to these charts. ${H.length ? 'One run so far.' : 'No runs logged yet.'}</p>`;
+    else {
+      html += `<div class="sech"><span class="lbl">Words per minute · last ${Math.min(60, H.length)} runs · line = 5-run average</span></div><div class="chartbox"><canvas id="lgWpm" style="height:120px"></canvas></div>
+        <div class="sech"><span class="lbl">Accuracy %</span></div><div class="chartbox"><canvas id="lgAcc" style="height:80px"></canvas></div>`;
+      // week by week, newest first
+      const weeks = new Map();
+      for (const h of H) {
+        const d = new Date(h.at); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7);
+        const k = d.getTime(), e = weeks.get(k) || { runs: 0, wpm: [], acc: [], pts: 0, secs: 0 };
+        e.runs++; if (h.wpm) e.wpm.push(h.wpm); if (h.acc != null) e.acc.push(h.acc); e.pts = Math.max(e.pts, h.pts); e.secs += h.secs;
+        weeks.set(k, e);
+      }
+      const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null, top = Math.max(1, ...[...weeks.values()].map(e => avg(e.wpm) || 0));
+      html += `<div class="sech"><span class="lbl">Week by week</span></div>` + [...weeks.entries()].sort((a, b) => b[0] - a[0]).slice(0, 8).map(([k, e]) => {
+        const aw = avg(e.wpm), aa = avg(e.acc);
+        return r('', `<b>${new Date(k).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</b> <small class="u">${e.runs} run${e.runs === 1 ? '' : 's'} · ${fmtDur(e.secs)}</small>`,
+          `${dotBar((aw || 0) / top, 12, 'var(--pen-2)', 1.8)} ${aw ? Math.round(aw) + ' wpm' : '–'} · ${aa != null ? aa.toFixed(1) + '%' : '–'} · best ${fmtPts(e.pts)}`);
+      }).join('');
+    }
+    $('#lgNote').textContent = H.length ? `first run logged ${new Date(H[0].at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : '';
+  } else if (logTab === 'letters') {
+    const weak = letterWeakness(), rows = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
+    const tone = v => v == null ? '' : v < .12 ? 'var(--pen-3)' : v < .35 ? 'var(--ink-3)' : v < .7 ? 'var(--pen-4)' : 'var(--pen-1)';
+    html = `<div class="kb">${rows.map((row, ri) => `<div class="r" style="margin-left:${ri * 22}px">${[...row].map(ch => {
+      const Lc = prefs.letters[ch], v = weak && weak[ch] != null ? weak[ch] : null, col = tone(v);
+      if (!Lc || Lc.n < 8 || !Lc.ms) return `<div class="key na"><b>${ch}</b><span>${Lc ? Lc.n : 0} typed</span></div>`;
+      return `<div class="key" style="background:color-mix(in srgb,${col} 18%,var(--paper));border-color:color-mix(in srgb,${col} 60%,var(--rule))"><b>${ch}</b><span>${Math.round(Lc.ms)} ms</span><span>${(Lc.miss * 100).toFixed(0)}% miss</span></div>`;
+    }).join('')}</div>`).join('')}</div>
+      <div class="lglegend"><span><i style="background:var(--pen-3)"></i>easy</span><span><i style="background:var(--ink-3)"></i>average</span><span><i style="background:var(--pen-4)"></i>slow</span><span><i style="background:var(--pen-1)"></i>weakest</span><span><i style="border:1px dashed var(--ink-3)"></i>not enough data</span></div>`;
+    const w5 = weakestLetters();
+    html += `<div class="sech"><span class="lbl">Focus</span></div>`
+      + r('', 'Weakest letters', w5.length ? w5.map(ch => `<kbd>${ch}</kbd>`).join(' ') : 'type a few runs first')
+      + r('', 'Adaptive words', prefs.adaptive ? 'on: every mode leans a little towards these letters; Drill leans hard' : 'off: words are picked at random')
+      + `<div style="margin-top:12px"><button class="btn" id="btnDrillNow">Drill these now · difficulty ${pad(sel)} <kbd>⏎</kbd></button></div>`;
+    $('#lgNote').textContent = 'times are the gap before each letter inside a word, averaged over recent typing';
+  } else {
+    const un = storyUnlocked();
+    html = `<div class="txlist">${STORY.map(e => un.includes(e)
+      ? `<div class="tx"><div class="no">${e.no} · ${esc(e.title.toUpperCase())}${prefs.heard[e.id] ? '' : ' · NEW'}</div><p>${esc(e.text)}</p></div>`
+      : `<div class="tx locked"><div class="no">${e.no} · SIGNAL NOT YET RECEIVED</div><p style="color:var(--ink-3)">${e.need}</p></div>`).join('')}</div>`;
+    $('#lgNote').textContent = `${un.length} of ${STORY.length} transmissions received`;
+    markHeard(un);
+  }
+  $('#lgBody').innerHTML = html;
+  const dn = $('#btnDrillNow'); if (dn) dn.onclick = () => startRun(sel, 'drill');
+  if (logTab === 'progress' && H.length >= 2) requestAnimationFrame(() => {
+    const last = H.slice(-60);
+    trendChart($('#lgWpm'), last.map(h => h.wpm), C['pen-2'], v => Math.round(v));
+    trendChart($('#lgAcc'), last.map(h => h.acc), C['pen-3'], v => v.toFixed(0));
+  });
+}
+// one dot per run, with a dotted grid and a 5-run moving average drawn through them
+function trendChart(el, vals, col, fmt) {
+  const { c, w, h } = fitCanvas(el); if (!w) return;
+  const pts = vals.filter(v => v != null);
+  if (!pts.length) return;
+  const lo = Math.min(...pts), hi = Math.max(...pts), padv = (hi - lo) * .2 || 3, y0 = lo - padv, y1 = hi + padv;
+  const X = i => 36 + i * (w - 46) / Math.max(1, vals.length - 1), Y = v => h - 10 - (v - y0) / (y1 - y0) * (h - 20);
+  c.font = `500 9px ${MONO}`; c.textAlign = 'right'; c.textBaseline = 'middle';
+  for (const v of [lo, (lo + hi) / 2, hi]) { drawDottedLine(c, 36, Y(v), w - 6, Y(v), 6, C['ink-4'], 1, .7); c.globalAlpha = 1; c.fillStyle = C['ink-3']; c.fillText(fmt(v), 30, Y(v)); }
+  c.strokeStyle = C.ink; c.lineWidth = 1.4; c.globalAlpha = .75; c.beginPath();
+  let started = false;
+  vals.forEach((v, i) => {
+    const win = vals.slice(Math.max(0, i - 4), i + 1).filter(x => x != null);
+    if (!win.length) return;
+    const a = win.reduce((x, y) => x + y, 0) / win.length;
+    started ? c.lineTo(X(i), Y(a)) : c.moveTo(X(i), Y(a)); started = true;
+  });
+  c.stroke();
+  vals.forEach((v, i) => { if (v == null) return; c.globalAlpha = .9; c.fillStyle = col; c.beginPath(); dotPath(c, X(i), Y(v), 2.3); c.fill(); });
+  c.globalAlpha = 1;
+}
+// the title's story line: the newest unheard transmission, or the latest one
+function buildStoryLine() {
+  const un = storyUnlocked(), fresh = storyUnheard(), e = fresh.length ? fresh[fresh.length - 1] : un[un.length - 1];
+  $('#storyLine').innerHTML = `<span class="no">${fresh.length ? `● ${fresh.length} NEW TRANSMISSION${fresh.length === 1 ? '' : 'S'}` : e.no}</span>`
+    + `<span class="t"><b style="color:var(--ink-2);font-weight:600">${esc(e.title)}</b> · ${esc(e.text)}</span><kbd>L</kbd>`;
+  $('#storyLine').onclick = () => openLog('story');
+}
+function toggleAdaptive() { prefs.adaptive = !prefs.adaptive; savePrefs(); syncToggles(); if (screen === 'log') renderLog(); toast(`Adaptive words ${prefs.adaptive ? 'on' : 'off'}`); }
 
 /* ------------------------------------------------------------ title: kit line + pressure switches */
 function buildKitLine() {
@@ -3265,6 +3762,7 @@ function syncToggles() {
   $('#vTheme').innerHTML = prefs.theme === 'dark' ? '<b>backlit</b> · paper' : 'backlit · <b>paper</b>';
   $('#togShake').classList.toggle('on', prefs.shake);
   $('#togMusic').classList.toggle('on', prefs.music);
+  $('#togAdapt2').classList.toggle('on', !!prefs.adaptive); $('#togAdaptive').classList.toggle('on', !!prefs.adaptive);
 }
 
 /* ------------------------------------------------------------ input */
@@ -3294,22 +3792,30 @@ addEventListener('keydown', e => {
     else if (e.key === 'ArrowLeft') select(Math.max(1, sel - 1));
     else if (e.key === 'ArrowDown') select(Math.min(10, sel + 5));
     else if (e.key === 'ArrowUp') select(Math.max(1, sel - 5));
-    else if (e.key === 'Tab') { e.preventDefault(); setGame(GAMES[(GAMES.indexOf(prefs.game) + (e.shiftKey ? 2 : 1)) % 3]); }
+    else if (e.key === 'Tab') { e.preventDefault(); setGame(GAMES[(GAMES.indexOf(prefs.game) + (e.shiftKey ? 3 : 1)) % 4]); }
     else if (k === 'd') openDock();
+    else if (k === 'l') openLog();
     else if (e.key === 'Enter') startRun(sel, prefs.game);
   } else if (screen === 'paused') {
     if (e.key === 'Escape' || e.key === 'Enter') resume();
     else if (k === 'q') quitToTitle();
     else if (k === 's') toggleShake();
+    else if (k === 'a') toggleAdaptive();
+  } else if (screen === 'log') {
+    if (e.key === 'Escape' || k === 'l') closeLog();
+    else if (/^[1-3]$/.test(e.key)) { logTab = LOG_TABS[+e.key - 1][0]; renderLog(); sfx.ui(); }
+    else if (k === 'a') toggleAdaptive();
+    else if (e.key === 'Enter' && logTab === 'letters') startRun(sel, 'drill');
   } else if (screen === 'dock') {
     if (e.key === 'Escape' || k === 'd') closeDock();
-    else if (/^[1-4]$/.test(e.key)) { dockTab = DOCK_TABS[+e.key - 1][0]; renderDock(); sfx.ui(); }
+    else if (/^[1-5]$/.test(e.key)) { dockTab = DOCK_TABS[+e.key - 1][0]; renderDock(); sfx.ui(); }
   } else if (screen === 'pick') {
     if (/^[1-3]$/.test(e.key)) takeCard(+e.key - 1);
   } else if (screen === 'chart') {
     chartKey(e);
   } else if (screen === 'over') {
     if (k === 'd' && performance.now() >= inputGuard) { openDock(); return; }
+    if (k === 'l' && performance.now() >= inputGuard) { openLog(); return; }
     if (performance.now() < inputGuard) return;
     if (e.key === 'Enter') startRun(G.diff, G.game);
     else if (e.key === 'Escape') quitToTitle();
@@ -3342,6 +3848,10 @@ $('#btnQuit').onclick = quitToTitle;
 $('#btnAgain').onclick = () => startRun(G.diff, G.game);
 $('#btnChange').onclick = quitToTitle;
 $('#btnDock').onclick = () => openDock();
+$('#btnLog').onclick = () => openLog();
+$('#btnLogBack').onclick = closeLog;
+$('#togAdaptive').onclick = toggleAdaptive;
+$('#togAdapt2').onclick = toggleAdaptive;
 $('#btnDockBack').onclick = closeDock;
 document.querySelectorAll('[data-game]').forEach(b => b.onclick = () => setGame(b.dataset.game));
 // window controls exist only inside the installed app (see sonar-type-app/preload.js)
