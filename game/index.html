@@ -190,6 +190,10 @@ body[data-screen="log"] #ovLog{display:flex}
 .lglegend{display:flex;gap:14px;justify-content:center;font-size:10px;color:var(--ink-3);margin-top:8px}
 .lglegend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 .txlist .tx.locked{border-left-color:var(--rule-strong)}
+.savep{color:var(--ink-2);font-size:12px;line-height:1.6;margin:16px 0 0;max-width:76ch}
+.savebtns{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.savenote{font-size:12px;margin:0 0 14px;padding:8px 12px;border:1px solid var(--rule);border-left:3px solid var(--pen-3);color:var(--ink)}
+.savenote.bad{border-left-color:var(--pen-1);color:var(--pen-1)}
 .txlist .tx.locked .no{color:var(--ink-3)}
 #ovPick{background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--paper) 30%,transparent),color-mix(in srgb,var(--paper) 80%,transparent) 70%)}
 .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
@@ -371,7 +375,7 @@ body[data-screen="log"] #ovLog{display:flex}
         <div id="lgBody"></div>
         <div class="foot">
           <button class="btn pri" id="btnLogBack">Back <kbd>Esc</kbd></button>
-          <span><kbd>1</kbd>–<kbd>3</kbd> pages</span>
+          <span><kbd>1</kbd>–<kbd>4</kbd> pages</span>
           <span class="r mono" id="lgNote"></span>
         </div>
       </div>
@@ -470,6 +474,7 @@ body[data-screen="log"] #ovLog{display:flex}
 <div class="toast" id="toast"></div>
 
 <script src="words.js"></script>
+<script src="save.js"></script>
 <script>
 'use strict';
 /* ============================================================
@@ -478,7 +483,7 @@ body[data-screen="log"] #ovLog{display:flex}
    clean typing (pulse / torpedo / nuke), supply crates, and a
    sector mode that ends with a leviathan.
    ============================================================ */
-const VERSION = '4.1';
+const VERSION = '4.2';
 const TAU = Math.PI * 2;
 const $ = s => document.querySelector(s);
 const wrap = a => ((a % TAU) + TAU) % TAU;
@@ -525,7 +530,8 @@ if (!prefs.v4) {
   }
   try { localStorage.setItem(STORE, JSON.stringify(prefs)); } catch {}
 }
-function savePrefs() { try { localStorage.setItem(STORE, JSON.stringify(prefs)); } catch {} }
+// once an import has written a new save, the old one still in memory must never be written back over it
+function savePrefs() { if (window.SonarSave && SonarSave.locked) return; try { localStorage.setItem(STORE, JSON.stringify(prefs)); } catch {} }
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const shakeOn = () => prefs.shake && !reducedMotion;
 
@@ -2993,7 +2999,22 @@ function tipTick(dt) {
 
 /* ------------------------------------------------------------ screens */
 let screen = 'title', sel = clamp(prefs.diff | 0 || 1, 1, 10), inputGuard = 0;
+// v4.2: the save was replaced from another tab (say, an import on the game's page on the website). What is in
+// memory is now stale, so it is never written back; the game reloads to pick up the new save, but not mid-run.
+const IN_RUN = ['play', 'paused', 'pick', 'chart'];
+let saveReplaced = false;
+function reloadReplaced(lostRun) {
+  try { sessionStorage.setItem('sonar-type.after', lostRun ? 'replaced-run' : 'replaced'); } catch {}
+  location.reload();
+}
+addEventListener('storage', e => {
+  if (e.storageArea !== localStorage || e.key !== STORE) return;
+  if (window.SonarSave) SonarSave.locked = true;
+  saveReplaced = true;
+  if (!IN_RUN.includes(screen)) reloadReplaced(false);
+});
 function setScreen(s) {
+  if (saveReplaced && !IN_RUN.includes(s)) { reloadReplaced(s === 'over'); return; }
   screen = s; document.body.dataset.screen = s;
   G.sim = s === 'title' || s === 'play' || s === 'dock' || (s === 'log' && G.mode === 'demo');
   if (s === 'title') buildTiles();
@@ -3616,10 +3637,25 @@ function drawGearIcon(c, slot, key, x, y, now) {
 }
 
 /* ------------------------------------------------------------ the Logbook: progress over time, letters, story */
-const LOG_TABS = [['progress', 'Progress'], ['letters', 'Letters'], ['story', 'Transmissions']];
+const LOG_TABS = [['progress', 'Progress'], ['letters', 'Letters'], ['story', 'Transmissions'], ['save', 'Save']];
 let logTab = 'progress', logFrom = 'title';
+// save transfer (v4.2): the file waiting for a yes, and the last thing to tell the player about it
+let importPending = null, saveNote = null;
+const saveInput = Object.assign(document.createElement('input'), { type: 'file', accept: '.json,application/json' });
+saveInput.onchange = () => {
+  const f = saveInput.files[0]; saveInput.value = '';
+  if (!f) return;
+  f.text().then(t => {
+    const r = SonarSave.parse(t);
+    importPending = r.ok ? r.file : null;
+    saveNote = r.ok ? null : { ok: false, text: r.why };
+    renderLog();
+  });
+};
+const saveWhere = () => window.sonarShell ? 'installed app' : 'browser';
 function openLog(tab) {
   if (tab) logTab = tab;
+  importPending = null;
   logFrom = screen === 'over' ? 'over' : 'title';
   ensureAudio(); setScreen('log'); renderLog(); sfx.ui();
 }
@@ -3629,7 +3665,7 @@ function renderLog() {
   const H = prefs.history, L = prefs.life, unheard = storyUnheard().length;
   $('#lgSub').textContent = `${H.length} run${H.length === 1 ? '' : 's'} logged`;
   $('#lgTabs').innerHTML = LOG_TABS.map(([k, nm], i) => `<button class="chip ${k === logTab ? 'on' : ''}" data-ltab="${k}"><kbd>${i + 1}</kbd> ${nm}${k === 'story' && unheard ? ` <b style="color:var(--pen-3)">● ${unheard}</b>` : ''}</button>`).join('');
-  document.querySelectorAll('[data-ltab]').forEach(b => b.onclick = () => { logTab = b.dataset.ltab; renderLog(); sfx.ui(); });
+  document.querySelectorAll('[data-ltab]').forEach(b => b.onclick = () => { logTab = b.dataset.ltab; importPending = null; saveNote = null; renderLog(); sfx.ui(); });
   $('#togAdaptive').classList.toggle('on', !!prefs.adaptive);
   const r = (dot, nm, val) => `<div class="row"><span class="nm">${dot ? `<i class="p" style="background:${dot}"></i>` : ''}${nm}</span><span class="val">${val}</span></div>`;
   let html = '';
@@ -3674,6 +3710,32 @@ function renderLog() {
       + r('', 'Adaptive words', prefs.adaptive ? 'on: every mode leans a little towards these letters; Drill leans hard' : 'off: words are picked at random')
       + `<div style="margin-top:12px"><button class="btn" id="btnDrillNow">Drill these now · difficulty ${pad(sel)} <kbd>⏎</kbd></button></div>`;
     $('#lgNote').textContent = 'times are the gap before each letter inside a word, averaged over recent typing';
+  } else if (logTab === 'save') {
+    const day = iso => iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '–';
+    const line = s => `${s.runs} run${s.runs === 1 ? '' : 's'} · ${s.salvage.toLocaleString('en-US')} salvage · best ${fmtPts(s.bestScore)} · ${s.medals} medal${s.medals === 1 ? '' : 's'} · ${s.owned} kit`;
+    const note = saveNote ? `<p class="savenote ${saveNote.ok ? 'ok' : 'bad'}">${esc(saveNote.text)}</p>` : '';
+    const s = SonarSave.summary(prefs);
+    if (importPending) {
+      const f = importPending, fs = SonarSave.summary(f.save);
+      html = `<div class="sech"><span class="lbl">Replace this save with the file's?</span></div>
+        ${r('var(--pen-2)', `<b>From the file</b> <small class="u">exported ${day(f.exported)}${f.from ? ` from the ${esc(f.from)}` : ''} · v${esc(f.version || '?')}</small>`, line(fs))}
+        ${r('var(--ink-3)', '<b>This save</b> <small class="u">now</small>', line(s))}
+        <p class="savep">Your current save is not deleted. It is kept aside, and you can switch back to it from this tab at any time.</p>
+        <div class="savebtns"><button class="btn" id="btnImportGo">Replace this save</button><button class="btn" id="btnImportCancel">Cancel</button></div>`;
+    } else {
+      const ro = (k, v, sub) => `<div class="ro"><span class="k">${k}</span><span class="v">${v}</span><span class="s">${sub}</span></div>`;
+      const kept = SonarSave.kept();
+      html = `${note}<div class="readouts" style="grid-template-columns:repeat(6,1fr)">
+        ${ro('Runs', s.runs, `${s.logged} in the log`)}${ro('Salvage', s.salvage.toLocaleString('en-US'), `${s.salvageTotal.toLocaleString('en-US')} earned`)}
+        ${ro('Destroyed', s.destroyed.toLocaleString('en-US'), 'words')}${ro('Best score', s.bestScore ? fmtPts(s.bestScore) : '–', 'any mode')}
+        ${ro('Medals', s.medals, `${s.gold} gold`)}${ro('Kit owned', s.owned, 'from the Dry Dock')}</div>
+        <p class="savep">This save lives in this ${saveWhere()} only. To back it up, or to carry it between the installed game, the
+        website and another computer, export it to a file here and import that file on the other side.</p>
+        <div class="savebtns"><button class="btn" id="btnExport">Export save to a file</button><button class="btn" id="btnImport">Import a save file…</button></div>
+        ${kept && kept.summary ? `<div class="sech"><span class="lbl">Kept aside by the last import</span></div>
+          ${r('var(--ink-3)', `<b>Kept save</b> <small class="u">since ${day(kept.at)}</small>`, `${line(kept.summary)} <button class="btn" id="btnSwap" style="margin-left:10px">Switch to it</button>`)}` : ''}`;
+    }
+    $('#lgNote').textContent = 'a save file stays on this computer unless you send it somewhere';
   } else {
     const un = storyUnlocked();
     html = `<div class="txlist">${STORY.map(e => un.includes(e)
@@ -3684,6 +3746,23 @@ function renderLog() {
   }
   $('#lgBody').innerHTML = html;
   const dn = $('#btnDrillNow'); if (dn) dn.onclick = () => startRun(sel, 'drill');
+  const bx = $('#btnExport'); if (bx) bx.onclick = () => {
+    SonarSave.download(SonarSave.pack(prefs, VERSION, saveWhere()));
+    saveNote = { ok: true, text: 'Exported. Import that file wherever you want this save to be.' }; renderLog(); sfx.ui();
+  };
+  const bi = $('#btnImport'); if (bi) bi.onclick = () => { saveNote = null; saveInput.click(); };
+  const bc = $('#btnImportCancel'); if (bc) bc.onclick = () => { importPending = null; renderLog(); sfx.ui(); };
+  // both of these rewrite the save, then reload so it is read exactly the way it is read at launch
+  const bg = $('#btnImportGo'); if (bg) bg.onclick = () => {
+    try { SonarSave.apply(importPending); } catch (e) { importPending = null; saveNote = { ok: false, text: 'The save could not be written: ' + e.message }; renderLog(); return; }
+    try { sessionStorage.setItem('sonar-type.after', 'imported'); } catch {}
+    location.reload();
+  };
+  const bs = $('#btnSwap'); if (bs) bs.onclick = () => {
+    if (!SonarSave.swap()) return;
+    try { sessionStorage.setItem('sonar-type.after', 'swapped'); } catch {}
+    location.reload();
+  };
   if (logTab === 'progress' && H.length >= 2) requestAnimationFrame(() => {
     const last = H.slice(-60);
     trendChart($('#lgWpm'), last.map(h => h.wpm), C['pen-2'], v => Math.round(v));
@@ -3803,7 +3882,7 @@ addEventListener('keydown', e => {
     else if (k === 'a') toggleAdaptive();
   } else if (screen === 'log') {
     if (e.key === 'Escape' || k === 'l') closeLog();
-    else if (/^[1-3]$/.test(e.key)) { logTab = LOG_TABS[+e.key - 1][0]; renderLog(); sfx.ui(); }
+    else if (/^[1-4]$/.test(e.key)) { logTab = LOG_TABS[+e.key - 1][0]; importPending = null; saveNote = null; renderLog(); sfx.ui(); }
     else if (k === 'a') toggleAdaptive();
     else if (e.key === 'Enter' && logTab === 'letters') startRun(sel, 'drill');
   } else if (screen === 'dock') {
@@ -3872,6 +3951,23 @@ syncToggles();
 document.fonts && document.fonts.ready.then(resize);
 newGame(sel, 'demo', 'patrol');
 setScreen('title');
+// back from an import or a switch: show the save that is now in place, and say so
+try {
+  const after = sessionStorage.getItem('sonar-type.after');
+  if (after) {
+    sessionStorage.removeItem('sonar-type.after');
+    saveNote = {
+      ok: after !== 'replaced-run',
+      text: {
+        swapped: 'Switched. The other save is kept aside below.',
+        imported: 'Imported. This is now your save; the one it replaced is kept aside below.',
+        replaced: 'Your save was changed in another tab, so the game reloaded with it.',
+        'replaced-run': 'Your save was changed in another tab while you were playing, so that run was not recorded.',
+      }[after] || 'Save updated.',
+    };
+    openLog('save');
+  }
+} catch {}
 
 let last = performance.now();
 function frame(now) {

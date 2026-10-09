@@ -1,7 +1,7 @@
 {
   "name": "sonar-type",
   "productName": "Sonar Type",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Typing defence on a sonar screen. Type the incoming words before they reach the core.",
   "main": "main.js",
   "author": "Aditya Govilkar",
@@ -21,7 +21,7 @@
       "buildResources": "build"
     },
     "electronDist": "node_modules/electron/dist",
-    "files": ["main.js", "preload.js", "game/index.html", "game/words.js", "build/icon.png"],
+    "files": ["main.js", "preload.js", "game/index.html", "game/words.js", "game/save.js", "build/icon.png"],
     "win": {
       "icon": "build/icon.png",
       "target": [{ "target": "nsis", "arch": ["x64"] }],
