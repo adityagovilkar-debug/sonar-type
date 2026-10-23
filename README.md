@@ -31,6 +31,11 @@ Every letter fires a tracer, and the score rewards hard words, fast typing and d
   **relic** words carry catalogue cards, a **bestiary** records every kind of contact met, 44 **commendations**
   pay salvage once each, and an **Operator rank** grows with all the salvage ever banked.
 
+- **New water** (v4.4): **Descent** (endless dive; Sunlit, Twilight, Midnight, Abyss and Hadal zones every
+  200 m) replaces Patrol on the title; a **Daily dive** (seeded sector with a daily twist, one counted attempt,
+  a streak); **Zen** (no hull, no weapons); and six new contacts: allies (do not fire), krill swarms, mimics,
+  divers, wardens and fading words.
+
 ## Tests
 
 `tests/` drives the game in headless Edge with a throwaway profile, so no real save is touched.

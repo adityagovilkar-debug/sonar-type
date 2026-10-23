@@ -50,7 +50,7 @@ const SIM = `window.sim = (d, game, wpmT, kit = {}, err = .03, maxT = 900) => {
     update(dt);
   }
   return { d, game, wpmT, res: screen === 'over' ? G.result.kind + (G.result.medal ? ':' + G.result.medal : '') : 'timeout@' + screen, t: Math.round(G.t),
-    kills: G.kills, pts: G.points, newWords: G.newWords, relics: G.runRelics.length, honours: Object.keys(prefs.honours).length };
+    kills: G.kills, pts: G.points, depth: G.game === 'descent' ? Math.floor(G.depth) : undefined, cards: G.cards.length, newWords: G.newWords, relics: G.runRelics.length, honours: Object.keys(prefs.honours).length };
 };
 'sim ready'`;
 module.exports = { SETUP, check, SIM };

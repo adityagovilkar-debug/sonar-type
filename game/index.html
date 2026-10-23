@@ -110,6 +110,7 @@ body[data-screen="title"] #ovTitle,body[data-screen="paused"] #ovPause,body[data
 .panel{width:min(840px,100%);padding:20px 22px 18px}
 .panel.sm{width:min(440px,100%)}
 .pgrid{display:grid;grid-template-columns:.8fr 1.2fr;gap:24px}
+#keyList{max-height:58vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--rule-strong) transparent;padding-right:4px}
 .keyrow{display:grid;grid-template-columns:170px 1fr;gap:12px;align-items:center;padding:3px 0;border-top:1px dotted var(--rule-strong)}
 .keyrow:first-child{border-top:0}
 .keyrow canvas{width:170px;height:46px;display:block}
@@ -123,6 +124,7 @@ body[data-screen="title"] #ovTitle,body[data-screen="paused"] #ovPause,body[data
 .th .acts{display:flex;gap:6px;align-items:center;font-size:10.5px;color:var(--ink-3);white-space:nowrap}
 .modebar{display:flex;gap:8px;align-items:center;margin:0 0 12px}
 .modebar .lbl{margin-right:4px}
+.modenote{font-size:11px;color:var(--ink-3);margin-left:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
 .tile{text-align:left;display:flex;flex-direction:column;gap:7px;padding:11px 12px 11px;transition:border-color .25s,transform .25s}
 .tile:hover,.tile.sel{border-color:var(--rule-strong);transform:translateY(-2px)}
@@ -192,6 +194,17 @@ body[data-screen="log"] #ovLog{display:flex}
 .key.na{border-style:dashed;opacity:.55}
 .lglegend{display:flex;gap:14px;justify-content:center;font-size:10px;color:var(--ink-3);margin-top:8px}
 .lglegend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.tile.daily{gap:10px;padding:16px 18px}
+.tile.daily .nm{font-size:20px}
+.tile.daily .nm span{font-size:12px;font-weight:400;color:var(--ink-3);margin-left:8px}
+.dmeta{display:flex;gap:22px;font-size:11.5px;color:var(--ink-3)}
+.dmeta b{color:var(--ink);font-weight:600}
+.days{display:flex;gap:5px;align-items:center}
+.days i{width:12px;height:12px;border-radius:50%;border:1px solid var(--rule-strong)}
+.days i.on{background:var(--pen-2);border-color:var(--pen-2)}
+.days i.today{outline:1px solid var(--ink-3);outline-offset:2px}
+.days span{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);margin-left:8px}
+.dgo{align-self:flex-end;font-family:var(--mono);font-size:11px;color:var(--pen-2);display:flex;gap:8px;align-items:center}
 .catbar{margin:14px 0 4px;overflow:hidden}
 .lgrid{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:6px}
 .lt{border:1px solid var(--rule);border-radius:var(--r);padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:var(--mono)}
@@ -365,10 +378,13 @@ body[data-screen="log"] #ovLog{display:flex}
         <div class="storyline" id="storyLine"></div>
         <div class="modebar">
           <span class="lbl">Mode</span>
-          <button class="chip" data-game="sector">Sector · 3 waves + leviathan</button>
-          <button class="chip" data-game="patrol">Patrol · endless</button>
-          <button class="chip" data-game="expedition">Expedition · sea chart</button>
-          <button class="chip" data-game="drill">Drill · 90 s practice</button>
+          <button class="chip" data-game="sector">Sector</button>
+          <button class="chip" data-game="descent">Descent</button>
+          <button class="chip" data-game="expedition">Expedition</button>
+          <button class="chip" data-game="daily">Daily dive</button>
+          <button class="chip" data-game="drill">Drill</button>
+          <button class="chip" data-game="zen">Zen</button>
+          <span class="modenote" id="modeNote"></span>
         </div>
         <div class="tiles" id="tiles"></div>
         <div class="press" id="pressBar"></div>
@@ -455,6 +471,7 @@ body[data-screen="log"] #ovLog{display:flex}
         <div class="foot">
           <button class="btn pri" id="btnResume">Resume <kbd>Esc</kbd></button>
           <button class="btn" id="btnQuit">Quit to title <kbd>Q</kbd></button>
+          <button class="btn" id="btnEndZen" hidden>End session and see the debrief <kbd>E</kbd></button>
         </div>
       </div>
     </div>
@@ -526,7 +543,7 @@ body[data-screen="log"] #ovLog{display:flex}
    clean typing (pulse / torpedo / nuke), supply crates, and a
    sector mode that ends with a leviathan.
    ============================================================ */
-const VERSION = '4.3';
+const VERSION = '4.4';
 const TAU = Math.PI * 2;
 const $ = s => document.querySelector(s);
 const wrap = a => ((a % TAU) + TAU) % TAU;
@@ -544,7 +561,11 @@ const STORE = 'sonar-type.v2';
 const prefs = { theme: 'dark', sound: true, music: true, shake: true, diff: 1, game: 'sector', best: {}, medals: {}, runs: 0, seen: {} };
 try { Object.assign(prefs, JSON.parse(localStorage.getItem(STORE) || '{}')); } catch {}
 // v3.4 scores points; `best` keeps the old destroyed-count records, `hi` holds the point records per mode and level
-prefs.hi = Object.assign({ patrol: {}, sector: {}, expedition: {}, drill: {} }, prefs.hi);
+prefs.hi = Object.assign({ patrol: {}, sector: {}, expedition: {}, drill: {}, descent: {}, zen: {} }, prefs.hi);
+// v4.4: deepest dive per difficulty, the daily dives (one counted attempt a day), Descent replaces Patrol on the title
+prefs.deepest = Object.assign({}, prefs.deepest);
+prefs.daily = Object.assign({}, prefs.daily);
+if (prefs.game === 'patrol') prefs.game = 'descent';
 // v4 progression: salvage, what has been bought, the chosen kit and the pressure switches
 prefs.salvage = prefs.salvage | 0; prefs.salvageTotal = prefs.salvageTotal | 0;
 prefs.owned = Object.assign({}, prefs.owned);
@@ -650,29 +671,39 @@ const PUNCT = ',.!?;:';
 const TRAITS = [
   ['armour', 2, .05, .012], ['splitter', 3, .04, .01], ['silent', 3, .05, .012],
   ['mine', 4, .03, .006], ['decoy', 4, .03, .006], ['reversed', 6, .03, .008], ['cased', 8, .04, .012],
+  ['krill', 4, .03, .006], ['mimic', 5, .03, .008], ['diver', 5, .03, .008], ['warden', 6, .025, .006], ['fading', 7, .03, .008],
 ];
-const TRAIT_LABEL = { armour: 'ARMOUR', splitter: 'SPLITTER', silent: 'SILENT', mine: 'MINE', decoy: 'DECOY', reversed: 'REVERSED ←', cased: 'EXACT' };
+const TRAIT_LABEL = { armour: 'ARMOUR', splitter: 'SPLITTER', silent: 'SILENT', mine: 'MINE', decoy: 'DECOY', reversed: 'REVERSED ←', cased: 'EXACT', krill: 'KRILL', mimic: 'MIMIC', diver: 'DIVER', warden: 'WARDEN', fading: 'FADING' };
 function traitOdds(lv) {
   const opts = TRAITS.filter(t => lv >= t[1]).map(t => [t[0], t[2] + t[3] * (lv - t[1])]);
   const total = opts.reduce((s, o) => s + o[1], 0), scale = total > .5 ? .5 / total : 1;
   return opts.map(([name, p]) => [name, p * scale]);
 }
+// the daily dive draws its words, bearings and traits from a generator seeded by the date
+function mulberry(seed) {
+  return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+const R = () => G.rng ? G.rng() : Math.random();
 function rollTrait(lv) {
   if (G.game === 'drill') return null;
-  let r = Math.random();
+  const mod = G.daily && G.daily.mod;
+  if (mod === 'mirror' && lv >= 3 && R() < .2) return 'reversed';
+  if (mod === 'krill' && R() < .12) return 'krill';
+  if (zoneOf().silent && R() < .15) return 'silent';
+  let r = R();
   for (const [name, p] of traitOdds(lv)) { r -= p; if (r < 0) return name; }
   return null;
 }
 // extra work each special contact adds compared with a plain word (armour is typed twice, a splitter adds two
 // small words, hidden or scrambled words cost reading time); spawn pacing stretches by the expected total
-const TRAIT_WORK = { armour: 1, splitter: .9, silent: .35, mine: 0, decoy: .4, reversed: .5, cased: .35 };
+const TRAIT_WORK = { armour: 1, splitter: .9, silent: .35, mine: 0, decoy: .4, reversed: .5, cased: .35, krill: .9, mimic: .3, diver: .35, warden: .4, fading: .3 };
 const workLoad = lv => 1 + traitOdds(lv).reduce((s, [name, p]) => s + p * TRAIT_WORK[name], 0) + (lv >= 3 ? .08 : 0) + (lv >= 5 ? .08 : 0);
 
 /* ------------------------------------------------------------ scoring */
 // a word's base value is its difficulty: every character scores, rarer letters more, and capitals and
 // punctuation on exact words more again; its type and the current threat level raise it further
 const charPts = ch => /[jqxz]/i.test(ch) ? 22 : /[cmfwygpbvk]/i.test(ch) ? 14 : /[a-z]/i.test(ch) ? 10 : 16;
-const TRAIT_PTS = { reversed: 1.5, cased: 1.4, silent: 1.3, splitter: 1.1 };
+const TRAIT_PTS = { reversed: 1.5, cased: 1.4, silent: 1.3, splitter: 1.1, mimic: 1.3, diver: 1.3, warden: 1.2, fading: 1.4 };
 function wordBase(w) {
   const chars = [...shown(w)].reduce((s, ch) => s + charPts(ch) + (w.cased && /[A-Z]/.test(ch) ? 6 : 0), 0);
   return chars * (w.trait === 'armour' ? 2 : 1) * (TRAIT_PTS[w.trait] || 1) * (1 + (G.level - 1) * .06);
@@ -808,7 +839,7 @@ function owns(kind, key) {
 // the run's kit: the hull and arsenal chosen in the Dry Dock, and any pressure switched on (real runs only)
 function applyKit(mode) {
   const lo = prefs.loadout, hk = owns('hull', lo.hull) ? lo.hull : 'skiff', h = HULLS[hk];
-  const press = mode === 'play' ? Object.keys(PRESSURE).filter(k => prefs.pressure[k] && PRESSURE[k].ok()) : [];
+  const press = G.daily ? (G.daily.mod === 'deep' ? ['deep'] : []) : mode === 'play' && !calmGame() ? Object.keys(PRESSURE).filter(k => prefs.pressure[k] && PRESSURE[k].ok()) : [];
   G.hullType = hk; G.kit = h;
   G.gear = {};
   for (const slot of Object.keys(GEAR)) G.gear[slot] = owns(slot, lo[slot]) ? lo[slot] : Object.keys(GEAR[slot])[0];
@@ -990,6 +1021,7 @@ const sfx = {
     tone('sawtooth', 156, 110, 2.2, .035, .1, { pan: p, filter: 'lowpass', ff: 420, wet: .8, attack: .5 });
     tone('sine', 52, 70, 1.6, .15, 1.2, { pan: p, lfo: 3, depth: .06, wet: .8, attack: .3 });
   },
+  dive:    p => { tone('sine', 300, 90, .5, .08, 0, { pan: p, wet: .6 }); noise(.4, .08, 800, 0, 'lowpass', { pan: p, f1: 200, wet: .5 }); },
   growl:   p => { tone('sawtooth', 55, 48, .9, .16, 0, { pan: p, filter: 'lowpass', ff: 300, wet: .6 }); noise(.8, .12, 300, 0, 'lowpass', { pan: p, wet: .5 }); },
   lunge:   p => { noise(.6, .3, 700, 0, 'lowpass', { pan: p, f1: 2400, wet: .5 }); tone('sine', 60, 110, .5, .3, 0, { pan: p }); },
   aim:     p => { tone('square', 900, 1800, .4, .025, 0, { pan: p, filter: 'bandpass', ff: 1600, q: 4 }); },
@@ -1085,7 +1117,8 @@ function newGame(diff, mode, game) {
     crateT: game === 'sector' ? 14 : 30, hbT: 0,
     pingCd: 0, pingT: 0, alertT: 0, pingGlow: 0, thermo: null, thermoT: rnd(20, 35), storm: null, stormT: rnd(25, 40),
     combo: 0, ripples: [], hurt: 0, letters: {}, bestCombo: 0, drillT: 90, newWords: 0, runBy: {}, runRelics: [], maxBlast: 0,
-    weak: mode === 'play' && prefs.adaptive ? letterWeakness() : null,
+    depth: 0, zone: null, nextBossAt: 0, allyT: null, daily: pendingDaily, rng: null,
+    weak: mode === 'play' && prefs.adaptive && !pendingDaily ? letterWeakness() : null,
     kills5: Array(24).fill(0), k5T: 0, killsRun: [0], kRunT: 0, keyTimes: [], peakWpm: 0, recent: [], longest: '', last: '',
     stats: { hullDmg: 0, hullHits: 0, phaseAbs: 0, ironHits: 0, hardest: null, used: { pulse: 0, torp: 0, nuke: 0, ping: 0 }, earned: { pulse: 0, torp: 0, nuke: 0 }, crates: { got: 0, seen: 0 }, mines: 0, decoys: 0 },
     sec: { wave: 1, quota: 0, spawned: 0, stage: 'intro', t: 0 }, exp: null, freezeT: 0, aimS: null,
@@ -1095,14 +1128,14 @@ function newGame(diff, mode, game) {
   applyKit(mode);
 }
 const enemies = () => G.words.filter(w => w.kind === 'enemy').length;
-const threats = () => G.words.filter(w => w.kind !== 'crate' && w.trait !== 'decoy');
+const threats = () => G.words.filter(w => w.kind !== 'crate' && w.kind !== 'ally' && w.trait !== 'decoy' && !w.under);
 const pos = w => ({ x: S.cx + w.rx, y: S.cy + w.ry });
 const angOf = w => Math.atan2(w.ry, w.rx);
 const live = w => G.words.includes(w);
 const bearing = w => Math.round(wrap(angOf(w) + Math.PI / 2) * 180 / Math.PI) % 360;
 // reversed words store their letters in typing order; the chip still shows the word the right way round
 const shown = w => w.rev ? [...w.text].reverse().join('') : w.text;
-const hitDamage = w => wordDamage(w) * (w.trait === 'mine' ? 2 : 1);
+const hitDamage = w => w.trait === 'krill' ? Math.max(2, Math.round(3 * dmgScale())) : wordDamage(w) * (w.trait === 'mine' ? 2 : 1);
 function letterPos(w, i) {
   const p = pos(w), cw = w.kind === 'boss' ? S.cwB : S.cw, n = w.text.length, d = w.rev ? n - 1 - i : i;
   return { x: p.x - (n - 1) * cw / 2 + d * cw, y: p.y };
@@ -1112,11 +1145,12 @@ const inStorm = w => !!G.storm && w.dist > S.R * .3 && angGap(angOf(w), G.storm.
 const inThermo = w => !!G.thermo && w.dist > G.thermo.f0 * S.R && w.dist < G.thermo.f1 * S.R;
 // what the scope shows of a contact: 'clear', 'echo' (a silent contact's last-seen position) or 'hidden'
 function sight(w) {
+  if (w.under) return 'hidden';
   if (pinging() || w.dist < S.R * (G.mods.sweep ? .45 : .3)) return 'clear';
   // Blackout: beyond 60% of the scope nothing shows unless pinged (supply crates excepted)
   if (G.press.blackout && w.kind !== 'crate' && w.dist > S.R * .6) return 'hidden';
   if (inStorm(w)) return 'hidden';
-  if (w.silent) return w.echo > .02 ? 'echo' : 'hidden';
+  if (w.silent || (darkWater() && w.kind !== 'crate' && w.kind !== 'ally')) return w.echo > .02 ? 'echo' : 'hidden';
   return 'clear';
 }
 function edgeDist(a) {
@@ -1125,9 +1159,9 @@ function edgeDist(a) {
 }
 const angGap = (a, b) => Math.abs(wrap(a - b + Math.PI) - Math.PI);
 function bestBearing() {
-  let ang = Math.random() * TAU, best = -1;
+  let ang = R() * TAU, best = -1;
   for (let k = 0; k < 16; k++) {
-    const cand = Math.random() * TAU;
+    const cand = R() * TAU;
     const gap = G.words.reduce((m, w) => Math.min(m, angGap(cand, angOf(w))), Infinity);
     if (gap > best) { best = gap; ang = cand; }
     if (gap > .52) break;
@@ -1140,12 +1174,12 @@ function pickFromTier(tier, minLen = 0) {
   const ok = c => c.length >= minLen && !taken.has(c[0]) && !G.recent.includes(c) && !G.words.some(w => w.text === c);
   // adaptive words: draw a few candidates and lean towards the ones full of this typist's weakest letters
   const want = G.weak ? (G.game === 'drill' ? 8 : 4) : 3, cands = [];
-  for (let k = 0; k < 40 && cands.length < want; k++) { const c = pick(pool); if (ok(c) && !cands.includes(c)) cands.push(c); }
+  for (let k = 0; k < 40 && cands.length < want; k++) { const c = pool[Math.floor(R() * pool.length)]; if (ok(c) && !cands.includes(c)) cands.push(c); }
   if (!cands.length) return pool.filter(c => c.length >= minLen)[0] || pick(pool);
   if (cands.length === 1) return cands[0];
   const bias = G.game === 'drill' ? 12 : 3;
   const wts = cands.map(c => { let s = 0; if (G.weak) for (const ch of c.toLowerCase()) s += G.weak[ch] || 0; return (1 + bias * s / c.length) * (CAT.has(c) ? 1 : 1.6); });
-  let r = Math.random() * wts.reduce((a, b) => a + b, 0), i = 0;
+  let r = R() * wts.reduce((a, b) => a + b, 0), i = 0;
   while (r > wts[i] && i < cands.length - 1) { r -= wts[i]; i++; }
   return cands[i];
 }
@@ -1175,7 +1209,7 @@ function letterWeakness() {
 const weakestLetters = (n = 5) => { const w = letterWeakness(); return w ? Object.entries(w).sort((a, b) => b[1] - a[1]).filter(e => e[1] > .05).slice(0, n).map(e => e[0]) : []; };
 function pickWord() {
   const wts = LEVEL_WEIGHTS[Math.min(G.level, 12) - 1];
-  let r = Math.random(), tier = 0, acc = 0;
+  let r = R(), tier = 0, acc = 0;
   for (let i = 0; i < wts.length; i++) { acc += wts[i]; if (r <= acc) { tier = i; break; } }
   return pickFromTier(tier);
 }
@@ -1187,8 +1221,9 @@ function spawnEnemy(o = {}) {
   const ang = o.ang ?? bestBearing(), d = o.dist ?? edgeDist(ang) + 30;
   // now and then an ordinary spawn surfaces as a relic: one at a time, never in a drill
   if (!o.text && o.tier == null && o.trait === undefined && !o.shot && G.mode === 'play' && G.game !== 'drill' && G.level >= 2
-      && Math.random() < 1 / 75 && !G.words.some(w => w.relic)) return spawnRelic(ang, d);
+      && R() < (G.daily && G.daily.mod === 'relics' ? 4 : 1) / 75 && !G.words.some(w => w.relic)) return spawnRelic(ang, d);
   const trait = o.trait !== undefined ? o.trait : rollTrait(G.level);
+  if (trait === 'krill' && !o.text) return spawnKrill(ang, d);
   let text = o.text || (o.tier != null ? pickFromTier(o.tier) : pickWord());
   if (!o.text) {
     if (trait === 'splitter' && text.length < 7) text = pickFromTier(3);
@@ -1205,6 +1240,9 @@ function spawnEnemy(o = {}) {
   if (trait === 'armour') extra.armour = 1;
   if (trait === 'silent') Object.assign(extra, { silent: true, echo: 0, ex: 0, ey: 0 });
   if (trait === 'mine') extra.speed *= .55;
+  if (trait === 'warden') extra.speed *= .8;
+  if (trait === 'mimic') extra.mimT = 1.2;
+  if (trait === 'diver') Object.assign(extra, { diveT: rnd(1.5, 2.5), under: false });
   const w = mk('enemy', text, Math.cos(ang) * d, Math.sin(ang) * d, extra);
   G.words.push(w);
   note(beastKey(w), 'seen');
@@ -1232,6 +1270,79 @@ function spawnRelic(ang, d) {
   note('relic', 'seen'); tip('relic'); sfx.relic(panAt(S.cx + w.rx));
   return w;
 }
+// krill: a tight cloud of single letters, each harmless alone but chipping the hull if it gets through
+function spawnKrill(ang, d) {
+  const taken = new Set(G.words.filter(w => w.fired < w.text.length).map(w => w.text[w.fired].toLowerCase()));
+  const letters = [...'abcdefghijklmnopqrstuvwxyz'].filter(ch => !taken.has(ch)).sort(() => R() - .5);
+  const n = Math.min(letters.length, 5 + Math.floor(G.level / 3)), sp = wordSpeed(G.level) * 1.25;
+  let first = null;
+  for (let i = 0; i < n; i++) {
+    const a = ang + (R() - .5) * .6, dd = d + R() * 120;
+    const w = mk('enemy', letters[i], Math.cos(a) * dd, Math.sin(a) * dd, { speed: sp * rnd(.9, 1.1), trait: 'krill' });
+    G.words.push(w); note('krill', 'seen'); first = first || w;
+  }
+  tip('krill');
+  return first;
+}
+// allies: friendly subs crossing the scope. Typing one out is friendly fire; letting it pass pays a bonus
+function spawnAlly() {
+  const a = Math.random() * TAU, d0 = edgeDist(a) + 70, sx = Math.cos(a) * d0, sy = Math.sin(a) * d0;
+  const side = Math.random() < .5 ? 1 : -1, off = S.R * rnd(.25, .55);
+  const px = -Math.sin(a) * side * off, py = Math.cos(a) * side * off, n = Math.hypot(px - sx, py - sy), sp = 48;
+  const w = mk('ally', pickFromTier(Math.random() < .5 ? 1 : 2), sx, sy, { vx: (px - sx) / n * sp, vy: (py - sy) / n * sp, entered: false });
+  G.words.push(w); note('ally', 'seen'); tip('ally');
+  return w;
+}
+function allyEscorted(w) {
+  if (G.mode !== 'play') return;
+  const pts = addPoints(60 + 15 * G.level, 'bonus');
+  note('ally', 'kills'); G.stats.escorts = (G.stats.escorts || 0) + 1;
+  coreStamp(`ALLY ESCORTED · +${pts}`, C['pen-2'], 1.4);
+  G.last = `ally escorted: ${w.text}`;
+}
+// divers surface for a few seconds, then go under (hidden, untypeable, faster) and come up somewhere closer
+function diverTick(w, dt) {
+  if (w.fired > 0 && !w.under) return;
+  w.diveT -= dt;
+  if (w.under) {
+    if (Math.random() < dt * 6) bubbles(pos(w).x, pos(w).y, 1, 10);
+    if (w.diveT <= 0) { w.under = false; w.diveT = rnd(2.4, 3.2); const p = pos(w); ripple(p.x, p.y, 5, 300, .7); G.fx.push({ k: 'ring', x: p.x, y: p.y, r0: 4, r1: 30, col: C['pen-3'], life: .5, max: .5 }); }
+  } else if (w.diveT <= 0 && w.dist < S.R * .9 && w.dist > S.R * .35) {
+    w.under = true; w.diveT = rnd(1.4, 2); if (G.lock === w) G.lock = null;
+    const p = pos(w); bubbles(p.x, p.y, 8, 14); sfx.dive(panAt(p.x));
+  }
+}
+// a warden's ring shields every other untouched word inside it from typing until the warden is destroyed
+function shieldTick() {
+  const wardens = G.words.filter(w => w.trait === 'warden');
+  for (const w of G.words) {
+    w.shielded = w.kind !== 'boss' && w.kind !== 'crate' && w.kind !== 'ally' && w.fired === 0
+      && wardens.some(o => o !== w && Math.hypot(o.rx - w.rx, o.ry - w.ry) < WARDEN_R);
+  }
+}
+function friendlyFire(w) {
+  const p = pos(w), dmg = Math.max(6, Math.round(wordDamage(w) * .8));
+  remove(w);
+  G.hull -= dmg; G.stats.hullDmg += dmg; G.stats.hullHits++; G.combo = 0; G.cleanRun = 0; G.hurt = 1; G.stats.friendly = (G.stats.friendly || 0) + 1;
+  burstLetters(w, C['pen-1'], 80); cracks(3);
+  G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 6, r1: 90, n: 40, col: C['pen-1'], life: .7, max: .7 });
+  G.fx.push({ k: 'stamp', x: p.x, y: p.y - 26, text: `FRIENDLY FIRE  -${dmg} HULL`, col: C['pen-1'], life: 1.6, max: 1.6, big: true });
+  flashUnit('uCore', 'bad', 700); bump(8); sfx.breach();
+  G.last = `friendly fire: ${w.text}`;
+  if (G.hull <= 0) sink('hull');
+}
+// a mimic keeps changing into another word of the same length until its first letter is typed
+const BY_LEN = {};
+for (const w of POOLS.flat()) (BY_LEN[w.length] = BY_LEN[w.length] || []).push(w);
+function morph(w) {
+  const pool = BY_LEN[w.text.length] || [];
+  const taken = new Set(G.words.filter(o => o !== w && o.fired < o.text.length).map(o => o.text[o.fired].toLowerCase()));
+  for (let k = 0; k < 20; k++) {
+    const c = pick(pool);
+    if (c && c !== w.text && !taken.has(c[0])) { w.text = c; w.hitT = .2; return; }
+  }
+}
+const WARDEN_R = 120;
 // supply crates drift ACROSS the scope (not at the core) and escape if not typed in time
 function spawnCrate(ctype) {
   const a = Math.random() * TAU, d0 = edgeDist(a) + 70, sx = Math.cos(a) * d0, sy = Math.sin(a) * d0;
@@ -1247,9 +1358,9 @@ function spawnCrate(ctype) {
 // or the Ironback (every layer plated and typed twice, one layer fewer, a little slower)
 function spawnBoss(type = 'leviathan') {
   // layers are one tier longer than the longest words of the final wave; the last layer one more
-  const lv = G.game === 'expedition' ? G.level : sectorLevel(3);
+  const lv = G.game === 'sector' ? sectorLevel(3) : G.level;
   const wts = LEVEL_WEIGHTS[lv - 1], top = wts.reduce((m, w, k) => w > 0 ? k : m, 0);
-  const n = Math.max(2, 3 + Math.floor(G.diff / 2) - (type === 'ironback' ? 1 : 0));
+  const n = Math.max(2, (G.game === 'descent' ? 2 + Math.floor(G.diff / 4) : 3 + Math.floor(G.diff / 2)) - (type === 'ironback' ? 1 : 0));
   let layers = [];
   for (let i = 0; i < n; i++) layers.push(pickFromTier(clamp(top + 1 + (i === n - 1 ? 1 : 0) - (type === 'siren' ? 1 : 0), 0, 4)));
   const extra = { layers, layerTotal: n, speed: (15 + G.diff * 2.3) * (type === 'ironback' ? .78 : 1), escortT: 2, btype: type, actT: 4, warnT: 0, lungeT: 0, orbit: Math.random() < .5 ? 1 : -1 };
@@ -1265,7 +1376,10 @@ function remove(w) { G.words = G.words.filter(o => o !== w); if (G.lock === w) G
 
 /* ------------------------------------------------------------ typing + combat */
 // exact words need the right case and punctuation; everything else ignores case (so Caps Lock is harmless)
-function wants(w, ch) { const n = w.text[w.fired]; return w.cased ? ch === n : ch.toLowerCase() === n.toLowerCase(); }
+function wants(w, ch) {
+  if (w.under || w.shielded) return false;
+  const n = w.text[w.fired]; return w.cased ? ch === n : ch.toLowerCase() === n.toLowerCase();
+}
 function press(ch) {
   if (G.lock && (G.lock.fired >= G.lock.text.length || !live(G.lock))) G.lock = null;
   let target = null;
@@ -1274,7 +1388,7 @@ function press(ch) {
     else {
       // retarget: a letter that is wrong for the locked word but right for a clearly more dangerous one moves the
       // lock there instead of counting as a miss. The old word keeps the letters already typed into it.
-      const cur = G.lock, threat = w => w.kind !== 'crate' && w.trait !== 'decoy' && sight(w) !== 'hidden';
+      const cur = G.lock, threat = w => w.kind !== 'crate' && w.kind !== 'ally' && w.trait !== 'decoy' && sight(w) !== 'hidden';
       for (const w of G.words) {
         if (w === cur || w.fired >= w.text.length || !wants(w, ch) || !threat(w)) continue;
         const urgent = cur.kind === 'crate' || w.dist < cur.dist * .75 || w.dist < S.R * .3 || (w.shot && w.dist < cur.dist);
@@ -1283,7 +1397,12 @@ function press(ch) {
       if (target) retarget(cur, target);
     }
   }
-  else for (const w of G.words) if (w.fired < w.text.length && wants(w, ch) && (!target || w.dist < target.dist)) target = w;
+  else {
+    // an ally is only ever picked when nothing else wants that letter
+    for (const w of G.words) if (w.kind !== 'ally' && w.fired < w.text.length && wants(w, ch) && (!target || w.dist < target.dist)) target = w;
+    if (!target) for (const w of G.words) if (w.kind === 'ally' && w.fired < w.text.length && wants(w, ch)) target = w;
+    if (target && target.kind === 'ally') G.fx.push({ k: 'stamp', x: pos(target).x, y: pos(target).y + 26, text: 'ALLY · BACKSPACE TO STOP', col: C['pen-1'], life: 1.4, max: 1.4 });
+  }
   if (target) { G.lock = target; fire(target); } else miss();
 }
 function retarget(from, to) {
@@ -1381,6 +1500,7 @@ function impact(tr) {
 }
 function complete(w, how) {
   if (w.kind === 'crate') return collect(w);
+  if (w.kind === 'ally') return friendlyFire(w);
   if (w.kind === 'boss') return bossLayer(w, how);
   if (w.trait === 'mine' && how !== 'nuke') return detonateMine(w);
   if (w.trait === 'decoy') return how === 'type' ? springDecoy(w) : dissolve(w);
@@ -1425,12 +1545,12 @@ function detonateMine(w) {
   ripple(p.x, p.y, 13, 380, 1.2); bubbles(p.x, p.y, 12);
   bump(10); sfx.mine(panAt(p.x));
   for (const o of [...G.words]) {
-    if (o.kind === 'crate' || !live(o)) continue;
+    if (o.kind === 'crate' || o.kind === 'ally' || !live(o)) continue;
     const q = pos(o);
     if (Math.hypot(q.x - p.x, q.y - p.y) > mineR()) continue;
     stripTail(o, MINE_STRIP, C['pen-6'], 'mine');
   }
-  G.maxBlast = Math.max(G.maxBlast, G.kills - killsBefore);
+  G.maxBlast = Math.max(G.maxBlast, G.kills - killsBefore); dive(6);
   G.last = 'mine detonated';
 }
 // knock up to k untyped letters off the end of a contact (mines, swarm torpedoes, piercing tracers);
@@ -1510,10 +1630,9 @@ function kill(w, how) {
   if (how === 'type' && G.mods.pierce) pierceFrom(p, w);
   G.last = `${shown(w)} ${how === 'nuke' ? 'vaporised' : how === 'torp' ? 'torpedoed' : how === 'mine' ? 'caught in a mine blast' : 'splashed'}`;
   flashUnit('uScore', 'ok', 420);
-  if (G.game === 'patrol') {
-    const lv = rampLevel(); if (lv > G.level) levelUp(lv);
-    if (G.mods.riveter && G.kills % 15 === 0) regrowPlate();
-  }
+  if (G.game === 'patrol') { const lv = rampLevel(); if (lv > G.level) levelUp(lv); }
+  if ((G.game === 'patrol' || G.game === 'descent') && G.mods.riveter && G.kills % 15 === 0) regrowPlate();
+  dive(3 + shown(whole).length);
 }
 // how a destroyed word breaks up, per the kill effect fitted in the Dry Dock
 function killFx(p, w) {
@@ -1612,7 +1731,7 @@ function cracks(n) {
 }
 
 function addCharge(n) {
-  if (G.game === 'drill') return;
+  if (calmGame()) return;
   const before = G.charge;
   G.charge = Math.min(G.chargeMax, G.charge + n);
   for (const [th, award] of G.ticks) if (before < th && G.charge >= th) grant(award);
@@ -1670,7 +1789,7 @@ function coreHit(w) {
     sfx.fizz(panAt(p.x)); G.last = `relic lost: ${w.text}`; return;
   }
   // a drill never hurts: a word that gets through just breaks the streak
-  if (G.game === 'drill') {
+  if (calmGame()) {
     burstLetters(w, C['pen-1']); G.combo = 0; G.cleanRun = 0; G.stats.leaks = (G.stats.leaks || 0) + 1;
     G.fx.push({ k: 'stamp', x: p.x, y: p.y - 22, text: 'LEAKED', col: C['pen-1'], life: .9, max: .9 });
     sfx.miss(); return;
@@ -1889,6 +2008,7 @@ function bossLayer(w, how) {
   }
   const p = pos(w), cleared = w.layerTotal - w.layers.length + 1;
   if (how === 'type') recover(shown(w));
+  dive(25);
   G.kills++; G.killsRun[G.killsRun.length - 1]++; G.kills5[G.kills5.length - 1]++;
   // every leviathan layer pays double; each layer's typing speed is timed on its own
   const sc = how === 'type' ? typedPoints(w, !w.missed, 2 * (w.btype === 'ironback' ? 2 : w.btype === 'siren' ? 1.5 : 1)) : { pts: addPoints(how === 'nuke' ? 5 : wordBase(w), 'weapons'), sub: 'WEAPON' };
@@ -1922,10 +2042,84 @@ function bossKilled(w) {
   }
   for (const e of G.words.filter(o => o.kind === 'enemy')) { burstLetters(e, C['pen-3']); complete(e, 'nuke'); }
   G.flash = .6; bump(16); sfx.win();
+  if (G.game === 'descent') {
+    const b = addPoints(300 * bonusScale(), 'bonus');
+    banner(`${(BOSSES[w.btype] || BOSSES.leviathan).name.toUpperCase()} DESTROYED`, `${Math.floor(G.depth)} m down · +${fmtPts(b)} pts`, C['pen-3']);
+    return;
+  }
   const exp = G.game === 'expedition', bonus = addPoints((500 + Math.ceil(G.hull) * 5) * bonusScale() * (exp ? 2 : 1), 'bonus');
   banner(`${(BOSSES[w.btype] || BOSSES.leviathan).name.toUpperCase()} DESTROYED`, `${exp ? 'expedition complete' : 'sector ' + pad(G.diff) + ' clear'} · +${fmtPts(bonus)} pts`, C['pen-3']);
   G.sec.stage = 'won'; G.sec.t = 0; G.spawnHold = 99;
 }
+
+/* ------------------------------------------------------------ Descent, Daily dive, Zen */
+// Descent: an endless dive. Every 200 m is a new zone with its own rule; each zone brings an upgrade card
+const ZONES = [
+  { name: 'Sunlit', blurb: 'bright water: everything shows' },
+  { name: 'Twilight', blurb: 'the light fails, and more contacts run silent', silent: true },
+  { name: 'Midnight', blurb: 'no light at all: contacts show only as the sweep passes', dark: true },
+  { name: 'Abyss', blurb: 'a thermocline that never lifts, and noise storms', abyss: true },
+  { name: 'Hadal', blurb: 'leviathans drift past like ordinary contacts', hadal: true },
+];
+const zoneIndex = () => G.game === 'descent' ? Math.min(ZONES.length - 1, Math.floor((G.depth || 0) / 200)) : -1;
+const zoneOf = () => G.game === 'descent' ? ZONES[zoneIndex()] : {};
+const darkWater = () => !!zoneOf().dark || !!(G.daily && G.daily.mod === 'dark');
+const descentLevel = () => clamp(G.diff + zoneIndex() + (G.depth >= 1000 ? 1 + Math.floor((G.depth - 1000) / 250) : 0), 1, 12);
+function descentTick(dt) {
+  const z = zoneIndex();
+  if (z !== G.zone) enterZone(z);
+  G.level = Math.max(G.level, descentLevel());
+  G.spawnT -= dt;
+  if (G.spawnT <= 0 && !G.spawnHold && enemies() < maxContacts(G.level)) { spawnEnemy(); G.spawnT = spawnInterval(G.level) * workLoad(G.level) * rnd(.75, 1.25); }
+  if (zoneOf().abyss) { if (!G.thermo) startThermo(); G.thermoT = 99; }
+  // Hadal: a leviathan every 150 m, one at a time
+  if (zoneOf().hadal && !G.boss && G.depth >= G.nextBossAt) { spawnBoss(pick(BOSS_KEYS)); G.nextBossAt = G.depth + 150; }
+  if (G.boss) {
+    bossAct(G.boss, dt);
+    if (G.boss) { G.boss.callT -= dt; if (G.boss.callT <= 0) { G.boss.callT = rnd(6, 9); (G.boss.btype === 'siren' ? sfx.sirenCall : sfx.bossCall)(panAt(pos(G.boss).x)); } }
+  }
+}
+function enterZone(z) {
+  const first = G.zone == null; G.zone = z;
+  if (first) return;
+  const Z = ZONES[z];
+  banner(`${Z.name.toUpperCase()} ZONE · ${Math.floor(G.depth)} M`, Z.blurb, C.sonar); sfx.wave();
+  repair(20);
+  if (!Z.abyss) G.thermo = null;
+  if (Z.hadal) G.nextBossAt = G.depth + 30;
+  if (G.mode === 'play') { G.pickQ++; newWaveMods(); }
+}
+function dive(m) { if (G.game === 'descent') G.depth += m; }
+// Zen: no hull to lose, no weapons, calm water; it ends when you end it (Esc, then E)
+function zenTick(dt) {
+  G.spawnT -= dt;
+  if (G.spawnT <= 0 && enemies() < Math.max(2, maxContacts(G.level) - 1)) { spawnEnemy({ speed: wordSpeed(G.level) * .7 }); G.spawnT = spawnInterval(G.level) * workLoad(G.level) * 1.35 * rnd(.8, 1.2); }
+}
+const calmGame = () => G.game === 'drill' || G.game === 'zen';
+// the Daily dive: one seeded sector a day, with a modifier and a set leviathan; only the first attempt counts
+const DAILY_MODS = {
+  storm: ['Storm front', 'noise storms and thermoclines all run'],
+  relics: ['Relic tide', 'relics surface four times as often'],
+  mirror: ['Mirror day', 'reversed words are everywhere'],
+  krill: ['Krill bloom', 'swarms of single letters'],
+  dark: ['Midnight', 'contacts show only as the sweep passes'],
+  convoy: ['Convoy', 'allied subs cross all run: let them pass'],
+  deep: ['Deep water', 'everything 15% faster, score ×1.2'],
+};
+const dayKey = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+function dailyConfig(key = dayKey()) {
+  let h = 2166136261;
+  for (const ch of 'pelagia' + key) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+  const rng = mulberry(h >>> 0), mods = Object.keys(DAILY_MODS);
+  return { key, seed: h >>> 0, diff: 3 + Math.floor(rng() * 4), mod: mods[Math.floor(rng() * mods.length)], boss: BOSS_KEYS[Math.floor(rng() * BOSS_KEYS.length)] };
+}
+// consecutive days with a counted dive, ending today (or yesterday, if today's is still to come)
+function dailyStreak() {
+  const d = new Date(); if (!prefs.daily[dayKey(d)]) d.setDate(d.getDate() - 1);
+  let n = 0; while (prefs.daily[dayKey(d)]) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+let pendingDaily = null;
 
 /* ------------------------------------------------------------ directors */
 // Drill: 90 seconds of practice at a steady level, words weighted hard towards your weakest letters
@@ -2083,18 +2277,18 @@ function update(dt) {
   if (G.t > 15) G.peakWpm = Math.max(G.peakWpm, G.keyTimes.length / 5 * 4);
   G.slowT = Math.max(0, G.slowT - dt); G.freezeT = Math.max(0, (G.freezeT || 0) - dt); G.songT = Math.max(0, (G.songT || 0) - dt);
   // patrol offers its upgrade card the moment the threat level rises
-  if (G.pickQ && G.game === 'patrol' && G.mode === 'play' && screen === 'play') { openPick(); return; }
+  if (G.pickQ && (G.game === 'patrol' || G.game === 'descent') && G.mode === 'play' && screen === 'play') { openPick(); return; }
   G.spawnHold = Math.max(0, G.spawnHold - dt);
   G.pingCd = Math.max(0, G.pingCd - dt); G.pingT = Math.max(0, G.pingT - dt);
   G.alertT = Math.max(0, G.alertT - dt); G.pingGlow = Math.max(0, G.pingGlow - dt * 1.4);
 
   // sea conditions: a thermocline band from level 3, drifting noise storms from level 5
-  const stormy = legType() === 'storm';
-  if ((G.level >= 3 || stormy) && G.game !== 'drill') {
+  const stormy = legType() === 'storm' || !!(G.daily && G.daily.mod === 'storm') || !!zoneOf().abyss;
+  if ((G.level >= 3 || stormy) && !calmGame()) {
     G.thermoT -= dt;
     if (G.thermoT <= 0) { if (G.thermo) { G.thermo = null; G.thermoT = rnd(30, 50); } else { startThermo(); G.thermoT = rnd(25, 35); } }
   }
-  if ((G.level >= 5 || stormy) && G.game !== 'drill') {
+  if ((G.level >= 5 || stormy) && !calmGame()) {
     G.stormT -= dt;
     if (G.stormT <= 0) { if (G.storm) { G.storm = null; G.stormT = stormy ? rnd(4, 8) : rnd(30, 50); } else { startStorm(); G.stormT = stormy ? rnd(22, 30) : rnd(15, 20); } }
   }
@@ -2117,7 +2311,7 @@ function update(dt) {
   if (G.nuke) {
     G.nuke.t += dt; G.nuke.r = Math.max(0, G.nuke.t - .35) * 820;
     for (const w of [...G.words]) {
-      if (!live(w) || w.kind === 'crate' || w.dist > G.nuke.r || w.dist > G.nuke.maxR) continue;
+      if (!live(w) || w.kind === 'crate' || w.kind === 'ally' || w.dist > G.nuke.r || w.dist > G.nuke.maxR) continue;
       if (w.kind === 'boss') { if (w.nukeId !== G.nuke.id) { w.nukeId = G.nuke.id; burstLetters(w, G.nuke.col, 120); bossLayer(w, 'nuke'); } continue; }
       burstLetters(w, G.nuke.col, 80);
       const p = pos(w);
@@ -2127,13 +2321,18 @@ function update(dt) {
     if (G.nuke.r > Math.min(G.nuke.maxR + 60, Math.hypot(S.w, S.h) / 2 + 80)) G.nuke = null;
   }
 
-  if (G.game === 'patrol') patrolTick(dt); else if (G.game === 'drill') drillTick(dt); else sectorTick(dt);
+  if (G.game === 'patrol') patrolTick(dt); else if (G.game === 'drill') drillTick(dt); else if (G.game === 'descent') descentTick(dt); else if (G.game === 'zen') zenTick(dt); else sectorTick(dt);
   if (!G.sim) return;
   G.crateT -= dt;
-  if (G.crateT <= 0 && G.game !== 'drill' && !G.spawnHold && G.words.filter(w => w.kind === 'crate').length < 2) {
+  if (G.crateT <= 0 && !calmGame() && !G.spawnHold && G.words.filter(w => w.kind === 'crate').length < 2) {
     spawnCrate(pick(['iron', 'iron', 'phase', 'phase', 'repair'])); G.crateT = legType() === 'wreck' ? rnd(12, 18) : rnd(40, 60);
   }
 
+  G.allyT = (G.allyT ?? rnd(15, 25)) - dt;
+  if (G.allyT <= 0) {
+    G.allyT = G.daily && G.daily.mod === 'convoy' ? rnd(9, 14) : rnd(28, 45);
+    if (G.level >= 3 && G.game !== 'drill' && !G.spawnHold && G.words.filter(w => w.kind === 'ally').length < 2) spawnAlly();
+  }
   // speed: pulse halves it, freeze holds it at a fifth, a ping alerts, Deep water and Last stand push it either way
   const slow = G.freezeT > 0 ? .2 : G.slowT > 0 ? .45 : 1, alert = G.alertT > 0 ? 1.3 : 1;
   const pace = (G.press.deep ? 1.15 : 1) * (G.mods.stand && G.hull < 25 ? .8 : 1);
@@ -2145,15 +2344,19 @@ function update(dt) {
       const d0 = Math.hypot(w.rx, w.ry) || 1, d1 = h.from + (h.to - h.from) * easeOut(h.t);
       w.rx *= d1 / d0; w.ry *= d1 / d0;
       if (h.t >= 1) { w.stunT = h.stun || 0; w.haul = null; }
-    } else if (w.kind === 'crate') {
-      const mg = G.mods.magnet ? .6 : 1;
+    } else if (w.kind === 'crate' || w.kind === 'ally') {
+      const mg = G.mods.magnet && w.kind === 'crate' ? .6 : 1;
       w.rx += w.vx * dt * slow * mg; w.ry += w.vy * dt * slow * mg;
       const inside = Math.abs(w.rx) < S.w / 2 - 20 && Math.abs(w.ry) < S.h / 2 - 20;
       if (inside) w.entered = true;
-      else if (w.entered && (Math.abs(w.rx) > S.w / 2 + 90 || Math.abs(w.ry) > S.h / 2 + 90)) { remove(w); G.last = `supply lost: ${w.ctype}`; continue; }
+      else if (w.entered && (Math.abs(w.rx) > S.w / 2 + 90 || Math.abs(w.ry) > S.h / 2 + 90)) {
+        remove(w);
+        if (w.kind === 'ally') allyEscorted(w); else G.last = `supply lost: ${w.ctype}`;
+        continue;
+      }
     } else if (w.stunT > 0) w.stunT -= dt;
     else if (w.fired < w.text.length) {
-      const bm = w.kind === 'boss' ? bossMove(w, dt) : G.songT > 0 ? 1.5 : 1;
+      const bm = (w.kind === 'boss' ? bossMove(w, dt) : G.songT > 0 ? 1.5 : 1) * (w.under ? 1.7 : 1);
       const d = Math.hypot(w.rx, w.ry) || 1, step = w.speed * slow * alert * pace * bm * dt;
       w.rx -= w.rx / d * step; w.ry -= w.ry / d * step;
     }
@@ -2161,14 +2364,16 @@ function update(dt) {
     // first time something gets close while the lock sits on a farther word, explain how to switch
     if (G.lock && w !== G.lock && w.kind !== 'crate' && w.trait !== 'decoy' && w.dist < S.R * .3 && G.lock.dist > S.R * .45) tip('switch');
     w.hitT = Math.max(0, w.hitT - dt); w.missT = Math.max(0, w.missT - dt);
-    if (w.silent) w.echo = Math.max(0, w.echo - dt / (G.mods.sweep ? 4 : 2.4));
+    if (w.trait === 'mimic' && w.fired === 0 && w.dist < S.R * 1.02) { w.mimT -= dt; if (w.mimT <= 0) { w.mimT = 1.2; morph(w); } }
+    if (w.trait === 'diver') diverTick(w, dt);
+    if (w.silent || darkWater()) w.echo = Math.max(0, w.echo - dt / (G.mods.sweep || darkWater() ? 4 : 2.4));
     w.trailT -= dt;
     if (w.trailT <= 0) { w.trailT = .32; w.trail.unshift(pos(w)); if (w.trail.length > 9) w.trail.pop(); }
     const b = wrap(angOf(w)), p0 = G.prevSweep, p1 = G.sweep;
     if (w.dist <= S.R && (p0 <= p1 ? (b > p0 && b <= p1) : (b > p0 || b <= p1))) {
       // a silent contact shows only where the sweep last caught it
-      if (w.silent) { w.echo = 1; w.ex = w.rx; w.ey = w.ry; }
-      if (!inStorm(w)) {
+      if (w.silent || darkWater()) { w.echo = 1; w.ex = w.rx; w.ey = w.ry; }
+      if (!inStorm(w) && !w.under) {
         const p = pos(w), cw = w.kind === 'boss' ? S.cwB : S.cw;
         G.fx.push({ k: 'ring', x: p.x - (w.text.length * cw + 18) / 2 - 8, y: p.y, r0: 2, r1: 15, col: C.sonar, life: .7, max: .7 });
         // every contact returns a faint blip as the sweep crosses it (silent ones too: listen for them)
@@ -2177,11 +2382,12 @@ function update(dt) {
     }
     // a decoy is only noise: it fades out before it ever reaches the core
     if (w.trait === 'decoy' && w.dist < S.R * .25) { dissolve(w); continue; }
-    if (w.kind !== 'crate') {
+    if (w.kind !== 'crate' && w.kind !== 'ally') {
       const stop = (G.iron[plateAt(angOf(w))] ? STOP_IRON : G.phase.on ? STOP_PHASE : STOP_HULL) + (w.kind === 'boss' ? 16 : 0);
       if (w.dist < stop) { coreHit(w); if (!G.sim) return; }
     }
   }
+  shieldTick();
   for (const tr of G.tracers) {
     if (live(tr.w) && tr.layerNo === tr.w.layerNo) { const q = letterPos(tr.w, tr.idx); tr.tx = q.x; tr.ty = q.y; }
     tr.t += dt / tr.dur;
@@ -2314,6 +2520,12 @@ function drawScope(c) {
   c.beginPath(); c.moveTo(cx, cy); c.lineTo(ex, ey); c.stroke();
   c.globalAlpha = 1; c.fillStyle = C.sonar; c.beginPath(); dotPath(c, ex, ey, 2.4); c.fill();
   c.shadowBlur = 0;
+  if (G.game === 'descent') {
+    const z = zoneIndex();
+    if (z > 0) { c.globalAlpha = (dark ? .1 : .05) * z; c.fillStyle = dark ? '#000' : C.ink; c.beginPath(); c.arc(cx, cy, R + 2, 0, TAU); c.fill(); }
+    c.globalAlpha = .85; c.fillStyle = C.sonar; c.font = S.fontSm; c.textAlign = 'center'; c.textBaseline = 'top';
+    c.fillText(`${ZONES[z].name.toUpperCase()} ZONE · ${Math.floor(G.depth)} M`, cx, cy - R + 18);
+  }
   // Blackout: the outer 40% of the scope is shrouded unless a ping is showing
   if (G.press.blackout && !pinging()) {
     c.globalAlpha = dark ? .7 : .6; c.fillStyle = C.paper; c.beginPath();
@@ -2365,7 +2577,8 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
   const mine = w.trait === 'mine', decoy = w.trait === 'decoy', rev = !!w.rev, exact = !!w.cased;
   const armoured = w.armour > 0, split = w.trait === 'splitter' && len > 1;
   const purple = C['pen-5'];
-  const accent = crate ? (w.ctype === 'nuke' ? C['pen-1'] : C['pen-4']) : w.relic ? C['pen-4'] : boss ? C['pen-1'] : mine ? C['pen-6'] : rev ? purple : C['ink-3'];
+  const ally = w.kind === 'ally', krill = w.trait === 'krill';
+  const accent = crate ? (w.ctype === 'nuke' ? C['pen-1'] : C['pen-4']) : ally ? C['pen-2'] : w.relic ? C['pen-4'] : boss ? C['pen-1'] : mine ? C['pen-6'] : rev ? purple : C['ink-3'];
   const slowed = !legend && G.slowT > 0, sung = !legend && G.songT > 0 && !boss;
 
   if (!ghost && !w.silent && !legend) {
@@ -2392,8 +2605,31 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
     c.setLineDash(ghost ? [4, 3] : decoy ? [2, 3] : [3, 2]);
     c.strokeStyle = ghost ? C['pen-3'] : decoy ? C['ink-3'] : accent; c.lineWidth = 1; c.strokeRect(x, y, chipW, chipH); c.setLineDash([]);
   } else {
-    c.strokeStyle = w.relic ? C['pen-4'] : w.shot ? C['pen-1'] : boss ? C['ink-2'] : mine ? C['pen-6'] : rev ? purple : isLock ? C['ink-3'] : C['rule-strong'];
-    c.lineWidth = boss ? 2 : w.relic ? 1.8 : rev || w.shot ? 1.6 : 1; c.strokeRect(x, y, chipW, chipH);
+    c.strokeStyle = ally ? C['pen-2'] : w.trait === 'warden' ? C['pen-3'] : w.relic ? C['pen-4'] : w.shot ? C['pen-1'] : boss ? C['ink-2'] : mine ? C['pen-6'] : rev ? purple : isLock ? C['ink-3'] : C['rule-strong'];
+    c.lineWidth = boss ? 2 : w.relic || ally || w.trait === 'warden' ? 1.8 : rev || w.shot ? 1.6 : 1; c.strokeRect(x, y, chipW, chipH);
+  }
+  if (ally) {
+    // an ally: a blue "ALLY" flag on its left; never fire on it
+    c.globalAlpha = mul; c.fillStyle = C['pen-2']; c.fillRect(x - 34, p.y - 7, 28, 14);
+    c.fillStyle = C.paper; c.font = `700 8.5px ${MONO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('ALLY', x - 20, p.y + .5);
+  }
+  if (w.trait === 'warden' && !legend) {
+    // the warden's shield ring
+    dottedCircle(c, p.x, p.y, WARDEN_R, 6, 1, C['pen-3'], .5 * mul);
+  }
+  if (w.trait === 'warden') {
+    c.globalAlpha = mul; c.strokeStyle = C['pen-3']; c.lineWidth = 1; c.strokeRect(x - 3.5, y - 3.5, chipW + 7, chipH + 7);
+  }
+  if (w.shielded && !legend) {
+    // shielded: a teal padlock, and the letters dimmed until the warden falls
+    const lx = x + chipW + 7, ly = p.y;
+    c.globalAlpha = mul; c.strokeStyle = C['pen-3']; c.lineWidth = 1.3;
+    c.beginPath(); c.arc(lx + 4, ly - 2, 3, Math.PI, 0); c.stroke(); c.fillStyle = C['pen-3']; c.fillRect(lx, ly - 2, 8, 6.5);
+  }
+  if (w.trait === 'mimic' && w.fired === 0) {
+    // a mimic shimmers while it is still changing
+    c.globalAlpha = mul * (.4 + .4 * Math.sin(performance.now() / 70)); c.strokeStyle = C['pen-5']; c.lineWidth = 1; c.setLineDash([3, 3]);
+    c.strokeRect(x - 3, y - 3, chipW + 6, chipH + 6); c.setLineDash([]); c.globalAlpha = mul;
   }
   if (w.relic) {
     // a relic: gold frame, a slow halo, and a diamond on its left
@@ -2493,9 +2729,11 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
     }
     // where to start: the locked word's next letter in blue; a reversed word always marks its next (rightmost) letter
     const next = i === w.fired;
+    // fading words lose their untyped letters as they close in (a ping shows them again); shielded ones are dimmed
+    c.globalAlpha = mul * (i >= w.fired && w.trait === 'fading' && !legend && !pinging() ? clamp((w.dist / S.R - .32) / .26, 0, 1) : 1) * (w.shielded ? .45 : 1);
     if (i < w.fired) c.fillStyle = C['ink-3'];
     else if (next && (isLock || rev)) { c.fillStyle = isLock ? C['pen-2'] : purple; c.fillRect(lx - cw / 2 + 1.5, y + chipH - 5, cw - 3, isLock ? 1.5 : 2); }
-    else c.fillStyle = crate ? accent : decoy ? C['ink-2'] : C.ink;
+    else c.fillStyle = crate || ally ? accent : decoy ? C['ink-2'] : C.ink;
     if (decoy && i >= w.fired) { c.strokeStyle = c.fillStyle; c.lineWidth = .8; c.strokeText(ch, lx, ly); }
     else c.fillText(ch, lx, ly);
     // exact words mark the characters that need Shift or punctuation
@@ -2505,8 +2743,11 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
   c.font = S.fontSm; c.textAlign = 'left'; c.textBaseline = 'top';
   let meta, mcol;
   if (crate) { meta = `SUPPLY · ${w.ctype.toUpperCase()}`; mcol = accent; }
+  else if (krill) { meta = ''; mcol = C['ink-3']; }
   else if (w.shot) { meta = `SHOT  ${hitDamage(w)} DMG`; mcol = C['pen-1']; }
   else if (w.relic) { meta = 'RELIC · TYPE IT BY HAND · NO DAMAGE'; mcol = C['pen-4']; }
+  else if (ally) { meta = 'ALLY · DO NOT FIRE · LET IT PASS'; mcol = C['pen-2']; }
+  else if (w.shielded) { meta = 'SHIELDED · DESTROY THE WARDEN FIRST'; mcol = C['pen-3']; }
   else if (boss) { meta = `${(BOSSES[w.btype] || BOSSES.leviathan).name.toUpperCase()} · ${w.layers.length}/${w.layerTotal} LAYERS · R ${(w.dist / S.R).toFixed(2)}`; mcol = C['pen-1']; }
   else {
     const label = w.trait ? `  ${TRAIT_LABEL[w.trait]}${armoured ? ' ×2' : w.trait === 'armour' ? ' · BROKEN' : ''}` : '';
@@ -2982,6 +3223,15 @@ function hud(dt) {
     const weak = G.weak ? Object.entries(G.weak).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]).join(' ') : '';
     $('#mFloor').innerHTML = weak ? `focus <b>${weak}</b>` : 'practice';
     dotArc($('#cvGauge'), G.drillT / 90, String(Math.ceil(G.drillT)), 'SECONDS', C['pen-3']);
+  } else if (G.game === 'descent') {
+    const z = zoneIndex(), Z = ZONES[Math.max(0, z)];
+    $('#tHead').textContent = G.boss ? (BOSSES[G.boss.btype] || BOSSES.leviathan).name : 'Descent';
+    $('#mFloor').innerHTML = `${Z.name} · threat <b>${pad(G.level)}</b>`;
+    dotArc($('#cvGauge'), (G.depth % 200) / 200, String(Math.floor(G.depth)), 'METRES', C.sonar);
+  } else if (G.game === 'zen') {
+    $('#tHead').textContent = 'Zen';
+    $('#mFloor').innerHTML = `difficulty <b>${pad(G.diff)}</b>`;
+    dotArc($('#cvGauge'), (G.t % 60) / 60, fmtClock(G.t), 'SESSION', C['pen-3']);
   } else if (G.game !== 'patrol') {
     const s = G.sec, exp = G.game === 'expedition' && G.exp && G.exp.node;
     if (G.boss) {
@@ -3037,7 +3287,11 @@ function hud(dt) {
 function chrome() {
   const lk = G.lock && live(G.lock) ? G.lock : null, name = DIFF_NAMES[G.diff - 1];
   const en = G.exp && G.exp.node;
-  const where = G.game === 'drill' ? `drill · difficulty <b>${pad(G.diff)}</b> · <b>${fmtClock(G.drillT)}</b> left` : G.game === 'sector' ? `sector <b>${pad(G.diff)}</b> ${name} · wave <b>${G.sec.wave}/3</b>`
+  const dz = G.game === 'descent' ? ZONES[Math.max(0, zoneIndex())].name : '';
+  const where = G.daily ? `daily dive · ${DAILY_MODS[G.daily.mod][0]} · sector <b>${pad(G.diff)}</b> · wave <b>${G.sec.wave}/3</b>`
+    : G.game === 'descent' ? `descent · difficulty <b>${pad(G.diff)}</b> · <b>${Math.floor(G.depth)} m</b> ${dz}`
+    : G.game === 'zen' ? `zen · difficulty <b>${pad(G.diff)}</b> · <b>${fmtClock(G.t)}</b>`
+    : G.game === 'drill' ? `drill · difficulty <b>${pad(G.diff)}</b> · <b>${fmtClock(G.drillT)}</b> left` : G.game === 'sector' ? `sector <b>${pad(G.diff)}</b> ${name} · wave <b>${G.sec.wave}/3</b>`
     : G.game === 'expedition' ? `expedition <b>${pad(G.diff)}</b>${en ? ` · leg <b>${G.exp.col + 1}/${CHART_COLS}</b> ${en.name}${en.waves ? ` · wave <b>${G.sec.wave}/${en.waves}</b>` : ''}` : ''}`
     : `patrol · difficulty <b>${pad(G.diff)}</b> ${name} · threat <b>${pad(G.level)}</b>`;
   const pr = G.pressMul > 1 && G.mode === 'play' ? ` · pressure <b>×${G.pressMul.toFixed(2)}</b>` : '';
@@ -3073,6 +3327,12 @@ const TIPS = {
   boss_siren:    ['SIREN', 'Its layers are reversed, it circles as it closes, and every song speeds up the other contacts for 3 s.'],
   boss_ironback: ['IRONBACK', 'Each layer is plated: type it twice. Every plate you break flies at the hull as two small words.'],
   relic:  ['RELIC', 'A gold contact: a word the Archive kept apart. Type it by hand to recover it for the catalogue. Weapons destroy it, and if it reaches the hull it is lost (it does no damage).'],
+  ally:   ['ALLY', 'A friendly sub with a blue ALLY flag is crossing. Do not type it out: that is friendly fire. Let it pass for a bonus. Backspace drops a lock on it.'],
+  krill:  ['KRILL', 'A cloud of single letters. Each is one keystroke; each that gets through chips the hull a little.'],
+  mimic:  ['MIMIC', 'The shimmering word keeps changing. Type its first letter and it is stuck as that word.'],
+  diver:  ['DIVER', 'It goes under now and then (watch the bubbles), moves faster down there, and comes up closer. You cannot type it while it is under.'],
+  warden: ['WARDEN', 'The teal ring padlocks every word inside it. Destroy the warden first.'],
+  fading: ['FADING', 'Its letters fade as it gets closer. Read it early, or ping (/) to see it again.'],
   shot:   ['SHOT', 'A short word fired straight at the hull. Start typing it even mid-word: the lock jumps to the more dangerous contact.'],
   switch: ['SWITCH TARGETS', 'Locked onto the wrong word? Just start typing the closer one and the lock jumps to it. Backspace drops the lock completely.'],
   ping:     ['ACTIVE PING · /', 'Reveals everything for 4 s, through noise and thermoclines. Contacts hear it and speed up. Recharges in 14 s.'],
@@ -3120,12 +3380,30 @@ function setScreen(s) {
   if (s === 'title') buildTiles();
   hudT = 0;
 }
+const MODE_NOTES = {
+  sector: 'three waves, then a leviathan',
+  descent: 'an endless dive: every 200 m the water changes',
+  expedition: 'four legs on a sea chart, then a lair',
+  daily: 'one seeded dive a day, with a twist',
+  drill: '90 seconds of practice on your weakest letters',
+  zen: 'no hull, no weapons, no hurry',
+};
 function buildTiles() {
   document.querySelectorAll('[data-game]').forEach(b => b.classList.toggle('on', b.dataset.game === prefs.game));
+  $('#modeNote').textContent = MODE_NOTES[prefs.game] || '';
+  if (prefs.game === 'daily') { buildDailyPanel(); buildKitLine(); buildPress(); buildStoryLine(); return; }
   $('#tiles').innerHTML = DIFF_NAMES.map((nm, i) => {
     const d = i + 1, avg = avgLen(d);
     let st;
     if (prefs.game === 'sector') { const m = prefs.medals[d]; st = m ? `${medalSvg(m)}<b>${m}</b>` : 'not cleared'; }
+    else if (prefs.game === 'descent') {
+      st = prefs.deepest[d] ? `deepest <b>${prefs.deepest[d]} m</b>` : 'not yet dived';
+      if (prefs.hi.descent[d] != null) st += ` <span class="hi">${fmtPts(prefs.hi.descent[d])}</span>`;
+    }
+    else if (prefs.game === 'zen') {
+      const runs = prefs.history.filter(h => h.game === 'zen' && h.diff === d);
+      st = runs.length ? `${fmtDur(runs.reduce((t, h) => t + h.secs, 0))} <span class="hi">best ${Math.max(0, ...runs.map(h => h.wpm || 0))} wpm</span>` : 'calm water';
+    }
     else if (prefs.game === 'drill') {
       const runs = prefs.history.filter(h => h.game === 'drill' && h.diff === d && h.wpm);
       st = runs.length ? `best <b>${Math.max(...runs.map(h => h.wpm))}</b> wpm` : 'no drill yet';
@@ -3161,12 +3439,16 @@ function select(d) {
   G.diff = d; G.level = d;
 }
 function setGame(g) { prefs.game = g; savePrefs(); buildTiles(); }
-const GAMES = ['sector', 'patrol', 'expedition', 'drill'];
+const GAMES = ['sector', 'descent', 'expedition', 'daily', 'drill', 'zen'];
 const wavesTotal = () => G.game === 'expedition' && G.exp && G.exp.node ? G.exp.node.waves : 3;
 function startRun(d, game) {
   ensureAudio(); sfx.engage(); legacyGrant = 0;
-  sel = d; prefs.diff = d; savePrefs();
-  newGame(d, 'play', game);
+  // a daily dive is a seeded sector at the day's own difficulty; the tile you had selected stays selected
+  const daily = game === 'daily' ? dailyConfig() : null;
+  if (daily) d = daily.diff; else { sel = d; prefs.diff = d; }
+  savePrefs();
+  pendingDaily = daily; newGame(d, 'play', daily ? 'sector' : game); pendingDaily = null;
+  if (daily) G.rng = mulberry(daily.seed);
   bot.fresh = null; bot.armRelease = null;
   setScreen('play');
   if (game === 'expedition') { G.exp = makeChart(d); openChart(); return; }
@@ -3175,9 +3457,16 @@ function startRun(d, game) {
     banner('DRILL · 90 SECONDS', weak.length ? `no damage · words lean on ${weak.join(' ')}` : 'no damage · type a few runs and it will learn your weak letters', C['pen-3']);
     return;
   }
+  if (daily) {
+    const m = DAILY_MODS[daily.mod], counted = !prefs.daily[daily.key];
+    banner(`DAILY DIVE · ${m[0].toUpperCase()}`, `${m[1]} · the ${BOSSES[daily.boss].name} waits · ${counted ? 'this attempt counts' : 'practice: today\u2019s dive is already logged'}`, C['pen-2']);
+    return;
+  }
+  if (game === 'descent') { banner('DESCENT', 'an endless dive: every 200 m the water changes', C.sonar); return; }
+  if (game === 'zen') { banner('ZEN', 'no hull to lose and no weapons: just the words · Esc, then E to end', C['pen-3']); return; }
   if (game === 'sector') banner(`SECTOR ${pad(d)} · WAVE 1/3`, `${DIFF_NAMES[d - 1].toLowerCase()} · three waves, then the leviathan`, C['pen-2']);
 }
-function pause() { if (screen === 'play') { G.armHeld = false; setScreen('paused'); syncToggles(); requestAnimationFrame(drawKey); } }
+function pause() { if (screen === 'play') { G.armHeld = false; setScreen('paused'); syncToggles(); $('#btnEndZen').hidden = G.game !== 'zen'; requestAnimationFrame(drawKey); } }
 // the pause screen's contact key: each type drawn exactly as it appears on the scope
 const KEY = [
   ['anchor', {}, 'Plain', 'Type it once.'],
@@ -3189,6 +3478,12 @@ const KEY = [
   ['beacon', { trait: 'decoy' }, 'Decoy', 'Outlined letters: leave it alone and it fades away.'],
   ['vessel', { trait: 'silent', silent: true }, 'Silent', 'Dashed teal echo: shows where it was, not where it is. Ping with /.'],
   ['ox', { shot: true }, 'Shot', 'Red, with an arrowhead: fired by a leviathan, fast and straight. Type it first.'],
+  ['convoy', { kind: 'ally' }, 'Ally', 'Blue, with an ALLY flag: a friendly sub crossing. Typing it out is friendly fire. Let it pass for a bonus.'],
+  ['q', { trait: 'krill' }, 'Krill', 'Single letters in a cloud. Each one that gets through chips the hull a little.'],
+  ['shifting', { trait: 'mimic' }, 'Mimic', 'A shimmering frame: it keeps turning into other words until you type its first letter.'],
+  ['plunge', { trait: 'diver' }, 'Diver', 'Goes under now and then (bubbles show where) and comes up closer. Untouchable while under.'],
+  ['keeper', { trait: 'warden' }, 'Warden', 'Teal ring: words inside it are padlocked until the warden is destroyed.'],
+  ['ghostly', { trait: 'fading' }, 'Fading', 'Its letters fade away as it closes in. Read it early, or ping to see it again.'],
   ['fathom', { relic: true }, 'Relic', 'Gold, with a diamond: rare. Type it by hand to recover it; weapons destroy it. Harmless.'],
 ];
 function buildKey() {
@@ -3211,23 +3506,31 @@ function gameOver(kind) {
   const acc = accuracy() ?? 0, name = DIFF_NAMES[G.diff - 1];
   const medal = kind === 'cleared' ? (acc >= 97 && G.hull >= G.hullMax / 2 ? 'gold' : acc >= 92 ? 'silver' : 'bronze') : null;
   const rank = { bronze: 1, silver: 2, gold: 3 };
-  const hi = prefs.hi[G.game], prevBest = hi[G.diff], exp = G.game === 'expedition' ? G.exp : null;
+  const daily = G.daily, firstToday = !!daily && !prefs.daily[daily.key];
+  const hi = daily ? {} : prefs.hi[G.game], prevBest = daily ? (prefs.daily[daily.key] || {}).pts : hi[G.diff], exp = G.game === 'expedition' ? G.exp : null;
   // sector medals live per difficulty; expedition medals per difficulty and per leviathan beaten
   const ends = exp ? (prefs.expEnds[G.diff] = prefs.expEnds[G.diff] || {}) : null;
-  const prevMedal = exp ? ends[exp.boss] : prefs.medals[G.diff];
+  const prevMedal = daily ? null : exp ? ends[exp.boss] : prefs.medals[G.diff];
   let isNew = false;
-  if (G.points > 0 && (prevBest == null || G.points > prevBest)) { hi[G.diff] = G.points; isNew = true; }
-  if (medal && (!prevMedal || rank[medal] > rank[prevMedal])) { if (exp) ends[exp.boss] = medal; else prefs.medals[G.diff] = medal; isNew = true; }
+  if (daily) {
+    // the day's first attempt is the one that counts; later ones are practice
+    if (firstToday) { prefs.daily[daily.key] = { pts: G.points, medal, kind, acc: Math.round(acc * 10) / 10, mod: daily.mod, boss: daily.boss, diff: G.diff }; isNew = true; }
+  } else {
+    if (G.points > 0 && (prevBest == null || G.points > prevBest)) { hi[G.diff] = G.points; isNew = true; }
+    if (medal && (!prevMedal || rank[medal] > rank[prevMedal])) { if (exp) ends[exp.boss] = medal; else prefs.medals[G.diff] = medal; isNew = true; }
+  }
+  if (G.game === 'descent' && G.mode === 'play') prefs.deepest[G.diff] = Math.max(prefs.deepest[G.diff] || 0, Math.floor(G.depth));
   // salvage: a hundredth of the score, plus a medal bonus, plus what rich expedition legs paid on top
   const affordBefore = new Set(shopList().filter(i => i.cost <= prefs.salvage).map(i => i.kind + i.key));
-  const drill = G.game === 'drill';
-  const salv = drill ? 0 : Math.max(0, Math.round(G.points / 100 * (G.mods.salvager ? 1.5 : 1)) + (medal ? { bronze: 10, silver: 20, gold: 40 }[medal] * (exp ? 2 : 1) : 0) + (exp ? exp.bonusSalv : 0));
+  const drill = G.game === 'drill', zen = G.game === 'zen';
+  const salv = drill ? 0 : Math.max(0, Math.round(G.points / (zen ? 200 : 100) * (G.mods.salvager ? 1.5 : 1)) + (medal ? { bronze: 10, silver: 20, gold: 40 }[medal] * (exp ? 2 : 1) : 0) + (exp ? exp.bonusSalv : 0));
   prefs.salvage += salv; prefs.salvageTotal += salv;
   const newlyAffordable = shopList().filter(i => i.cost <= prefs.salvage && !affordBefore.has(i.kind + i.key));
   if (exp && kind === 'cleared') prefs.expeditions++;
   // the logbook: one line per run, plus lifetime totals and records
   const runWpm = wpm(), L = prefs.life;
-  prefs.history.push({ at: Date.now(), game: G.game, diff: G.diff, pts: G.points, wpm: runWpm, acc: accuracy() == null ? null : Math.round(acc * 10) / 10,
+  if (zen) prefs.life.zen = (prefs.life.zen || 0) + Math.round(G.t);
+  prefs.history.push({ at: Date.now(), game: daily ? 'daily' : G.game, diff: G.diff, depth: G.game === 'descent' ? Math.floor(G.depth) : undefined, pts: G.points, wpm: runWpm, acc: accuracy() == null ? null : Math.round(acc * 10) / 10,
     kills: G.kills, secs: Math.round(G.t), medal, kind, combo: G.bestCombo });
   if (prefs.history.length > 600) prefs.history.splice(0, prefs.history.length - 600);
   L.words += G.kills; L.keys += G.correct; L.secs += Math.round(G.t); L.bestStreak = Math.max(L.bestStreak, G.bestCombo);
@@ -3250,12 +3553,16 @@ function gameOver(kind) {
 
   const no = $('#dNo'), bossName = (BOSSES[exp ? exp.boss : G.bossType] || BOSSES.leviathan).name.toUpperCase();
   no.className = 'no ' + (kind === 'cleared' ? 'good' : 'bad');
-  no.textContent = drill ? `DRILL · 90 SECONDS${G.stats.leaks ? ` · ${G.stats.leaks} LEAKED` : ''}` : kind === 'cleared' ? (exp ? `EXPEDITION COMPLETE · ${bossName} DESTROYED` : `SECTOR ${pad(G.diff)} CLEARED · ${bossName} DESTROYED`)
+  no.textContent = drill ? `DRILL · 90 SECONDS${G.stats.leaks ? ` · ${G.stats.leaks} LEAKED` : ''}`
+    : zen ? `ZEN · ${fmtClock(G.t)}`
+    : G.game === 'descent' ? (kind === 'rammed' ? `SIGNAL LOST · THE ${bossName} REACHED THE CORE AT ${Math.floor(G.depth)} M` : `SIGNAL LOST · HULL BREACHED AT ${Math.floor(G.depth)} M · ${ZONES[Math.max(0, zoneIndex())].name.toUpperCase()} ZONE`)
+    : daily && kind === 'cleared' ? `DAILY DIVE CLEARED · ${DAILY_MODS[daily.mod][0].toUpperCase()} · ${bossName} DESTROYED`
+    : kind === 'cleared' ? (exp ? `EXPEDITION COMPLETE · ${bossName} DESTROYED` : `SECTOR ${pad(G.diff)} CLEARED · ${bossName} DESTROYED`)
     : kind === 'rammed' ? `SIGNAL LOST · THE ${bossName} REACHED THE CORE`
     : G.game === 'sector' ? `SIGNAL LOST · HULL BREACHED · WAVE ${G.sec.wave}/3`
     : exp ? `SIGNAL LOST · HULL BREACHED · LEG ${exp.col + 1}/${CHART_COLS}` : 'SIGNAL LOST · HULL BREACHED';
-  $('#dTitle').textContent = drill ? 'Drill complete' : kind === 'cleared' ? (exp ? 'Expedition complete' : 'Sector cleared') : 'Debrief';
-  $('#dSub').textContent = `${G.game} · difficulty ${pad(G.diff)}${drill ? '' : ' · ' + name} · ${Math.floor(G.t / 60)} m ${Math.floor(G.t % 60)} s${G.pressMul > 1 ? ` · pressure ×${G.pressMul.toFixed(2)}` : ''}`;
+  $('#dTitle').textContent = drill ? 'Drill complete' : zen ? 'Session complete' : daily ? (firstToday ? 'Daily dive' : 'Daily dive · practice') : G.game === 'descent' ? 'Dive over' : kind === 'cleared' ? (exp ? 'Expedition complete' : 'Sector cleared') : 'Debrief';
+  $('#dSub').textContent = `${daily ? 'daily dive ' + daily.key : G.game} · difficulty ${pad(G.diff)}${drill ? '' : ' · ' + name} · ${Math.floor(G.t / 60)} m ${Math.floor(G.t % 60)} s${G.pressMul > 1 ? ` · pressure ×${G.pressMul.toFixed(2)}` : ''}`;
   $('#dActs').innerHTML = (medal ? `<span class="chip medal" style="color:${{ gold: 'var(--pen-4)', silver: 'var(--ink-2)', bronze: 'var(--pen-6)' }[medal]};border-color:currentColor">${medalSvg(medal, 16)} ${medal.toUpperCase()}</span>` : '')
     + (isNew ? '<span class="chip" style="color:var(--pen-2);border-color:var(--pen-2)">● new best</span>' : '')
     + (newlyAffordable.length ? '<span class="chip" style="color:var(--pen-4);border-color:var(--pen-4)">● new in the Dry Dock <kbd>D</kbd></span>' : '');
@@ -3267,7 +3574,9 @@ function gameOver(kind) {
   $('#dAcc').innerHTML = accuracy() == null ? dash : `${fmtAcc(acc)}<small class="u">%</small>`;
   $('#dAccS').textContent = `${G.miss} miss${G.miss === 1 ? '' : 'es'}`;
   $('#dKills').textContent = G.kills;
-  $('#dKillsS').textContent = G.game === 'sector'
+  $('#dKillsS').textContent = G.game === 'descent' ? `reached ${Math.floor(G.depth)} m${prefs.deepest[G.diff] > Math.floor(G.depth) ? ` · deepest ${prefs.deepest[G.diff]}` : ' · deepest yet'}`
+    : zen ? `${G.stats.leaks || 0} got through`
+    : G.game === 'sector'
     ? (kind === 'cleared' ? 'all 3 waves + boss' : G.sec.stage === 'boss' || kind === 'rammed' ? 'reached the boss' : `reached wave ${G.sec.wave}/3`)
     : exp ? (kind === 'cleared' ? `all ${CHART_COLS} legs` : `reached leg ${exp.col + 1}/${CHART_COLS}`)
     : drill ? `${G.stats.leaks || 0} leaked`
@@ -3424,13 +3733,19 @@ const BESTIARY = [
   ['shot', 'Shot', 'Spat by a leviathan, fast and straight.'],
   ['crate', 'Supply crate', 'Station stores, cut loose by the storms and drifting.'],
   ['relic', 'Relic', 'Something the Archive kept apart from the rest.'],
+  ['ally', 'Ally', 'A friendly sub crossing the shelf. Let it pass and it pays for the courtesy.'],
+  ['krill', 'Krill', 'A cloud of single letters. Harmless alone, not in numbers.'],
+  ['mimic', 'Mimic', 'It keeps changing its mind about which word it is, until you commit.'],
+  ['diver', 'Diver', 'Goes under for a breath of quiet and comes up closer.'],
+  ['warden', 'Warden', 'Holds a ring of words safe from the scope until it falls.'],
+  ['fading', 'Fading', 'Its letters give out as it closes in. Read it early.'],
   ['leviathan', 'Leviathan', 'The first stack the Archive ever pressed together. It lunges.'],
   ['archer', 'Archerfish', 'Hangs at mid-range and corrects your spelling with short, fast words.'],
   ['siren', 'Siren', 'Sings everything backwards, and the water listens.'],
   ['ironback', 'Ironback', 'Plated twice over, as if something worked hard to keep it whole.'],
 ];
 const BOSS_KEYS = ['leviathan', 'archer', 'siren', 'ironback'];
-const beastKey = w => w.kind === 'boss' ? (w.btype || 'leviathan') : w.kind === 'crate' ? 'crate' : w.relic ? 'relic' : w.shot ? 'shot' : w.trait || 'plain';
+const beastKey = w => w.kind === 'boss' ? (w.btype || 'leviathan') : w.kind === 'crate' ? 'crate' : w.kind === 'ally' ? 'ally' : w.relic ? 'relic' : w.shot ? 'shot' : w.trait || 'plain';
 function note(key, field) {
   if (G.mode !== 'play') return;
   const b = prefs.bestiary[key] || (prefs.bestiary[key] = { seen: 0, kills: 0, first: Date.now() });
@@ -3488,6 +3803,14 @@ const COMMENDATIONS = [
   ['watch10', 'Long watch', 'Spend ten hours at the scope.', 200, () => prefs.life.secs >= 36000],
   ['days7', 'Seven days', 'Play on seven different days.', 100, () => distinctDays() >= 7],
   ['runs100', 'A hundred runs', 'Finish a hundred runs.', 150, () => prefs.runs >= 100],
+  ['daily1', 'Dawn dive', 'Log your first daily dive.', 50, () => Object.keys(prefs.daily).length >= 1],
+  ['daily7', 'Seven tides', 'Log a daily dive seven days in a row.', 250, () => dailyStreak() >= 7],
+  ['depth500', 'Midnight', 'Reach 500 m in Descent.', 120, () => Math.max(0, ...Object.values(prefs.deepest)) >= 500],
+  ['depth1000', 'Hadal', 'Reach 1,000 m in Descent.', 300, () => Math.max(0, ...Object.values(prefs.deepest)) >= 1000],
+  ['convoy', 'Convoy', 'Let 5 allies pass in one run.', 80, r => (r.by.ally || 0) >= 5],
+  ['krill', 'Krill fisher', 'Destroy 30 krill in one run.', 80, r => (r.by.krill || 0) >= 30],
+  ['gatebreaker', 'Gatebreaker', 'Destroy 5 wardens in one run.', 80, r => (r.by.warden || 0) >= 5],
+  ['still_water', 'Still water', 'Spend half an hour in Zen in all.', 80, () => (prefs.life.zen || 0) >= 1800],
 ];
 // the end-of-run check: returns the commendations newly earned (their salvage is paid here)
 function awardCommendations(r) {
@@ -3561,7 +3884,7 @@ const BOSSES = {
 };
 // which leviathan guards each sector
 const SECTOR_BOSS = ['leviathan', 'archer', 'leviathan', 'archer', 'ironback', 'siren', 'ironback', 'archer', 'siren', 'leviathan'];
-const bossOf = () => G.game === 'expedition' ? G.exp.boss : SECTOR_BOSS[G.diff - 1];
+const bossOf = () => G.daily ? G.daily.boss : G.game === 'expedition' ? G.exp.boss : SECTOR_BOSS[G.diff - 1];
 const LEGS = {
   open:    { name: 'Open water', blurb: 'An ordinary leg.', lv: 0, salv: 1 },
   calm:    { name: 'Calm passage', blurb: 'Easier water, thinner salvage.', lv: -1, salv: .75 },
@@ -3952,6 +4275,10 @@ function renderLog() {
       ${ro('Runs', prefs.runs, `${H.length} in the log`)}${ro('At the scope', L.secs ? fmtDur(L.secs) : '–', 'logged time')}
       ${ro('Destroyed', L.words.toLocaleString('en-US'), `${L.keys.toLocaleString('en-US')} keys`)}${ro('Best WPM', L.bestWpm || '–', 'one run, 30 s+')}
       ${ro('Best accuracy', L.bestAcc ? L.bestAcc + '%' : '–', '100 keys+')}${ro('Longest streak', L.bestStreak || '–', 'clean words')}</div>`;
+    const dives = Object.entries(prefs.daily), deepest = Math.max(0, ...Object.values(prefs.deepest));
+    if (dives.length || deepest) html += `<div class="sech"><span class="lbl">Daily dives and Descent</span></div>`
+      + r('var(--pen-2)', 'Daily dives logged', `${dives.length} · streak ${dailyStreak()} · best ${dives.length ? fmtPts(Math.max(...dives.map(([, d]) => d.pts))) : '–'}`)
+      + r('var(--pen-3)', 'Deepest dive', deepest ? `${deepest} m` : '–');
     if (H.length < 2) html += `<p style="color:var(--ink-3);font-size:12px;margin:18px 0 6px">The log fills in as you play: every run adds a point to these charts. ${H.length ? 'One run so far.' : 'No runs logged yet.'}</p>`;
     else {
       html += `<div class="sech"><span class="lbl">Words per minute · last ${Math.min(60, H.length)} runs · line = 5-run average</span></div><div class="chartbox"><canvas id="lgWpm" style="height:120px"></canvas></div>
@@ -4097,6 +4424,8 @@ const SPECIMENS = {
   plain: ['anchor', {}], armour: ['harbour', { trait: 'armour', armour: 1 }], splitter: ['lighthouse', { trait: 'splitter' }], silent: ['vessel', { trait: 'silent', silent: true }],
   mine: ['ox', { trait: 'mine' }], decoy: ['beacon', { trait: 'decoy' }], reversed: ['signal', { trait: 'reversed', rev: true }], cased: ['Signal.', { trait: 'cased', cased: true }],
   shot: ['ox', { shot: true }], crate: ['supplies', { kind: 'crate', ctype: 'repair' }], relic: ['fathom', { relic: true }],
+  ally: ['convoy', { kind: 'ally' }], krill: ['q', { trait: 'krill' }], mimic: ['shifting', { trait: 'mimic' }], diver: ['plunge', { trait: 'diver' }],
+  warden: ['keeper', { trait: 'warden' }], fading: ['ghostly', { trait: 'fading' }],
   leviathan: ['leviathan', { kind: 'boss', btype: 'leviathan' }], archer: ['archer', { kind: 'boss', btype: 'archer' }],
   siren: ['siren', { kind: 'boss', btype: 'siren', rev: true }], ironback: ['ironback', { kind: 'boss', btype: 'ironback', armour: 1 }],
 };
@@ -4131,6 +4460,22 @@ function trendChart(el, vals, col, fmt) {
   vals.forEach((v, i) => { if (v == null) return; c.globalAlpha = .9; c.fillStyle = col; c.beginPath(); dotPath(c, X(i), Y(v), 2.3); c.fill(); });
   c.globalAlpha = 1;
 }
+// the Daily dive's panel, in place of the ten difficulty tiles
+function buildDailyPanel() {
+  const cfg = dailyConfig(), m = DAILY_MODS[cfg.mod], done = prefs.daily[cfg.key], streak = dailyStreak();
+  const days = [];
+  for (let i = 13; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const k = dayKey(d), r = prefs.daily[k]; days.push(`<i class="${r ? 'on' : ''} ${i === 0 ? 'today' : ''}" title="${k}${r ? ' · ' + fmtPts(r.pts) : ''}"></i>`); }
+  $('#tiles').innerHTML = `<button class="unit tile daily rise" id="dailyGo" style="grid-column:1/-1">
+    <div class="top"><span class="no">DAILY DIVE · ${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+      <span class="st">${done ? `${done.medal ? medalSvg(done.medal) : ''}<b>${fmtPts(done.pts)}</b> logged today` : 'one counted attempt today'}</span></div>
+    <div class="nm">${m[0]} <span>${m[1]}</span></div>
+    <div class="dmeta"><span>sector <b>${pad(cfg.diff)}</b> ${DIFF_NAMES[cfg.diff - 1]}</span><span>the <b>${BOSSES[cfg.boss].name}</b> waits at the end</span><span>streak <b>${streak}</b> day${streak === 1 ? '' : 's'}</span></div>
+    <div class="days">${days.join('')}<span>last 14 days</span></div>
+    <div class="dgo">${done ? 'Dive again as practice' : 'Dive'} <kbd>⏎</kbd></div></button>`;
+  $('#dailyGo').onclick = () => startRun(sel, 'daily');
+  const medals = Object.keys(prefs.medals).length;
+  $('#runsNote').textContent = `${RANKS[rankOf(prefs.salvageTotal)][1]} · archive ${(catPct() * 100).toFixed(1)}% · ${prefs.runs} runs · ${medals} sectors cleared`;
+}
 // the title's story line: the newest unheard transmission, or the latest one
 function buildStoryLine() {
   const un = storyUnlocked(), fresh = storyUnheard(), e = fresh.length ? fresh[fresh.length - 1] : un[un.length - 1];
@@ -4151,6 +4496,11 @@ function buildKitLine() {
 }
 const pressMulNow = () => Object.keys(PRESSURE).filter(k => prefs.pressure[k] && PRESSURE[k].ok()).reduce((m, k) => m * PRESSURE[k].mul, 1);
 function buildPress() {
+  // the daily dive brings its own twist; drills and zen are practice: pressure switches sit those out
+  if (['daily', 'drill', 'zen'].includes(prefs.game)) {
+    $('#pressBar').innerHTML = `<span class="lbl" style="margin-right:4px">Pressure</span><span class="mult" style="color:var(--ink-3)">${prefs.game === 'daily' ? 'the daily dive brings its own twist: pressure switches do not apply' : 'pressure switches do not apply to practice'}</span>`;
+    return;
+  }
   const mul = pressMulNow();
   $('#pressBar').innerHTML = `<span class="lbl" style="margin-right:4px">Pressure</span>` + Object.entries(PRESSURE).map(([k, p]) => {
     const ok = p.ok(), on = ok && prefs.pressure[k];
@@ -4212,13 +4562,14 @@ addEventListener('keydown', e => {
     else if (e.key === 'ArrowLeft') select(Math.max(1, sel - 1));
     else if (e.key === 'ArrowDown') select(Math.min(10, sel + 5));
     else if (e.key === 'ArrowUp') select(Math.max(1, sel - 5));
-    else if (e.key === 'Tab') { e.preventDefault(); setGame(GAMES[(GAMES.indexOf(prefs.game) + (e.shiftKey ? 3 : 1)) % 4]); }
+    else if (e.key === 'Tab') { e.preventDefault(); setGame(GAMES[(GAMES.indexOf(prefs.game) + (e.shiftKey ? GAMES.length - 1 : 1)) % GAMES.length]); }
     else if (k === 'd') openDock();
     else if (k === 'l') openLog();
     else if (e.key === 'Enter') startRun(sel, prefs.game);
   } else if (screen === 'paused') {
     if (e.key === 'Escape' || e.key === 'Enter') resume();
     else if (k === 'q') quitToTitle();
+    else if (k === 'e' && G.game === 'zen') gameOver('zen');
     else if (k === 's') toggleShake();
     else if (k === 'a') toggleAdaptive();
   } else if (screen === 'log') {
@@ -4237,7 +4588,7 @@ addEventListener('keydown', e => {
     if (k === 'd' && performance.now() >= inputGuard) { openDock(); return; }
     if (k === 'l' && performance.now() >= inputGuard) { openLog(); return; }
     if (performance.now() < inputGuard) return;
-    if (e.key === 'Enter') startRun(G.diff, G.game);
+    if (e.key === 'Enter') startRun(G.diff, G.daily ? 'daily' : G.game);
     else if (e.key === 'Escape') quitToTitle();
   }
 });
@@ -4265,9 +4616,10 @@ $('#togShake').onclick = toggleShake;
 $('#togMusic').onclick = toggleMusic;
 $('#btnResume').onclick = resume;
 $('#btnQuit').onclick = quitToTitle;
-$('#btnAgain').onclick = () => startRun(G.diff, G.game);
+$('#btnAgain').onclick = () => startRun(G.diff, G.daily ? 'daily' : G.game);
 $('#btnChange').onclick = quitToTitle;
 $('#btnDock').onclick = () => openDock();
+$('#btnEndZen').onclick = () => { if (G.game === 'zen' && screen === 'paused') gameOver('zen'); };
 $('#btnLog').onclick = () => openLog();
 $('#btnLogBack').onclick = closeLog;
 $('#togAdaptive').onclick = toggleAdaptive;
