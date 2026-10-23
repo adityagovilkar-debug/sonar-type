@@ -46,6 +46,13 @@ Every letter fires a tracer, and the score rewards hard words, fast typing and d
   layouts (QWERTY, QWERTZ, AZERTY, Dvorak, Colemak). The Logbook adds letter **pairs**, a **finger map** and
   hands summary, and a **weekly goal** (speed, accuracy, minutes or runs).
 
+- **Campaign** (v4.7): *The Last Word*, ten missions from Pelagia down to the Archive, each with an objective
+  (destroy, hold out, escort allies, recover relics, dive) and sometimes a leviathan after it. Finishing earns a
+  star and two marks earn one each (30 in all); a pace setting shifts every mission's threat level. The finale
+  is the Archive itself, speaking in each leviathan's voice, and ends with a choice typed like any other word
+  (two endings, each with its own log and scope colour). The **Gauntlet** mode is all four leviathans back to
+  back, with medals per difficulty; it opens once each leviathan has been destroyed.
+
 ## Tests
 
 `tests/` drives the game in headless Edge with a throwaway profile, so no real save is touched.

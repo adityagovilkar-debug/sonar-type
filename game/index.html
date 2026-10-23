@@ -128,6 +128,7 @@ body[data-screen="title"] #ovTitle,body[data-screen="paused"] #ovPause,body[data
 .th h1 span{font-size:12px;font-weight:400;color:var(--ink-3);letter-spacing:0}
 .th .acts{display:flex;gap:6px;align-items:center;font-size:10.5px;color:var(--ink-3);white-space:nowrap}
 .modebar{display:flex;gap:8px;align-items:center;margin:0 0 12px}
+.modebar .chip{white-space:nowrap;flex:none}
 .modebar .lbl{margin-right:4px}
 .modenote{font-size:11px;color:var(--ink-3);margin-left:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
@@ -213,6 +214,36 @@ body[data-screen="settings"] #ovSet{display:flex}
 .days i.today{outline:1px solid var(--ink-3);outline-offset:2px}
 .days span{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);margin-left:8px}
 .dgo{align-self:flex-end;font-family:var(--mono);font-size:11px;color:var(--pen-2);display:flex;gap:8px;align-items:center}
+/* the campaign panel: missions down the left, the chosen one's orders on the right */
+.camp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:12px}
+.clist{display:flex;flex-direction:column;gap:2px}
+.crow{display:flex;align-items:center;gap:10px;height:22px;padding:0 10px;border:1px solid transparent;border-radius:var(--r);text-align:left;font-size:12.5px;color:var(--ink-2)}
+.crow:hover{border-color:var(--rule)}
+.crow.sel{border-color:var(--rule-strong);color:var(--ink);background:var(--paper-2)}
+.crow.lk{color:var(--ink-3)}
+.crow .no{font-family:var(--mono);font-size:10px;color:var(--pen-2);letter-spacing:.1em;width:18px}
+.crow.lk .no{color:var(--ink-3)}
+.crow .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crow .stars,.chip .stars{display:flex;gap:4px}
+.crow .stars i,.chip .stars i,.cmarks i{width:8px;height:8px;border-radius:50%;border:1px solid var(--rule-strong);flex:none}
+.crow .stars i.on,.chip .stars i.on,.cmarks .on i{background:var(--pen-4);border-color:var(--pen-4)}
+.ctot{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);padding:6px 10px 0}
+.ctot b{color:var(--ink);font-weight:500}
+.cbrief{display:flex;flex-direction:column;gap:10px;padding:15px 18px;text-align:left;cursor:pointer}
+.cbrief:hover{border-color:var(--rule-strong)}
+.cbrief .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.cbrief .no{font-family:var(--mono);font-size:10.5px;color:var(--pen-2);letter-spacing:.1em}
+.cbrief .st{font-family:var(--mono);font-size:9.5px;color:var(--ink-3)}
+.cbrief .st b{color:var(--ink);font-weight:500}
+.cbrief .nm{font-size:20px;font-weight:600;letter-spacing:-.01em}
+.cbrief p{font-size:12.5px;line-height:1.6;color:var(--ink-2);margin:0;max-width:62ch}
+.cobj{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;font-size:12px;color:var(--ink-3)}
+.cobj .lbl{margin-right:-6px}
+.cobj b{color:var(--ink);font-weight:600}
+.cobj .warn{color:var(--pen-1)}
+.cmarks{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:11.5px;color:var(--ink-3)}
+.cmarks span{display:flex;align-items:center;gap:6px}
+.cmarks .on{color:var(--ink)}
 .goalbox .gtypes{display:flex;gap:6px;flex-wrap:wrap}
 .goalbox .gset{display:flex;gap:10px;align-items:center;margin-top:10px}
 .goalbox .gset b{font-family:var(--mono);font-size:16px;min-width:34px;text-align:center}
@@ -391,7 +422,7 @@ body[data-screen="settings"] #ovSet{display:flex}
       <div class="unit panel rise">
         <div class="th">
           <div>
-            <div class="no">SELECT DIFFICULTY</div>
+            <div class="no" id="tNo">SELECT DIFFICULTY</div>
             <h1>Sonar Type <span>type the incoming words before they reach the core</span></h1>
           </div>
           <div class="acts"><kbd>1</kbd>–<kbd>0</kbd> choose <kbd>Tab</kbd> mode <kbd>⏎</kbd> engage <button class="btn" id="btnSet" style="margin-left:8px">Settings <kbd>O</kbd></button><button class="btn" id="btnLog">Logbook <kbd>L</kbd></button><button class="btn" id="btnDock">Dry Dock <kbd>D</kbd></button></div>
@@ -399,10 +430,12 @@ body[data-screen="settings"] #ovSet{display:flex}
         <div class="storyline" id="storyLine"></div>
         <div class="modebar">
           <span class="lbl">Mode</span>
+          <button class="chip" data-game="campaign">Campaign</button>
           <button class="chip" data-game="sector">Sector</button>
           <button class="chip" data-game="descent">Descent</button>
           <button class="chip" data-game="expedition">Expedition</button>
-          <button class="chip" data-game="daily">Daily dive</button>
+          <button class="chip" data-game="gauntlet">Gauntlet</button>
+          <button class="chip" data-game="daily">Daily</button>
           <button class="chip" data-game="drill">Drill</button>
           <button class="chip" data-game="zen">Zen</button>
           <span class="modenote" id="modeNote"></span>
@@ -585,7 +618,7 @@ body[data-screen="settings"] #ovSet{display:flex}
    clean typing (pulse / torpedo / nuke), supply crates, and a
    sector mode that ends with a leviathan.
    ============================================================ */
-const VERSION = '4.6';
+const VERSION = '4.7';
 const TAU = Math.PI * 2;
 const $ = s => document.querySelector(s);
 const wrap = a => ((a % TAU) + TAU) % TAU;
@@ -603,7 +636,7 @@ const STORE = 'sonar-type.v2';
 const prefs = { theme: 'dark', sound: true, music: true, shake: true, diff: 1, game: 'sector', best: {}, medals: {}, runs: 0, seen: {} };
 try { Object.assign(prefs, JSON.parse(localStorage.getItem(STORE) || '{}')); } catch {}
 // v3.4 scores points; `best` keeps the old destroyed-count records, `hi` holds the point records per mode and level
-prefs.hi = Object.assign({ patrol: {}, sector: {}, expedition: {}, drill: {}, descent: {}, zen: {} }, prefs.hi);
+prefs.hi = Object.assign({ patrol: {}, sector: {}, expedition: {}, drill: {}, descent: {}, zen: {}, gauntlet: {} }, prefs.hi);
 // v4.4: deepest dive per difficulty, the daily dives (one counted attempt a day), Descent replaces Patrol on the title
 prefs.deepest = Object.assign({}, prefs.deepest);
 prefs.daily = Object.assign({}, prefs.daily);
@@ -637,6 +670,11 @@ prefs.pairs = Object.assign({}, prefs.pairs);
 prefs.goal = Object.assign({ type: 'wpm', target: 40 }, prefs.goal);
 prefs.goalsMet = Object.assign({}, prefs.goalsMet);
 prefs.hiAssist = Object.assign({}, prefs.hiAssist);
+// v4.7: the campaign (per mission: marks earned, best score, the pace it was cleared at), its pace, the endings seen,
+// and the Gauntlet's medals per difficulty
+prefs.campaign = Object.assign({ done: {}, endings: {}, ending: null }, prefs.campaign);
+prefs.campSel = prefs.campSel | 0; prefs.campPace = prefs.campPace == null ? 1 : prefs.campPace | 0;
+prefs.gauntMedals = Object.assign({}, prefs.gauntMedals);
 if (Object.keys(prefs.medals).length) prefs.beaten.leviathan = true;
 for (const ends of Object.values(prefs.expEnds)) for (const k of Object.keys(ends)) prefs.beaten[k] = true;
 // first launch of v4 on a computer with history: bank salvage for the records already set, so past play counts
@@ -741,6 +779,9 @@ function mulberry(seed) {
 const R = () => G.rng ? G.rng() : Math.random();
 function rollTrait(lv) {
   if (G.game === 'drill') return null;
+  if (misMod('mirror') && R() < .3) return 'reversed';
+  if (misMod('krill') && R() < .14) return 'krill';
+  if (misMod('warden') && R() < .1) return 'warden';
   const mod = G.daily && G.daily.mod;
   if (mod === 'mirror' && lv >= 3 && R() < .2) return 'reversed';
   if (mod === 'krill' && R() < .12) return 'krill';
@@ -847,6 +888,8 @@ const SCOPES = {
   violet: { name: 'Violet', cost: 250, dark: '#B48CF2', light: '#6B3FA0', blurb: 'Deep-water bioluminescence.' },
   gilt:   { name: 'Gilt', dark: '#E8C46A', light: '#9A7414', feat: () => catPct() >= .25, req: 'recover a quarter of the Archive', blurb: 'Gold leaf on the sweep, for a quarter of the Archive recovered.' },
   ember:  { name: 'Ember', cost: 250, dark: '#FF7A4D', light: '#C2410C', blurb: 'Running hot. Red lighting, battle stations.' },
+  lamp:   { name: 'Lamplight', dark: '#FFD9A0', light: '#9C5B12', feat: () => !!prefs.campaign.endings.keep, req: 'answer keep at the end of the campaign', blurb: 'The reading-room lamp, still lit. For keeping the Archive talking.' },
+  still:  { name: 'Stillwater', dark: '#A9C3D6', light: '#3E5C73', feat: () => !!prefs.campaign.endings.rest, req: 'answer rest at the end of the campaign', blurb: 'Quiet water, nothing rising. For letting the Archive rest.' },
 };
 const KILLFX = {
   burst:   { name: 'Burst', cost: 0, blurb: 'A spray of dots and a ring.' },
@@ -895,7 +938,7 @@ function owns(kind, key) {
 // the run's kit: the hull and arsenal chosen in the Dry Dock, and any pressure switched on (real runs only)
 function applyKit(mode) {
   const lo = prefs.loadout, hk = owns('hull', lo.hull) ? lo.hull : 'skiff', h = HULLS[hk];
-  const press = G.daily ? (G.daily.mod === 'deep' ? ['deep'] : []) : mode === 'play' && !calmGame() ? Object.keys(PRESSURE).filter(k => prefs.pressure[k] && PRESSURE[k].ok()) : [];
+  const press = G.daily ? (G.daily.mod === 'deep' ? ['deep'] : []) : G.mis ? [] : mode === 'play' && !calmGame() ? Object.keys(PRESSURE).filter(k => prefs.pressure[k] && PRESSURE[k].ok()) : [];
   G.hullType = hk; G.kit = h;
   G.gear = {};
   for (const slot of Object.keys(GEAR)) G.gear[slot] = owns(slot, lo[slot]) ? lo[slot] : Object.keys(GEAR[slot])[0];
@@ -1217,7 +1260,8 @@ function newGame(diff, mode, game) {
     combo: 0, ripples: [], hurt: 0, letters: {}, bestCombo: 0, drillT: 90, newWords: 0, runBy: {}, runRelics: [], maxBlast: 0,
     depth: 0, zone: null, nextBossAt: 0, allyT: null, daily: pendingDaily, rng: null,
     flow: 0, inFlow: false, flowTime: 0, lastKillT: 0, trace: [0], tier: 0,
-    ghost: mode === 'play' && !pendingDaily ? prefs.ghosts[game + ':' + diff] || null : null,
+    mis: pendingMis, pickNote: '',
+    ghost: mode === 'play' && !pendingDaily && !pendingMis ? prefs.ghosts[game + ':' + diff] || null : null,
     weak: mode === 'play' && prefs.adaptive && !pendingDaily ? letterWeakness() : null,
     weakPairs: mode === 'play' && prefs.adaptive && !pendingDaily ? pairWeakness() : null,
     warmT: mode === 'play' && prefs.comfort.warmup && !pendingDaily && (game === 'sector' || game === 'descent') ? 30 : 0,
@@ -1344,8 +1388,8 @@ function mk(kind, text, rx, ry, extra) {
 function spawnEnemy(o = {}) {
   const ang = o.ang ?? bestBearing(), d = o.dist ?? edgeDist(ang) + 30;
   // now and then an ordinary spawn surfaces as a relic: one at a time, never in a drill
-  if (!o.text && o.tier == null && o.trait === undefined && !o.shot && G.mode === 'play' && G.game !== 'drill' && G.level >= 2
-      && !G.warmT && R() < (G.daily && G.daily.mod === 'relics' ? 4 : 1) / 75 && !G.words.some(w => w.relic)) return spawnRelic(ang, d);
+  if (!o.text && o.tier == null && o.trait === undefined && !o.shot && G.mode === 'play' && G.game !== 'drill' && (G.level >= 2 || misMod('relics'))
+      && !G.warmT && R() < (misMod('relics') ? 10 : G.daily && G.daily.mod === 'relics' ? 4 : 1) / 75 && !G.words.some(w => w.relic)) return spawnRelic(ang, d);
   const trait = o.trait !== undefined ? o.trait : rollTrait(G.level);
   if (trait === 'krill' && !o.text) return spawnKrill(ang, d);
   let text = o.text || (o.tier != null ? pickFromTier(o.tier) : pickWord());
@@ -1383,6 +1427,7 @@ function recoverRelic(p, w) {
   sfx.relicGet();
 }
 function relicDestroyed(p, w) {
+  G.stats.relicsLost = (G.stats.relicsLost || 0) + 1;
   G.fx.push({ k: 'stamp', x: p.x, y: p.y + 26, text: 'RELIC DESTROYED · TYPE RELICS BY HAND', col: C['ink-2'], life: 1.6, max: 1.6 });
 }
 // a relic: a word not yet recovered if there is one, gold, slow, and worth three times a normal word
@@ -1764,6 +1809,7 @@ function kill(w, how) {
   if (G.game === 'patrol') { const lv = rampLevel(); if (lv > G.level) levelUp(lv); }
   if ((G.game === 'patrol' || G.game === 'descent') && G.mods.riveter && G.kills % 15 === 0) regrowPlate();
   dive(3 + shown(whole).length);
+  if (w.choice && G.mis) chooseEnding(w.choice);
 }
 // how a destroyed word breaks up, per the kill effect fitted in the Dry Dock
 function killFx(p, w) {
@@ -1939,6 +1985,7 @@ function coreHit(w) {
   remove(w);
   if (w.relic) {
     burstLetters(w, C['pen-4']);
+    G.stats.relicsLost = (G.stats.relicsLost || 0) + 1;
     G.fx.push({ k: 'stamp', x: p.x, y: p.y - 24, text: 'RELIC LOST', col: C['pen-4'], life: 1.4, max: 1.4, big: true });
     sfx.fizz(panAt(p.x)); G.last = `relic lost: ${w.text}`; return;
   }
@@ -2189,7 +2236,8 @@ function bossLayer(w, how) {
   w.layers.shift();
   if (!w.layers.length) { bossKilled(w); return; }
   w.text = w.layers[0]; w.fired = 0; w.landed = 0; w.layerNo++; w.missed = false; w.hitT = .5;
-  if (w.btype === 'ironback') w.armour = 1;
+  if (w.archive) archiveVoice(w);
+  else if (w.btype === 'ironback') w.armour = 1;
   if (G.lock === w) G.lock = null;
   const d = w.dist || 1; w.rx += w.rx / d * 24; w.ry += w.ry / d * 24;
   G.last = `leviathan layer ${cleared} destroyed`;
@@ -2197,7 +2245,7 @@ function bossLayer(w, how) {
 function bossKilled(w) {
   const p = pos(w);
   remove(w); G.boss = null;
-  if (G.mode === 'play') { prefs.beaten[w.btype || 'leviathan'] = true; note(w.btype || 'leviathan', 'kills'); G.bossBeat = true; }
+  if (G.mode === 'play') { if (!w.archive) { prefs.beaten[w.btype || 'leviathan'] = true; note(w.btype || 'leviathan', 'kills'); } G.bossBeat = true; }
   for (let i = 0; i < 4; i++) G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 10, r1: 160 + i * 70, n: 64, col: i % 2 ? C['pen-3'] : C['pen-1'], life: 1.2, max: 1.2, delay: i * .15 });
   for (let i = 0; i < 70; i++) {
     const b = Math.random() * TAU, v = rnd(90, 520);
@@ -2205,6 +2253,8 @@ function bossKilled(w) {
   }
   for (const e of G.words.filter(o => o.kind === 'enemy')) { burstLetters(e, C['pen-3']); complete(e, 'nuke'); }
   G.flash = .6; bump(16); sfx.win();
+  if (G.game === 'mission') { missionBossDown(w); return; }
+  if (G.game === 'gauntlet') { gauntletBossDown(w); return; }
   if (G.game === 'descent') {
     const b = addPoints(300 * bonusScale(), 'bonus');
     banner(`${(BOSSES[w.btype] || BOSSES.leviathan).name.toUpperCase()} DESTROYED`, `${Math.floor(G.depth)} m down · +${fmtPts(b)} pts`, C['pen-3']);
@@ -2226,7 +2276,7 @@ const ZONES = [
 ];
 const zoneIndex = () => G.game === 'descent' ? Math.min(ZONES.length - 1, Math.floor((G.depth || 0) / 200)) : -1;
 const zoneOf = () => G.game === 'descent' ? ZONES[zoneIndex()] : {};
-const darkWater = () => !!zoneOf().dark || !!(G.daily && G.daily.mod === 'dark');
+const darkWater = () => !!zoneOf().dark || !!(G.daily && G.daily.mod === 'dark') || misMod('dark') || (misMod('deepen') && G.depth >= 150);
 const descentLevel = () => clamp(G.diff + zoneIndex() + (G.depth >= 1000 ? 1 + Math.floor((G.depth - 1000) / 250) : 0), 1, 12);
 function descentTick(dt) {
   const z = zoneIndex();
@@ -2252,7 +2302,7 @@ function enterZone(z) {
   if (Z.hadal) G.nextBossAt = G.depth + 30;
   if (G.mode === 'play') { G.pickQ++; newWaveMods(); }
 }
-function dive(m) { if (G.game === 'descent' && !G.warmT) G.depth += m; }
+function dive(m) { if ((G.game === 'descent' || misMod('deepen')) && !G.warmT) G.depth += m; }
 // Zen: no hull to lose, no weapons, calm water; it ends when you end it (Esc, then E)
 function zenTick(dt) {
   G.spawnT -= dt;
@@ -2325,6 +2375,7 @@ function drillTick(dt) {
 }
 // each leviathan fights in its own way; telegraphs come first so a sharp player can react
 function bossAct(b, dt) {
+  if (b.quiet) return;
   b.actT -= dt;
   const p = pos(b), pan = panAt(p.x);
   if (b.btype === 'leviathan') {
@@ -2396,18 +2447,200 @@ function sectorTick(dt) {
       }
     }
   } else if (s.stage === 'warn') { if (s.t > 2.8) { spawnBoss(bossOf()); s.stage = 'boss'; s.t = 0; } }
-  else if (s.stage === 'boss') {
-    if (G.boss) {
-      G.boss.escortT -= dt;
-      G.boss.callT -= dt;
-      if (G.boss.callT <= 0) { G.boss.callT = rnd(5, 8); (G.boss.btype === 'siren' ? sfx.sirenCall : sfx.bossCall)(panAt(pos(G.boss).x)); ripple(pos(G.boss).x, pos(G.boss).y, 5, 260, 1.4); }
-      G.boss.wakeT -= dt;
-      if (G.boss.wakeT <= 0) { G.boss.wakeT = .12; const q = pos(G.boss); bubbles(q.x + rnd(-50, 50), q.y + rnd(-10, 14), 1, 4); }
-      bossAct(G.boss, dt);
-      if (!G.boss) return;
-      if (G.boss.escortT <= 0 && enemies() < 4) { spawnEnemy({ tier: Math.random() < .5 ? 0 : 1 }); G.boss.escortT = Math.max(2, 5.5 - G.diff * .35); }
+  else if (s.stage === 'boss') bossStage(dt);
+  else if (s.stage === 'won') { if (s.t > 2.6 && G.mode === 'play') gameOver('cleared'); }
+}
+// a leviathan on the scope: its calls, its wake, its attacks, and the small escorts it brings
+function bossStage(dt) {
+  if (!G.boss) return;
+  G.boss.escortT -= dt;
+  G.boss.callT -= dt;
+  if (G.boss.callT <= 0) { G.boss.callT = rnd(5, 8); (G.boss.btype === 'siren' ? sfx.sirenCall : sfx.bossCall)(panAt(pos(G.boss).x)); ripple(pos(G.boss).x, pos(G.boss).y, 5, 260, 1.4); }
+  G.boss.wakeT -= dt;
+  if (G.boss.wakeT <= 0) { G.boss.wakeT = .12; const q = pos(G.boss); bubbles(q.x + rnd(-50, 50), q.y + rnd(-10, 14), 1, 4); }
+  bossAct(G.boss, dt);
+  if (!G.boss) return;
+  if (G.boss.escortT <= 0 && enemies() < 4 && !G.boss.quiet) { spawnEnemy({ tier: Math.random() < .5 ? 0 : 1 }); G.boss.escortT = Math.max(2, 5.5 - G.diff * .35); }
+}
+
+/* ------------------------------------------------------------ the campaign: The Last Word */
+// Ten missions from Pelagia down to the Archive itself. Each has an objective, sometimes a leviathan after it, and
+// two marks: finishing earns a star and each mark another (marks can be earned on different runs). The last
+// mission ends with a choice, typed like any other word.
+const MISSIONS = [
+  { id: 'm1', no: '01', name: 'Lights on', where: 'Pelagia station', lv: 2, goal: { type: 'kills', n: 25 },
+    brief: 'The station has run dark for a month to save fuel. Tonight the generators come back, every lamp on Pelagia lights at once, and everything in the water will hear it. Hold the station until the power is steady.',
+    after: 'The lamps held. The linguist stood at the window for an hour, watching the words come up towards the light like moths. She says the last echo has not stopped: one word, very deep, repeating. Read. She wants to go down and find out who is asking.',
+    marks: [['accuracy 95% or better', r => r.acc >= 95], ['80 hull or more left', r => r.hull >= 80]] },
+  { id: 'm2', no: '02', name: 'The convoy', where: 'the shelf lanes', lv: 3, goal: { type: 'escort', n: 5 }, fail: { ff: 2 }, mods: { convoy: 1 },
+    brief: 'The relief boats are finally moving, in convoy, through lanes choked with drifting words. They show on the scope as friendly contacts with a blue flag. Do not fire on them. Keep the water around them clear and let five through.',
+    after: 'Five boats reached Pelagia with fuel, food and a diving bell rated for the deep shelf. The captain of the last one asked what we were defending out here. The linguist said: a reading room. He did not ask again.',
+    marks: [['no friendly fire', r => r.ff === 0], ['accuracy 95% or better', r => r.acc >= 95]] },
+  { id: 'm3', no: '03', name: 'Dead reckoning', where: 'the dark shelf', lv: 2, goal: { type: 'survive', n: 90 }, mods: { dark: 1 },
+    brief: 'Past the station lamps there is no light at all. The scope shows contacts only as the sweep passes over them, then nothing until it comes round again. Hold your course for a minute and a half and remember where everything was.',
+    after: 'Ninety seconds of typing into the dark. Afterwards nobody could say how many words there had been, only that you never seemed to lose one. The linguist has started calling the sweep the lamp.',
+    marks: [['60 hull or more left', r => r.hull >= 60], ['ping 4 times or fewer', r => r.pings <= 4]] },
+  { id: 'm4', no: '04', name: 'The drawer', where: 'the relic beds', lv: 3, goal: { type: 'relics', n: 3 }, fail: { relicsLost: 3 }, mods: { relics: 1 },
+    brief: 'The bed below the shelf is thick with relics: the words the Archive kept apart. They rise slowly, gold on the scope, and they never attack. Recover three by hand. Weapons destroy them, and if three are lost the bed goes quiet.',
+    after: 'Three more for the drawer under the radio. Each relic came up with a card attached, in a hand nobody on the crew recognises: a catalogue number, and the same note on every one. Read in order.',
+    marks: [['no relic lost', r => r.relicsLost === 0], ['no weapons fired', r => r.weapons === 0]] },
+  { id: 'm5', no: '05', name: 'Storm wall', where: 'the shelf edge', lv: 4, goal: { type: 'kills', n: 30 }, boss: 'archer', mods: { storm: 1 },
+    brief: 'Where the shelf drops away, noise storms sit on the water like a wall and the warm layer scrambles every letter. Somewhere behind the static an Archerfish is waiting. Clear the edge, then deal with it.',
+    after: 'The Archerfish fired its last word straight at the hull and we sent it back. When it broke up, the storm broke with it. Below the edge the water is clear and black, and the echo is louder. Read.',
+    marks: [['accuracy 93% or better', r => r.acc >= 93], ['parry a shot', r => r.parries >= 1]] },
+  { id: 'm6', no: '06', name: 'Krill bloom', where: 'the upper slope', lv: 4, goal: { type: 'survive', n: 100 }, boss: 'leviathan', mods: { krill: 1 },
+    brief: 'The upper slope is blooming: clouds of single letters, each one harmless alone and dangerous in numbers. Hold out through the bloom. Something big feeds on krill, and it is coming up behind them.',
+    after: 'The Leviathan rose through the bloom like a whale through plankton. Its last layer was the word on the linguist’s wall, the one nobody recognised. She says it is a shelf mark. The Leviathan was the first shelf of the Archive.',
+    marks: [['50 hull or more left', r => r.hull >= 50], ['destroy 40 krill', r => (r.by.krill || 0) >= 40]] },
+  { id: 'm7', no: '07', name: 'Backwards', where: 'the echo canyon', lv: 5, goal: { type: 'kills', n: 30 }, boss: 'siren', mods: { mirror: 1 },
+    brief: 'The canyon walls throw every sound back reversed, and the words down here have learned to arrive the same way. Read them from the end. The Siren lives at the bottom of the canyon, and it sings.',
+    after: 'The Siren sang every layer backwards and you answered every one. Under the song, the right way round, was a sentence the linguist wrote down twice to be sure: we are still open. The Archive thinks it is still open.',
+    marks: [['accuracy 92% or better', r => r.acc >= 92], ['no weapons fired', r => r.weapons === 0]] },
+  { id: 'm8', no: '08', name: 'The index', where: 'the Archive’s outer hull', lv: 4, goal: { type: 'kills', n: 25 }, boss: 'ironback', mods: { warden: 1, wreck: 1 },
+    brief: 'The wreck of the Archive at last: a hull the size of a town, wardens drifting along it with their rings up, salvage everywhere. Break the wardens, take what you can, and get past the Ironback that guards the door.',
+    after: 'Under the Ironback’s plating was the index: every title the Archive ever held, in order. The last line of the index is not a title. It is an instruction to whoever reaches it. Read.',
+    marks: [['50 hull or more left', r => r.hull >= 50], ['destroy 4 wardens', r => (r.by.warden || 0) >= 4]] },
+  { id: 'm9', no: '09', name: 'The long way down', where: 'the Archive shaft', lv: 4, goal: { type: 'depth', n: 300 }, mods: { deepen: 1 },
+    brief: 'The Archive’s central shaft runs straight down through every floor. Each word typed takes you a little deeper. Past 150 m the lights fail and the scope shows only what the sweep touches. Reach the reading room at 300 m.',
+    after: 'The reading room is dry. Somebody sealed it before the Archive went down. There is one desk, one lamp, and a hydrophone pointed up the shaft, towards Pelagia, towards you. It has been listening the whole time.',
+    marks: [['reach a flow state', r => r.flows >= 1], ['50 hull or more left', r => r.hull >= 50]] },
+  { id: 'm10', no: '10', name: 'The last word', where: 'the reading room', lv: 5, goal: { type: 'kills', n: 25 }, boss: 'archive', finale: true,
+    brief: 'Everything the Archive still holds is coming up the shaft at once, and behind it the Archive itself, speaking in every voice it ever made. Read all of it. When it is quiet it will ask you one thing, and you will answer by typing.',
+    marks: [['accuracy 92% or better', r => r.acc >= 92], ['50 hull or more left', r => r.hull >= 50]] },
+];
+const ARCHIVE = { name: 'The Archive', blurb: 'Every voice it ever made, one layer at a time: it lunges, fires, sings and plates itself in turn.' };
+const bossLabel = w => w.bname || (BOSSES[w.btype] || BOSSES.leviathan).name;
+const CAMP_PACE = [['Gentle', -2], ['Standard', 0], ['Hard', 2]];
+const misMod = k => !!(G.mis && G.mis.def.mods && G.mis.def.mods[k]);
+const campRec = i => prefs.campaign.done[MISSIONS[i].id];
+const campStars = i => { const r = campRec(i); return r ? 1 + r.marks.filter(Boolean).length : 0; };
+const campTotal = () => MISSIONS.reduce((t, _, i) => t + campStars(i), 0);
+const campDone = () => MISSIONS.filter(m => prefs.campaign.done[m.id]).length;
+const campOpen = i => i === 0 || !!campRec(i - 1);
+const goalText = def => { const n = def.goal.n; return { kills: `destroy ${n} contacts`, survive: `hold out for ${fmtClock(n)}`, escort: `let ${n} allies pass`, relics: `recover ${n} relics by hand`, depth: `dive to ${n} m` }[def.goal.type]; };
+const failText = def => { const f = def.fail || {}; return f.ff ? `fails if ${f.ff} allies are lost to friendly fire` : f.relicsLost ? `fails if ${f.relicsLost} relics are lost` : ''; };
+// the objective right now: how far along it is, and what the HUD gauge shows
+function objective() {
+  const m = G.mis, g = m.def.goal, n = g.n;
+  const v = g.type === 'kills' ? G.kills : g.type === 'survive' ? m.time : g.type === 'escort' ? G.stats.escorts || 0 : g.type === 'relics' ? G.runRelics.length : Math.floor(G.depth);
+  const big = g.type === 'survive' ? fmtClock(Math.max(0, n - v)) : g.type === 'kills' || g.type === 'depth' ? String(v) : `${v}/${n}`;
+  const sub = { kills: `OF ${n}`, survive: 'TO HOLD', escort: 'ESCORTED', relics: 'RELICS', depth: `OF ${n} M` }[g.type];
+  const line = g.type === 'survive' ? `<b>${fmtClock(Math.max(0, n - v))}</b> to hold` : g.type === 'depth' ? `<b>${v}</b>/${n} m` : `<b>${Math.min(v, n)}</b>/${n} ${{ kills: 'destroyed', escort: 'escorted', relics: 'relics' }[g.type]}`;
+  return { v, n, frac: clamp(v / n, 0, 1), big, sub, line };
+}
+let pendingMis = null;
+function missionConfig(i) {
+  const def = MISSIONS[i];
+  return { def, i, lv: clamp(def.lv + CAMP_PACE[prefs.campPace][1], 1, 10), pace: prefs.campPace, stage: 'intro', t: 0, time: 0, choice: null, failWhy: '', dark: false, banner: null };
+}
+function missionTick(dt) {
+  const m = G.mis, d = m.def; m.t += dt;
+  if (m.stage === 'intro') { if (m.t > 2.4) { m.stage = 'run'; m.t = 0; } return; }
+  if (m.stage === 'won') { if (m.t > (d.finale ? 4.5 : 2.6) && G.mode === 'play') gameOver('cleared'); return; }
+  if (m.stage === 'hush') { if (m.t > 3) startChoice(); return; }
+  if (m.stage === 'choice') { if (m.banner) m.banner.life = Math.max(m.banner.life, 1.4); return; }
+  if (m.stage === 'boss') { bossStage(dt); return; }
+  if (m.stage === 'warn') { if (m.t > 2.8) { if (d.boss === 'archive') spawnArchive(); else spawnBoss(d.boss); m.stage = 'boss'; m.t = 0; } return; }
+  if (m.stage === 'break') {
+    if (G.pickQ && m.t > 1.3) { openPick(); return; }
+    if (m.t > 3.6) {
+      const b = d.boss === 'archive' ? ARCHIVE : BOSSES[d.boss];
+      m.stage = 'warn'; m.t = 0; banner(`${b.name.toUpperCase()} APPROACHING`, b.blurb.toLowerCase(), C['pen-1']); sfx.siren();
     }
+    return;
+  }
+  // the objective: contacts keep coming until it is met; the second half of it is a level harder
+  m.time += dt;
+  const ob = objective();
+  if (misMod('deepen')) {
+    G.level = clamp(m.lv + Math.floor(G.depth / 150), 1, 12);
+    if (G.depth >= 150 && !m.dark) { m.dark = true; banner('THE LIGHTS FAIL', `${Math.floor(G.depth)} m · contacts show only as the sweep passes`, C.sonar); sfx.wave(); }
+  } else G.level = clamp(m.lv + (ob.frac >= .5 ? 1 : 0), 1, 12);
+  G.spawnT -= dt;
+  if (G.spawnT <= 0 && !G.spawnHold && enemies() < maxContacts(G.level)) { spawnEnemy(); G.spawnT = sectorGap(G.level) * workLoad(G.level) * rnd(.75, 1.25); }
+  const f = d.fail || {};
+  const why = f.ff && (G.stats.friendly || 0) >= f.ff ? `${f.ff} allies lost to friendly fire` : f.relicsLost && (G.stats.relicsLost || 0) >= f.relicsLost ? `${f.relicsLost} relics lost` : '';
+  if (why) { m.failWhy = why; if (G.mode === 'play') gameOver('failed'); return; }
+  if (ob.frac >= 1) objectiveDone();
+}
+function objectiveDone() {
+  const m = G.mis, d = m.def;
+  // whatever is left on the scope breaks up; a relic just sinks back out of reach
+  for (const e of G.words.filter(o => o.kind === 'enemy')) { if (e.relic) { remove(e); continue; } burstLetters(e, C['pen-3']); complete(e, 'nuke'); }
+  G.flash = .35; sfx.wave();
+  const bonus = addPoints(300 * bonusScale(), 'bonus');
+  if (d.boss) {
+    m.stage = 'break'; m.t = 0; repair(30);
+    if (G.mode === 'play') { G.pickQ++; G.pickNote = 'OBJECTIVE COMPLETE · CHOOSE AN UPGRADE'; }
+    banner('OBJECTIVE COMPLETE', `+${fmtPts(bonus)} pts · +30 hull · something bigger is on its way`, C['pen-3']);
+  } else {
+    m.stage = 'won'; m.t = 0; G.spawnHold = 99;
+    banner('MISSION COMPLETE', `${d.name.toLowerCase()} · +${fmtPts(bonus)} pts`, C['pen-3']); sfx.win();
+  }
+}
+function missionBossDown(w) {
+  const m = G.mis, bonus = addPoints((500 + Math.ceil(G.hull) * 5) * bonusScale(), 'bonus');
+  m.t = 0; G.spawnHold = 1e4;
+  // the water goes still for the end: no warm layer or storm to scramble the answer
+  if (m.def.finale) { m.stage = 'hush'; G.thermo = G.storm = null; G.thermoT = G.stormT = 1e4; banner('THE ARCHIVE IS QUIET', `+${fmtPts(bonus)} pts · it has one more thing to ask`, C['pen-4']); return; }
+  m.stage = 'won';
+  banner(`${bossLabel(w).toUpperCase()} DESTROYED`, `mission complete · +${fmtPts(bonus)} pts`, C['pen-3']);
+}
+// the Archive: four layers of its oldest words, each in a different leviathan's voice, then the word it has been repeating
+function spawnArchive() {
+  spawnBoss('leviathan');
+  const w = G.boss, words = Object.keys(RELICS).sort(() => R() - .5).slice(0, 4);
+  Object.assign(w, { layers: [...words, 'read'], layerTotal: 5, archive: true, bname: ARCHIVE.name, speed: w.speed * .8 });
+  archiveVoice(w);
+}
+function archiveVoice(w) {
+  const last = w.layers.length === 1;
+  w.btype = last ? 'leviathan' : GAUNTLET[w.layerNo] || 'leviathan'; w.quiet = last; w.text = w.layers[0];
+  w.rev = w.btype === 'siren' && !last; if (w.rev) w.text = [...w.text].reverse().join('');
+  w.armour = w.btype === 'ironback' && !last ? 1 : 0;
+  w.actT = 2; w.warnT = 0; w.lungeT = 0;
+  if (last) banner('ONE WORD LEFT', 'the word it has been repeating all along', C['pen-4']);
+}
+// the last word: two answers on the scope, neither moving, neither harmful; whichever is typed is the ending
+function startChoice() {
+  const m = G.mis; m.stage = 'choice'; m.t = 0; G.spawnHold = 1e4;
+  G.words = []; G.lock = null; G.torps = []; G.tracers = []; G.arsenal = { pulse: 0, torp: 0, nuke: 0 }; G.armHeld = false; G.arm = 0;
+  m.banner = { k: 'banner', title: 'THE LAST WORD', sub: 'type your answer: keep the Archive talking, or let it rest', col: C['pen-4'], life: 2.6, max: 2.6 };
+  G.fx.push(m.banner);
+  for (const [k, a] of [['keep', Math.PI + .32], ['rest', -.32]]) spawnEnemy({ text: k, trait: null, ang: a, dist: S.R * .62, speed: 0 }).choice = k;
+  sfx.relic(0);
+}
+function chooseEnding(k) {
+  const m = G.mis; if (m.choice) return;
+  m.choice = k; m.stage = 'won'; m.t = 0;
+  for (const o of G.words.filter(o => o.choice)) { burstLetters(o, C['ink-3']); remove(o); }
+  if (m.banner) m.banner.life = Math.min(m.banner.life, .4);
+  banner(k === 'keep' ? 'KEEP' : 'REST', k === 'keep' ? 'the Archive goes on talking, and Pelagia goes on reading' : 'the Archive reads your answer, and the water goes quiet', C['pen-4']);
+  for (let i = 0; i < 5; i++) G.fx.push({ k: 'dring', x: S.cx, y: S.cy, r0: 20, r1: S.R * (.5 + i * .15), n: 90, col: k === 'keep' ? C['pen-4'] : C['ink-3'], life: 1.6, max: 1.6, delay: i * .3 });
+  sfx.win();
+}
+// the Gauntlet: all four leviathans back to back, a breather and a refit between each
+const GAUNTLET = ['leviathan', 'archer', 'siren', 'ironback'];
+const gauntletOpen = () => BOSS_KEYS.every(beat);
+function gauntletTick(dt) {
+  const s = G.sec; s.t += dt;
+  const next = () => { const b = BOSSES[GAUNTLET[s.wave - 1]]; banner(`${b.name.toUpperCase()} APPROACHING`, `leviathan ${s.wave}/4 · ${b.blurb.toLowerCase()}`, C['pen-1']); sfx.siren(); };
+  if (s.stage === 'intro') { if (s.t > 2.4) { s.stage = 'warn'; s.t = 0; next(); } }
+  else if (s.stage === 'warn') { if (s.t > 2.8) { G.level = clamp(G.diff + s.wave - 1, 1, 12); spawnBoss(GAUNTLET[s.wave - 1]); s.stage = 'boss'; s.t = 0; } }
+  else if (s.stage === 'boss') bossStage(dt);
+  else if (s.stage === 'break') {
+    if (G.pickQ && s.t > 1.3) { openPick(); return; }
+    if (s.t > 3.4) { s.wave++; s.stage = 'warn'; s.t = 0; next(); }
   } else if (s.stage === 'won') { if (s.t > 2.6 && G.mode === 'play') gameOver('cleared'); }
+}
+function gauntletBossDown(w) {
+  const s = G.sec, bonus = addPoints((400 + Math.ceil(G.hull) * 4) * bonusScale() * s.wave * .5, 'bonus');
+  s.t = 0;
+  if (s.wave < GAUNTLET.length) {
+    s.stage = 'break'; repair(25);
+    if (G.mode === 'play') { G.pickQ++; G.pickNote = `${bossLabel(w).toUpperCase()} DESTROYED · ${s.wave}/4 · CHOOSE AN UPGRADE`; }
+    banner(`${bossLabel(w).toUpperCase()} DESTROYED`, `${s.wave}/4 · +${fmtPts(bonus)} pts · +25 hull`, C['pen-3']);
+  } else { s.stage = 'won'; G.spawnHold = 99; banner('GAUNTLET CLEARED', `all four destroyed in ${fmtClock(G.t)} · +${fmtPts(bonus)} pts`, C['pen-3']); }
 }
 
 /* ------------------------------------------------------------ autopilot (title-screen attract loop only) */
@@ -2479,7 +2712,7 @@ function update(dt) {
   G.alertT = Math.max(0, G.alertT - dt); G.pingGlow = Math.max(0, G.pingGlow - dt * 1.4);
 
   // sea conditions: a thermocline band from level 3, drifting noise storms from level 5
-  const stormy = legType() === 'storm' || !!(G.daily && G.daily.mod === 'storm') || !!zoneOf().abyss;
+  const stormy = legType() === 'storm' || !!(G.daily && G.daily.mod === 'storm') || !!zoneOf().abyss || misMod('storm');
   if ((G.level >= 3 || stormy) && !quiet()) {
     G.thermoT -= dt;
     if (G.thermoT <= 0) { if (G.thermo) { G.thermo = null; G.thermoT = rnd(30, 50); } else { startThermo(); G.thermoT = rnd(25, 35); } }
@@ -2521,17 +2754,18 @@ function update(dt) {
     if (G.nuke.r > Math.min(G.nuke.maxR + 60, Math.hypot(S.w, S.h) / 2 + 80)) G.nuke = null;
   }
 
-  if (G.warmT > 0) warmTick(dt); else if (G.game === 'patrol') patrolTick(dt); else if (G.game === 'drill') drillTick(dt); else if (G.game === 'descent') descentTick(dt); else if (G.game === 'zen') zenTick(dt); else sectorTick(dt);
+  if (G.warmT > 0) warmTick(dt); else if (G.game === 'patrol') patrolTick(dt); else if (G.game === 'drill') drillTick(dt); else if (G.game === 'descent') descentTick(dt); else if (G.game === 'zen') zenTick(dt);
+  else if (G.game === 'mission') missionTick(dt); else if (G.game === 'gauntlet') gauntletTick(dt); else sectorTick(dt);
   if (!G.sim) return;
   G.crateT -= dt;
   if (G.crateT <= 0 && !quiet() && !G.spawnHold && G.words.filter(w => w.kind === 'crate').length < 2) {
-    spawnCrate(pick(['iron', 'iron', 'phase', 'phase', 'repair'])); G.crateT = legType() === 'wreck' ? rnd(12, 18) : rnd(40, 60);
+    spawnCrate(pick(['iron', 'iron', 'phase', 'phase', 'repair'])); G.crateT = legType() === 'wreck' || misMod('wreck') ? rnd(12, 18) : rnd(40, 60);
   }
 
   G.allyT = (G.allyT ?? rnd(15, 25)) - dt;
   if (G.allyT <= 0) {
-    G.allyT = G.daily && G.daily.mod === 'convoy' ? rnd(9, 14) : rnd(28, 45);
-    if (G.level >= 3 && !quiet() && !G.spawnHold && G.words.filter(w => w.kind === 'ally').length < 2) spawnAlly();
+    G.allyT = G.daily && G.daily.mod === 'convoy' || misMod('convoy') ? rnd(9, 14) : rnd(28, 45);
+    if ((G.level >= 3 || misMod('convoy')) && !quiet() && !G.spawnHold && G.words.filter(w => w.kind === 'ally').length < 2) spawnAlly();
   }
   // speed: pulse halves it, freeze holds it at a fifth, a ping alerts, Deep water and Last stand push it either way
   const slow = G.breathT > 0 ? .25 : G.freezeT > 0 ? .2 : G.chorusT > 0 ? G.chorusSlow || .5 : G.slowT > 0 ? .45 : 1, alert = G.alertT > 0 ? 1.3 : 1;
@@ -2832,8 +3066,8 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
     c.globalAlpha = mul * (.4 + .4 * Math.sin(performance.now() / 70)); c.strokeStyle = C['pen-5']; c.lineWidth = 1; c.setLineDash([3, 3]);
     c.strokeRect(x - 3, y - 3, chipW + 6, chipH + 6); c.setLineDash([]); c.globalAlpha = mul;
   }
-  if (w.relic) {
-    // a relic: gold frame, a slow halo, and a diamond on its left
+  if (w.relic || w.choice || w.archive) {
+    // a relic (and the Archive, and its last question): gold frame, a slow halo, and a diamond on its left
     const glow = legend ? .5 : .35 + .25 * Math.sin(performance.now() / 300);
     c.globalAlpha = mul * glow; c.strokeStyle = C['pen-4']; c.lineWidth = 1; c.strokeRect(x - 4, y - 4, chipW + 8, chipH + 8);
     c.globalAlpha = mul; c.fillStyle = C['pen-4']; c.beginPath();
@@ -2949,7 +3183,8 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
   else if (w.relic) { meta = 'RELIC · TYPE IT BY HAND · NO DAMAGE'; mcol = C['pen-4']; }
   else if (ally) { meta = 'ALLY · DO NOT FIRE · LET IT PASS'; mcol = C['pen-2']; }
   else if (w.shielded) { meta = 'SHIELDED · DESTROY THE WARDEN FIRST'; mcol = C['pen-3']; }
-  else if (boss) { meta = `${(BOSSES[w.btype] || BOSSES.leviathan).name.toUpperCase()} · ${w.layers.length}/${w.layerTotal} LAYERS · R ${(w.dist / S.R).toFixed(2)}`; mcol = C['pen-1']; }
+  else if (w.choice) { meta = w.choice === 'keep' ? 'KEEP · THE ARCHIVE GOES ON TALKING' : 'REST · THE ARCHIVE FALLS QUIET'; mcol = C['pen-4']; }
+  else if (boss) { meta = `${bossLabel(w).toUpperCase()}${w.archive && !w.quiet ? ' · ' + (BOSSES[w.btype] || BOSSES.leviathan).name.toUpperCase() + ' VOICE' : ''} · ${w.layers.length}/${w.layerTotal} LAYERS · R ${(w.dist / S.R).toFixed(2)}`; mcol = C['pen-1']; }
   else {
     const label = w.trait ? `  ${TRAIT_LABEL[w.trait]}${armoured ? ' ×2' : w.trait === 'armour' ? ' · BROKEN' : ''}` : '';
     meta = `TK·${pad(w.id, 3)}  ${pad(bearing(w), 3)}°` + (isLock || danger ? `  R ${(w.dist / S.R).toFixed(2)}` : '') + label
@@ -3434,7 +3669,7 @@ function hud(dt) {
   chrome();
   if (screen !== 'play' && screen !== 'paused' && screen !== 'pick') return;
   $('#score').innerHTML = padN(G.points, 6);
-  { const b = prefs.hi[G.game][G.diff], m = G.game === 'sector' && prefs.medals[G.diff];
+  { const b = G.mis ? (campRec(G.mis.i) || {}).pts : (prefs.hi[G.game] || {})[G.diff], m = G.game === 'sector' ? prefs.medals[G.diff] : G.game === 'gauntlet' && prefs.gauntMedals[G.diff];
     $('#mBest').innerHTML = (m ? medalSvg(m, 11) + ' ' : '') + (b == null ? 'first run' : `best <b>${fmtPts(b)}</b>`); }
   if (G.ghost) {
     const ga = ghostAt(), d = Math.round(G.points - ga);
@@ -3456,17 +3691,27 @@ function hud(dt) {
     dotArc($('#cvGauge'), G.drillT / 90, String(Math.ceil(G.drillT)), 'SECONDS', C['pen-3']);
   } else if (G.game === 'descent') {
     const z = zoneIndex(), Z = ZONES[Math.max(0, z)];
-    $('#tHead').textContent = G.boss ? (BOSSES[G.boss.btype] || BOSSES.leviathan).name : 'Descent';
+    $('#tHead').textContent = G.boss ? bossLabel(G.boss) : 'Descent';
     $('#mFloor').innerHTML = `${Z.name} · threat <b>${pad(G.level)}</b>`;
     dotArc($('#cvGauge'), (G.depth % 200) / 200, String(Math.floor(G.depth)), 'METRES', C.sonar);
   } else if (G.game === 'zen') {
     $('#tHead').textContent = 'Zen';
     $('#mFloor').innerHTML = `difficulty <b>${pad(G.diff)}</b>`;
     dotArc($('#cvGauge'), (G.t % 60) / 60, fmtClock(G.t), 'SESSION', C['pen-3']);
+  } else if (G.game === 'mission' && !G.boss) {
+    const m = G.mis, ob = objective();
+    $('#tHead').textContent = m.def.name;
+    if (m.stage === 'choice' || m.stage === 'hush') { $('#mFloor').innerHTML = 'type <b>keep</b> or <b>rest</b>'; dotArc($('#cvGauge'), 1, '?', 'ANSWER', C['pen-4']); }
+    else if (m.stage === 'run' || m.stage === 'intro') { $('#mFloor').innerHTML = `threat <b>${pad(G.level)}</b>`; dotArc($('#cvGauge'), ob.frac, ob.big, ob.sub, C['pen-2']); }
+    else { $('#mFloor').innerHTML = m.stage === 'won' ? 'mission complete' : 'objective complete'; dotArc($('#cvGauge'), 1, '✓', m.stage === 'won' ? 'DONE' : 'NEXT', C['pen-3']); }
+  } else if (G.game === 'gauntlet' && !G.boss) {
+    $('#tHead').textContent = 'Gauntlet';
+    $('#mFloor').innerHTML = `next <b>${BOSSES[GAUNTLET[Math.min(3, G.sec.wave - (G.sec.stage === 'break' ? 0 : 1))]].name}</b>`;
+    dotArc($('#cvGauge'), (G.sec.wave - (G.sec.stage === 'break' || G.sec.stage === 'won' ? 0 : 1)) / 4, `${G.sec.wave}/4`, 'LEVIATHAN', C['pen-1']);
   } else if (G.game !== 'patrol') {
     const s = G.sec, exp = G.game === 'expedition' && G.exp && G.exp.node;
     if (G.boss) {
-      $('#tHead').textContent = (BOSSES[G.boss.btype] || BOSSES.leviathan).name;
+      $('#tHead').textContent = bossLabel(G.boss);
       $('#mFloor').innerHTML = `<b>${G.boss.layers.length}</b>/${G.boss.layerTotal} layers`;
       dotArc($('#cvGauge'), 1 - G.boss.layers.length / G.boss.layerTotal, pad(G.boss.layers.length), 'LAYERS', C['pen-1']);
     } else {
@@ -3525,7 +3770,10 @@ function chrome() {
   const lk = G.lock && live(G.lock) ? G.lock : null, name = DIFF_NAMES[G.diff - 1];
   const en = G.exp && G.exp.node;
   const dz = G.game === 'descent' ? ZONES[Math.max(0, zoneIndex())].name : '';
-  const where = G.warmT > 0 ? `warm-up · <b>${Math.ceil(G.warmT)} s</b> · Enter skips` : G.daily ? `daily dive · ${DAILY_MODS[G.daily.mod][0]} · sector <b>${pad(G.diff)}</b> · wave <b>${G.sec.wave}/3</b>`
+  const where = G.warmT > 0 ? `warm-up · <b>${Math.ceil(G.warmT)} s</b> · Enter skips`
+    : G.mis ? `mission <b>${G.mis.def.no}</b> ${esc(G.mis.def.name)} · ${G.mis.stage === 'run' ? objective().line : G.boss ? bossLabel(G.boss).toLowerCase() : G.mis.stage === 'choice' ? 'type your answer' : goalText(G.mis.def)}`
+    : G.game === 'gauntlet' ? `gauntlet <b>${pad(G.diff)}</b> ${name} · leviathan <b>${G.sec.wave}/4</b> · <b>${fmtClock(G.t)}</b>`
+    : G.daily ? `daily dive · ${DAILY_MODS[G.daily.mod][0]} · sector <b>${pad(G.diff)}</b> · wave <b>${G.sec.wave}/3</b>`
     : G.game === 'descent' ? `descent · difficulty <b>${pad(G.diff)}</b> · <b>${Math.floor(G.depth)} m</b> ${dz}`
     : G.game === 'zen' ? `zen · difficulty <b>${pad(G.diff)}</b> · <b>${fmtClock(G.t)}</b>`
     : G.game === 'drill' ? `drill · difficulty <b>${pad(G.diff)}</b> · <b>${fmtClock(G.drillT)}</b> left` : G.game === 'sector' ? `sector <b>${pad(G.diff)}</b> ${name} · wave <b>${G.sec.wave}/3</b>`
@@ -3543,7 +3791,7 @@ function chrome() {
   $('#sbState').textContent = st[0]; $('#led').style.background = st[1];
   const inRun = screen !== 'title' && screen !== 'dock' && screen !== 'log' && screen !== 'settings';
   $('#sbTracked').innerHTML = inRun ? `tracked <b>${threats().length}</b>` : '';
-  $('#sbLock').innerHTML = inRun ? (lk ? `lock <b>${lk.kind === 'crate' ? 'SUPPLY' : lk.kind === 'boss' ? (BOSSES[lk.btype] || BOSSES.leviathan).name.toUpperCase() : 'TK·' + pad(lk.id, 3)}</b> ${esc(shown(lk))}` : 'no lock') : '';
+  $('#sbLock').innerHTML = inRun ? (lk ? `lock <b>${lk.kind === 'crate' ? 'SUPPLY' : lk.kind === 'boss' ? bossLabel(lk).toUpperCase() : 'TK·' + pad(lk.id, 3)}</b> ${esc(shown(lk))}` : 'no lock') : '';
   $('#sbLast').innerHTML = inRun && G.last ? `last <b>${esc(G.last)}</b>` : '';
   const marks = document.querySelectorAll('#mark i'), seg = Math.floor(G.sweep / TAU * 8), ring = [0, 1, 2, 5, 8, 7, 6, 3];
   marks.forEach((m, i) => m.classList.toggle('on', i === 4 || ring[seg] === i));
@@ -3620,6 +3868,8 @@ function setScreen(s) {
   hudT = 0;
 }
 const MODE_NOTES = {
+  campaign: 'ten missions down to the Archive',
+  gauntlet: 'all four leviathans, back to back',
   sector: 'three waves, then a leviathan',
   descent: 'an endless dive: every 200 m the water changes',
   expedition: 'four legs on a sea chart, then a lair',
@@ -3630,7 +3880,8 @@ const MODE_NOTES = {
 function buildTiles() {
   document.querySelectorAll('[data-game]').forEach(b => b.classList.toggle('on', b.dataset.game === prefs.game));
   $('#modeNote').textContent = MODE_NOTES[prefs.game] || '';
-  if (prefs.game === 'daily') { buildDailyPanel(); buildKitLine(); buildPress(); buildStoryLine(); return; }
+  $('#tNo').textContent = prefs.game === 'campaign' ? 'CHOOSE A MISSION' : prefs.game === 'daily' ? 'TODAY’S DIVE' : 'SELECT DIFFICULTY';
+  if (prefs.game === 'daily' || prefs.game === 'campaign') { prefs.game === 'daily' ? buildDailyPanel() : buildCampPanel(); buildKitLine(); buildPress(); buildStoryLine(); return; }
   $('#tiles').innerHTML = DIFF_NAMES.map((nm, i) => {
     const d = i + 1, avg = avgLen(d);
     let st;
@@ -3646,6 +3897,11 @@ function buildTiles() {
     else if (prefs.game === 'drill') {
       const runs = prefs.history.filter(h => h.game === 'drill' && h.diff === d && h.wpm);
       st = runs.length ? `best <b>${Math.max(...runs.map(h => h.wpm))}</b> wpm` : 'no drill yet';
+    }
+    else if (prefs.game === 'gauntlet') {
+      const m = prefs.gauntMedals[d];
+      st = !gauntletOpen() ? 'locked' : m ? `${medalSvg(m)}<b>${m}</b>` : 'not run';
+      if (prefs.hi.gauntlet[d] != null) st += ` <span class="hi">${fmtPts(prefs.hi.gauntlet[d])}</span>`;
     }
     else if (prefs.game === 'expedition') {
       // one medal dot per leviathan beaten from this difficulty
@@ -3678,18 +3934,28 @@ function select(d) {
   G.diff = d; G.level = d;
 }
 function setGame(g) { prefs.game = g; savePrefs(); buildTiles(); }
-const GAMES = ['sector', 'descent', 'expedition', 'daily', 'drill', 'zen'];
+const GAMES = ['campaign', 'sector', 'descent', 'expedition', 'gauntlet', 'daily', 'drill', 'zen'];
 const wavesTotal = () => G.game === 'expedition' && G.exp && G.exp.node ? G.exp.node.waves : 3;
 function startRun(d, game) {
-  ensureAudio(); sfx.engage(); legacyGrant = 0;
-  // a daily dive is a seeded sector at the day's own difficulty; the tile you had selected stays selected
-  const daily = game === 'daily' ? dailyConfig() : null;
-  if (daily) d = daily.diff; else { sel = d; prefs.diff = d; }
+  ensureAudio();
+  if (game === 'campaign' && !campOpen(prefs.campSel)) { toast(`Finish mission ${MISSIONS[prefs.campSel - 1].no} first`); return; }
+  if (game === 'gauntlet' && !gauntletOpen()) { toast('Destroy each of the four leviathans once to open the Gauntlet'); return; }
+  sfx.engage(); legacyGrant = 0;
+  // a daily dive is a seeded sector at the day's own difficulty; the tile you had selected stays selected.
+  // A mission sets its own level from the campaign pace
+  const daily = game === 'daily' ? dailyConfig() : null, mis = game === 'campaign' ? missionConfig(prefs.campSel) : null;
+  if (daily) d = daily.diff; else if (mis) d = mis.lv; else { sel = d; prefs.diff = d; }
   savePrefs();
-  pendingDaily = daily; newGame(d, 'play', daily ? 'sector' : game); pendingDaily = null;
+  pendingDaily = daily; pendingMis = mis; newGame(d, 'play', daily ? 'sector' : mis ? 'mission' : game); pendingDaily = pendingMis = null;
   if (daily) G.rng = mulberry(daily.seed);
   bot.fresh = null; bot.armRelease = null;
   setScreen('play');
+  if (mis) {
+    if (misMod('convoy')) G.allyT = 4;
+    banner(`MISSION ${mis.def.no} · ${mis.def.name.toUpperCase()}`, `${goalText(mis.def)}${mis.def.boss ? ', then the ' + (mis.def.boss === 'archive' ? ARCHIVE : BOSSES[mis.def.boss]).name : ''}`, C['pen-2']);
+    return;
+  }
+  if (game === 'gauntlet') { banner(`GAUNTLET · DIFFICULTY ${pad(d)}`, 'four leviathans, one after another · a refit between each', C['pen-1']); return; }
   if (game === 'expedition') {
     G.tier = Math.min(prefs.expTierSel, prefs.expTier);
     if (G.tier) { G.pressMul *= 1 + .2 * G.tier; if (G.tier >= 2) G.hull = Math.round(G.hullMax * .75); }
@@ -3749,20 +4015,41 @@ function drawKey() {
 }
 function resume() { if (screen === 'paused') setScreen('play'); }
 function quitToTitle() { newGame(sel, 'demo', 'patrol'); setScreen('title'); }
+// the debrief's main button: the same run again, or after a cleared mission, the next one
+function runAgain() {
+  if (G.mis) {
+    if (G.result && G.result.kind === 'cleared' && G.mis.i < MISSIONS.length - 1) prefs.campSel = G.mis.i + 1;
+    startRun(sel, 'campaign');
+  } else startRun(G.diff, G.daily ? 'daily' : G.game);
+}
 
 function gameOver(kind) {
   const acc = accuracy() ?? 0, name = DIFF_NAMES[G.diff - 1];
-  const medal = kind === 'cleared' ? (acc >= 97 && G.hull >= G.hullMax / 2 ? 'gold' : acc >= 92 ? 'silver' : 'bronze') : null;
+  const mis = G.mis;
+  const medal = kind === 'cleared' && !mis ? (acc >= 97 && G.hull >= G.hullMax / 2 ? 'gold' : acc >= 92 ? 'silver' : 'bronze') : null;
   const rank = { bronze: 1, silver: 2, gold: 3 };
   const daily = G.daily, firstToday = !!daily && !prefs.daily[daily.key];
-  const hi = daily ? {} : prefs.hi[G.game], prevBest = daily ? (prefs.daily[daily.key] || {}).pts : hi[G.diff], exp = G.game === 'expedition' ? G.exp : null;
-  // sector medals live per difficulty; expedition medals per difficulty and per leviathan beaten
-  const ends = exp ? (prefs.expEnds[G.diff] = prefs.expEnds[G.diff] || {}) : null;
-  const prevMedal = daily ? null : exp ? ends[exp.boss] : prefs.medals[G.diff];
+  const misRec = mis ? campRec(mis.i) : null;
+  const hi = daily || mis ? {} : prefs.hi[G.game], prevBest = daily ? (prefs.daily[daily.key] || {}).pts : mis ? (misRec || {}).pts : hi[G.diff], exp = G.game === 'expedition' ? G.exp : null;
+  // sector and Gauntlet medals live per difficulty; expedition medals per difficulty and per leviathan beaten
+  const ends = exp ? (prefs.expEnds[G.diff] = prefs.expEnds[G.diff] || {}) : null, medals = G.game === 'gauntlet' ? prefs.gauntMedals : prefs.medals;
+  const prevMedal = daily || mis ? null : exp ? ends[exp.boss] : medals[G.diff];
   let isNew = false;
+  // a mission: the marks met this run, folded into the ones already earned; the finale also records the answer
+  const mr = mis ? { acc, hull: G.hull, ff: G.stats.friendly || 0, pings: G.stats.used.ping, relicsLost: G.stats.relicsLost || 0, weapons: G.stats.used.pulse + G.stats.used.torp + G.stats.used.nuke,
+    parries: G.stats.parries || 0, flows: G.stats.flows || 0, by: G.runBy } : null;
+  const marksNow = mis && kind === 'cleared' ? mis.def.marks.map(([, test]) => { try { return !!test(mr); } catch { return false; } }) : null;
+  const starsBefore = mis ? campStars(mis.i) : 0, firstClear = !!mis && kind === 'cleared' && !misRec;
   if (daily) {
     // the day's first attempt is the one that counts; later ones are practice
     if (firstToday) { prefs.daily[daily.key] = { pts: G.points, medal, kind, acc: Math.round(acc * 10) / 10, mod: daily.mod, boss: daily.boss, diff: G.diff }; isNew = true; }
+  } else if (mis) {
+    if (kind === 'cleared') {
+      const r = prefs.campaign.done[mis.def.id] = misRec || { marks: mis.def.marks.map(() => false), pts: 0, pace: mis.pace, at: Date.now(), wins: 0 };
+      r.marks = r.marks.map((m, k) => m || marksNow[k]); r.wins++; r.pace = Math.max(r.pace, mis.pace);
+      if (G.points > r.pts) { r.pts = G.points; isNew = true; }
+      if (mis.choice) { prefs.campaign.endings[mis.choice] = prefs.campaign.endings[mis.choice] || Date.now(); if (!prefs.campaign.ending) prefs.campaign.ending = mis.choice; }
+    }
   } else {
     if (G.points > 0 && (prevBest == null || G.points > prevBest)) {
       hi[G.diff] = G.points; isNew = true;
@@ -3770,17 +4057,19 @@ function gameOver(kind) {
       const ak = G.game + ':' + G.diff;
       if (prefs.comfort.assist < 1) prefs.hiAssist[ak] = prefs.comfort.assist; else delete prefs.hiAssist[ak];
     }
-    if (medal && (!prevMedal || rank[medal] > rank[prevMedal])) { if (exp) ends[exp.boss] = medal; else prefs.medals[G.diff] = medal; isNew = true; }
+    if (medal && (!prevMedal || rank[medal] > rank[prevMedal])) { if (exp) ends[exp.boss] = medal; else medals[G.diff] = medal; isNew = true; }
   }
   // a new best becomes the ghost for the next run at this mode and level
   const ghostBeat = !!G.ghost && G.points > G.ghost.pts;
-  if (!daily && G.mode === 'play' && G.points > 0 && (!prefs.ghosts[G.game + ':' + G.diff] || G.points > prefs.ghosts[G.game + ':' + G.diff].pts))
+  if (!daily && !mis && G.mode === 'play' && G.points > 0 && (!prefs.ghosts[G.game + ':' + G.diff] || G.points > prefs.ghosts[G.game + ':' + G.diff].pts))
     prefs.ghosts[G.game + ':' + G.diff] = { pts: G.points, trace: [...G.trace, G.points].slice(0, 240), at: Date.now() };
   if (G.game === 'descent' && G.mode === 'play') prefs.deepest[G.diff] = Math.max(prefs.deepest[G.diff] || 0, Math.floor(G.depth));
   // salvage: a hundredth of the score, plus a medal bonus, plus what rich expedition legs paid on top
   const affordBefore = new Set(shopList().filter(i => i.cost <= prefs.salvage).map(i => i.kind + i.key));
   const drill = G.game === 'drill', zen = G.game === 'zen';
-  const salv = drill ? 0 : Math.max(0, Math.round(G.points / (zen ? 200 : 100) * (G.mods.salvager ? 1.5 : 1)) + (medal ? { bronze: 10, silver: 20, gold: 40 }[medal] * (exp ? 2 : 1) : 0) + (exp ? exp.bonusSalv : 0));
+  // a mission pays 25 for each new star on top of the score
+  const starPay = mis ? 25 * (campStars(mis.i) - starsBefore) : 0;
+  const salv = drill ? 0 : Math.max(0, Math.round(G.points / (zen ? 200 : 100) * (G.mods.salvager ? 1.5 : 1)) + (medal ? { bronze: 10, silver: 20, gold: 40 }[medal] * (exp ? 2 : 1) : 0) + (exp ? exp.bonusSalv : 0) + starPay);
   prefs.salvage += salv; prefs.salvageTotal += salv;
   const newlyAffordable = shopList().filter(i => i.cost <= prefs.salvage && !affordBefore.has(i.kind + i.key));
   if (exp && kind === 'cleared') prefs.expeditions++;
@@ -3793,7 +4082,7 @@ function gameOver(kind) {
   prefs.mastery[G.hullType] = masteryXp(G.hullType) + G.kills;
   const mLvNow = masteryLv(G.hullType);
   prefs.life.abilities = (prefs.life.abilities || 0) + (G.stats.abilities || 0);
-  prefs.history.push({ at: Date.now(), game: daily ? 'daily' : G.game, diff: G.diff, depth: G.game === 'descent' ? Math.floor(G.depth) : undefined, pts: G.points, wpm: runWpm, acc: accuracy() == null ? null : Math.round(acc * 10) / 10,
+  prefs.history.push({ at: Date.now(), game: daily ? 'daily' : mis ? 'campaign' : G.game, mission: mis ? mis.def.id : undefined, diff: G.diff, depth: G.game === 'descent' ? Math.floor(G.depth) : undefined, pts: G.points, wpm: runWpm, acc: accuracy() == null ? null : Math.round(acc * 10) / 10,
     kills: G.kills, secs: Math.round(G.t), medal, kind, combo: G.bestCombo, assist: assisted });
   if (prefs.history.length > 600) prefs.history.splice(0, prefs.history.length - 600);
   L.words += G.kills; L.keys += G.correct; L.secs += Math.round(G.t); L.bestStreak = Math.max(L.bestStreak, G.bestCombo);
@@ -3811,16 +4100,22 @@ function gameOver(kind) {
   // the week's goal, met for the first time with this run
   const goalNow = goalProgress(), goalHit = goalNow.met && !prefs.goalsMet[weekKey()];
   if (goalHit) prefs.goalsMet[weekKey()] = true;
-  const heardNow = storyUnheard();
+  // the ending, then this mission's own log, come before anything else waiting
+  const firstUp = e => e.id.startsWith('e_') ? 0 : mis && e.id === 'k' + mis.def.no ? 1 : 2;
+  const heardNow = storyUnheard().sort((a, b) => firstUp(a) - firstUp(b));
   savePrefs();
   G.result = { kind, medal };
   G.lock = null; G.armHeld = false;
   setScreen('over');
   inputGuard = performance.now() + 900;
 
-  const no = $('#dNo'), bossName = (BOSSES[exp ? exp.boss : G.bossType] || BOSSES.leviathan).name.toUpperCase();
+  const no = $('#dNo'), bossName = (mis && mis.def.boss === 'archive' ? ARCHIVE : BOSSES[exp ? exp.boss : G.bossType] || BOSSES.leviathan).name.toUpperCase();
+  const gaunt = G.game === 'gauntlet', starsNow = mis ? campStars(mis.i) : 0;
   no.className = 'no ' + (kind === 'cleared' ? 'good' : 'bad');
-  no.textContent = drill ? `DRILL · 90 SECONDS${G.stats.leaks ? ` · ${G.stats.leaks} LEAKED` : ''}`
+  no.textContent = mis ? (kind === 'cleared' ? `MISSION ${mis.def.no} COMPLETE · ${mis.choice ? 'YOU ANSWERED ' + mis.choice.toUpperCase() : mis.def.name.toUpperCase()}`
+      : `MISSION ${mis.def.no} FAILED · ${kind === 'failed' ? mis.failWhy.toUpperCase() : kind === 'rammed' ? `THE ${bossName.replace(/^THE /, '')} REACHED THE CORE` : 'HULL BREACHED'}`)
+    : gaunt ? (kind === 'cleared' ? `GAUNTLET CLEARED · ALL FOUR DESTROYED IN ${fmtClock(G.t)}` : `SIGNAL LOST · ${kind === 'rammed' ? `THE ${bossName} REACHED THE CORE` : 'HULL BREACHED'} · LEVIATHAN ${G.sec.wave}/4`)
+    : drill ? `DRILL · 90 SECONDS${G.stats.leaks ? ` · ${G.stats.leaks} LEAKED` : ''}`
     : zen ? `ZEN · ${fmtClock(G.t)}`
     : G.game === 'descent' ? (kind === 'rammed' ? `SIGNAL LOST · THE ${bossName} REACHED THE CORE AT ${Math.floor(G.depth)} M` : `SIGNAL LOST · HULL BREACHED AT ${Math.floor(G.depth)} M · ${ZONES[Math.max(0, zoneIndex())].name.toUpperCase()} ZONE`)
     : daily && kind === 'cleared' ? `DAILY DIVE CLEARED · ${DAILY_MODS[daily.mod][0].toUpperCase()} · ${bossName} DESTROYED`
@@ -3828,9 +4123,9 @@ function gameOver(kind) {
     : kind === 'rammed' ? `SIGNAL LOST · THE ${bossName} REACHED THE CORE`
     : G.game === 'sector' ? `SIGNAL LOST · HULL BREACHED · WAVE ${G.sec.wave}/3`
     : exp ? `SIGNAL LOST · HULL BREACHED · LEG ${exp.col + 1}/${CHART_COLS}` : 'SIGNAL LOST · HULL BREACHED';
-  $('#dTitle').textContent = drill ? 'Drill complete' : zen ? 'Session complete' : daily ? (firstToday ? 'Daily dive' : 'Daily dive · practice') : G.game === 'descent' ? 'Dive over' : kind === 'cleared' ? (exp ? 'Expedition complete' : 'Sector cleared') : 'Debrief';
-  $('#dSub').textContent = `${prefs.comfort.assist < 1 ? 'assisted ' + Math.round(prefs.comfort.assist * 100) + '% · ' : ''}${daily ? 'daily dive ' + daily.key : G.game}${G.tier ? ' tier ' + G.tier : ''} · difficulty ${pad(G.diff)}${drill ? '' : ' · ' + name} · ${Math.floor(G.t / 60)} m ${Math.floor(G.t % 60)} s${G.pressMul > 1 ? ` · pressure ×${G.pressMul.toFixed(2)}` : ''}`;
-  $('#dActs').innerHTML = (medal ? `<span class="chip medal" style="color:${{ gold: 'var(--pen-4)', silver: 'var(--ink-2)', bronze: 'var(--pen-6)' }[medal]};border-color:currentColor">${medalSvg(medal, 16)} ${medal.toUpperCase()}</span>` : '')
+  $('#dTitle').textContent = mis ? (kind === 'cleared' ? (mis.def.finale ? 'The last word' : 'Mission complete') : 'Mission failed') : gaunt ? (kind === 'cleared' ? 'Gauntlet cleared' : 'Debrief') : drill ? 'Drill complete' : zen ? 'Session complete' : daily ? (firstToday ? 'Daily dive' : 'Daily dive · practice') : G.game === 'descent' ? 'Dive over' : kind === 'cleared' ? (exp ? 'Expedition complete' : 'Sector cleared') : 'Debrief';
+  $('#dSub').textContent = `${prefs.comfort.assist < 1 ? 'assisted ' + Math.round(prefs.comfort.assist * 100) + '% · ' : ''}${daily ? 'daily dive ' + daily.key : mis ? `campaign · ${CAMP_PACE[mis.pace][0].toLowerCase()} pace` : G.game}${G.tier ? ' tier ' + G.tier : ''} · ${mis ? 'threat' : 'difficulty'} ${pad(G.diff)}${drill || mis ? '' : ' · ' + name} · ${Math.floor(G.t / 60)} m ${Math.floor(G.t % 60)} s${G.pressMul > 1 ? ` · pressure ×${G.pressMul.toFixed(2)}` : ''}`;
+  $('#dActs').innerHTML = (mis && kind === 'cleared' ? `<span class="chip medal" style="color:var(--pen-4);border-color:currentColor"><span class="stars">${[0, 1, 2].map(k => `<i class="${k < starsNow ? 'on' : ''}"></i>`).join('')}</span> ${starsNow}/3</span>` : '') + (medal ? `<span class="chip medal" style="color:${{ gold: 'var(--pen-4)', silver: 'var(--ink-2)', bronze: 'var(--pen-6)' }[medal]};border-color:currentColor">${medalSvg(medal, 16)} ${medal.toUpperCase()}</span>` : '')
     + (isNew ? '<span class="chip" style="color:var(--pen-2);border-color:var(--pen-2)">● new best</span>' : '')
     + (newlyAffordable.length ? '<span class="chip" style="color:var(--pen-4);border-color:var(--pen-4)">● new in the Dry Dock <kbd>D</kbd></span>' : '');
   const w = wpm();
@@ -3841,7 +4136,9 @@ function gameOver(kind) {
   $('#dAcc').innerHTML = accuracy() == null ? dash : `${fmtAcc(acc)}<small class="u">%</small>`;
   $('#dAccS').textContent = `${G.miss} miss${G.miss === 1 ? '' : 'es'}`;
   $('#dKills').textContent = G.kills;
-  $('#dKillsS').textContent = G.game === 'descent' ? `reached ${Math.floor(G.depth)} m${prefs.deepest[G.diff] > Math.floor(G.depth) ? ` · deepest ${prefs.deepest[G.diff]}` : ' · deepest yet'}`
+  $('#dKillsS').textContent = mis ? (kind === 'cleared' ? 'objective complete' : mis.stage === 'run' ? objective().line.replace(/<\/?b>/g, '') : mis.stage === 'boss' ? `reached the ${bossName.toLowerCase().replace(/^the /, '')}` : 'objective complete')
+    : gaunt ? `${G.sec.wave - (kind === 'cleared' ? 0 : 1)}/4 leviathans`
+    : G.game === 'descent' ? `reached ${Math.floor(G.depth)} m${prefs.deepest[G.diff] > Math.floor(G.depth) ? ` · deepest ${prefs.deepest[G.diff]}` : ' · deepest yet'}`
     : zen ? `${G.stats.leaks || 0} got through`
     : G.game === 'sector'
     ? (kind === 'cleared' ? 'all 3 waves + boss' : G.sec.stage === 'boss' || kind === 'rammed' ? 'reached the boss' : `reached wave ${G.sec.wave}/3`)
@@ -3885,6 +4182,9 @@ function gameOver(kind) {
   // the Archive: words recovered, relics, commendations and promotions from this run
   $('#dArchive').innerHTML = `<div class="sech"><span class="lbl">Archive</span></div>`
     + r('var(--pen-4)', 'Words recovered', `+${G.newWords} <small class="u">catalogue ${(catPct() * 100).toFixed(1)}%</small>`)
+    + (mis && kind === 'cleared' ? r('var(--pen-4)', `Marks${starsNow > starsBefore ? ` <small class="u">+${starPay}</small>` : ''}`,
+        mis.def.marks.map(([t], k) => `<span style="color:${marksNow[k] ? 'var(--ink)' : 'var(--ink-3)'}">${marksNow[k] ? '✓' : '–'} ${esc(t)}</span>`).join(' · ')) : '')
+    + (mis && kind !== 'cleared' ? r('var(--pen-1)', 'Objective', `${goalText(mis.def)}${mis.def.boss ? ', then ' + (mis.def.boss === 'archive' ? ARCHIVE.name : 'the ' + BOSSES[mis.def.boss].name) : ''}`) : '')
     + (G.runRelics.length ? r('var(--pen-4)', 'Relics recovered', G.runRelics.map(k => `<b>${esc(k)}</b>`).join(' · ')) : '')
     + (promoted ? r('var(--pen-2)', 'Promoted', `<b>${promoted}</b>`) : '')
     + (goalHit ? r('var(--pen-3)', 'Weekly goal met', `<b>${goalLine()}</b>`) : '')
@@ -3904,13 +4204,20 @@ function gameOver(kind) {
     r('var(--pen-2)', 'Weapons used', `${st.used.pulse} pulse · ${st.used.torp} torp · ${st.used.nuke} nuke`) +
     r('var(--pen-4)', 'Supply crates', `${st.crates.got} <small class="u">of ${st.crates.seen}</small>`) +
     r('var(--pen-6)', 'Pings · mines · decoys', `${st.used.ping} · ${st.mines} · ${st.decoys}`);
-  $('#btnAgain').innerHTML = `${kind === 'cleared' ? 'Play again' : 'Re-engage'} at ${pad(G.diff)} <kbd>⏎</kbd>`;
+  $('#btnAgain').innerHTML = mis ? `${kind !== 'cleared' ? 'Retry the mission' : mis.i < MISSIONS.length - 1 ? 'Next mission' : 'Fly the last word again'} <kbd>⏎</kbd>`
+    : `${kind === 'cleared' ? 'Play again' : 'Re-engage'} at ${pad(G.diff)} <kbd>⏎</kbd>`;
+  $('#btnChange').innerHTML = `${mis ? 'Back to the campaign' : 'Change difficulty'} <kbd>Esc</kbd>`;
   $('#dRuns').textContent = `run saved · ${prefs.runs} run${prefs.runs === 1 ? '' : 's'} on this computer`;
   requestAnimationFrame(() => dotCols($('#cvTimeline'), G.killsRun, C['pen-2'], Math.max(24, G.killsRun.length)));
   if (kind === 'cleared') sfx.win();
 }
 function copyResult() {
   const acc = accuracy(), w = wpm(), res = G.result || {};
+  if (G.mis) {
+    const text = `Sonar Type · campaign mission ${G.mis.def.no}, ${G.mis.def.name}: ${res.kind === 'cleared' ? `complete, ${campStars(G.mis.i)}/3 stars` : 'failed'}, ${fmtPts(G.points)} points, ${w ?? '–'} wpm, ${acc == null ? '–' : fmtAcc(acc) + '%'} accuracy.`;
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast('Result copied'), () => fallbackCopy(text, () => toast('Result copied'))); else fallbackCopy(text, () => toast('Result copied'));
+    return;
+  }
   const outcome = res.kind === 'cleared' ? `${G.exp ? 'beat the ' + BOSSES[G.exp.boss].name : 'cleared'} with ${res.medal}`
     : G.exp ? `lost on leg ${G.exp.col + 1}/${CHART_COLS}` : G.game === 'sector' ? `lost on ${G.sec.stage === 'boss' || res.kind === 'rammed' ? 'the leviathan' : 'wave ' + G.sec.wave + '/3'}` : `${G.kills} destroyed`;
   const text = `Sonar Type · ${G.game} ${pad(G.diff)} (${DIFF_NAMES[G.diff - 1]}): ${fmtPts(G.points)} points, ${outcome}, ` +
@@ -4093,6 +4400,13 @@ const COMMENDATIONS = [
   ['goal1', 'On target', 'Meet a weekly goal.', 100, () => Object.keys(prefs.goalsMet).length >= 1],
   ['goal4', 'Steady practice', 'Meet the weekly goal in four different weeks.', 250, () => Object.keys(prefs.goalsMet).length >= 4],
   ['warm10', 'Limber', 'Warm up before ten runs.', 60, () => (prefs.life.warmups || 0) >= 10],
+  ['camp1', 'First orders', 'Finish a campaign mission.', 40, () => campDone() >= 1],
+  ['camp5', 'Halfway down', 'Finish five campaign missions.', 100, () => campDone() >= 5],
+  ['camp10', 'The last word', 'Finish the campaign.', 250, () => !!prefs.campaign.ending],
+  ['endings', 'Both answers', 'See both endings of the campaign.', 150, () => !!(prefs.campaign.endings.keep && prefs.campaign.endings.rest)],
+  ['stars30', 'Every mark', 'Earn all 30 campaign stars.', 400, () => campTotal() >= MISSIONS.length * 3],
+  ['gauntlet', 'Run the gauntlet', 'Clear the Gauntlet.', 150, r => r.cleared && r.game === 'gauntlet'],
+  ['gauntlet7', 'Iron nerve', 'Clear the Gauntlet at difficulty 07 or higher.', 300, r => r.cleared && r.game === 'gauntlet' && r.diff >= 7],
 ];
 // the end-of-run check: returns the commendations newly earned (their salvage is paid here)
 function awardCommendations(r) {
@@ -4147,6 +4461,12 @@ const STORY = [
     text: 'The relics are different. They come up slowly, gold on the scope, and they never attack. The Archive kept them apart for a reason. We have started keeping them apart too, in a drawer under the radio.' },
   { id: 'c50', no: 'LOG C2', title: 'Half', req: () => catPct() >= .5, need: 'recover half of the Archive',
     text: 'Half the Archive is on cards now. The linguist sleeps again. She says a language is not lost while somebody can still read it, and that somebody is sitting at our scope.' },
+  // the campaign: one log per mission finished, then whichever answer was given at the end (the other one too, if it ever is)
+  ...MISSIONS.filter(m => m.after).map(m => ({ id: 'k' + m.no, no: 'MISSION ' + m.no, title: m.name, req: () => !!prefs.campaign.done[m.id], need: `finish campaign mission ${m.no}`, text: m.after })),
+  { id: 'e_keep', no: 'THE LAST WORD', title: 'Keep', req: () => !!prefs.campaign.endings.keep, need: 'finish the campaign, and answer one way',
+    text: 'You typed keep. The Archive went on talking, slower now, kinder, one word at a time up the shaft, and Pelagia went on reading. The linguist moved her desk to the window. The relief boats bring paper now instead of fuel. Somebody has to keep a library, and somebody does.' },
+  { id: 'e_rest', no: 'THE LAST WORD', title: 'Rest', req: () => !!prefs.campaign.endings.rest, need: 'finish the campaign, and answer the other way',
+    text: 'You typed rest. The Archive read it, the way it read everything, and the echo stopped. For the first time since the shelf went quiet the water is only water. The linguist kept the card index. A language is not lost while somebody can still read it, she says, and every card is in your hand.' },
   { id: 'end', no: 'LOG \u221e', title: 'Pelagia', req: () => Object.keys(BOSSES).every(beat) && maxClear() >= 10, need: 'clear sector 10 and destroy all four leviathans',
     text: 'All four are quiet. The Archive has finished sending. The words still rise, slower now, and the crew have started writing them down instead of only typing them out. Pelagia is a library now. Somebody has to keep it.' },
 ];
@@ -4322,7 +4642,7 @@ function openPick() {
   }
   if (!offer.length) return;
   G.offer = offer; G.armHeld = false;
-  $('#pkNo').textContent = G.exp && G.exp.afterPick ? 'HARBOUR · 40 HULL REPAIRED · CHOOSE AN UPGRADE' : G.game === 'patrol' ? `THREAT ${pad(G.level)} · CHOOSE AN UPGRADE`
+  $('#pkNo').textContent = G.pickNote ? G.pickNote : G.exp && G.exp.afterPick ? 'HARBOUR · 40 HULL REPAIRED · CHOOSE AN UPGRADE' : G.game === 'patrol' ? `THREAT ${pad(G.level)} · CHOOSE AN UPGRADE`
     : `${G.game === 'expedition' ? G.exp.node.name.toUpperCase() + ' · ' : ''}WAVE ${G.sec.wave}/${wavesTotal()} CLEARED · CHOOSE AN UPGRADE`;
   $('#pkCards').innerHTML = offer.map((k, i) => `<button class="unit card" data-card="${i}">
     <div class="top"><kbd>${i + 1}</kbd><span class="tag ${CARDS[k].rare ? 'rare' : ''}">${CARDS[k].rare ? 'rare module' : 'module'}</span></div>
@@ -4803,6 +5123,34 @@ function buildDailyPanel() {
   const medals = Object.keys(prefs.medals).length;
   $('#runsNote').textContent = `${RANKS[rankOf(prefs.salvageTotal)][1]} · archive ${(catPct() * 100).toFixed(1)}% · ${goalLine()} · ${prefs.runs} runs`;
 }
+// the Campaign's panel, in place of the tiles: the missions down the left, the chosen one's orders on the right
+function buildCampPanel() {
+  const i = clamp(prefs.campSel, 0, MISSIONS.length - 1), def = MISSIONS[i], rec = campRec(i), open = campOpen(i);
+  const dots = on => [0, 1, 2].map(k => `<i class="${k < on ? 'on' : ''}"></i>`).join('');
+  const rows = MISSIONS.map((m, k) => `<button class="crow ${k === i ? 'sel' : ''} ${campOpen(k) ? '' : 'lk'}" data-m="${k}"><span class="no">${m.no}</span>`
+    + `<span class="nm">${campOpen(k) ? esc(m.name) : 'orders sealed'}</span><span class="stars">${campOpen(k) ? dots(campStars(k)) : ''}</span></button>`).join('');
+  const boss = def.boss ? (def.boss === 'archive' ? ARCHIVE : BOSSES[def.boss]).name : '';
+  const marks = ['finish it', ...def.marks.map(mk => mk[0])].map((t, k) => `<span class="${rec && (k === 0 || rec.marks[k - 1]) ? 'on' : ''}"><i></i>${esc(t)}</span>`).join('');
+  const lv = clamp(def.lv + CAMP_PACE[prefs.campPace][1], 1, 10), ends = Object.keys(prefs.campaign.endings);
+  $('#tiles').innerHTML = `<div class="camp" style="grid-column:1/-1">
+    <div class="clist">${rows}<div class="ctot">stars <b>${campTotal()}</b>/${MISSIONS.length * 3}${ends.length ? ` · answered <b>${ends.join(' and ')}</b>` : ''}</div></div>
+    <div class="unit cbrief" id="campGo">
+      <div class="top"><span class="no">MISSION ${def.no} · ${esc(def.where.toUpperCase())}</span><span class="st">threat <b>${pad(lv)}</b> · ${CAMP_PACE[prefs.campPace][0].toLowerCase()} pace${rec ? ` · best <b>${fmtPts(rec.pts)}</b>` : ''}</span></div>
+      <div class="nm">${open ? esc(def.name) : 'Orders sealed'}</div>
+      <p>${open ? esc(def.brief) : `Finish mission ${MISSIONS[i - 1].no}, ${esc(MISSIONS[i - 1].name)}, to open these orders.`}</p>
+      ${open ? `<div class="cobj"><span class="lbl">Objective</span><b>${goalText(def)}</b>${boss ? `<span>then <b>${boss === ARCHIVE.name ? boss : 'the ' + boss}</b></span>` : ''}${def.fail ? `<span class="warn">${failText(def)}</span>` : ''}</div>
+      <div class="cmarks">${marks}</div>
+      <div class="dgo">${rec ? 'Fly it again' : 'Launch'} <kbd>⏎</kbd></div>` : ''}
+    </div></div>`;
+  document.querySelectorAll('.crow').forEach(b => b.onclick = e => { e.stopPropagation(); campSelect(+b.dataset.m); });
+  $('#campGo').onclick = () => startRun(sel, 'campaign');
+  $('#runsNote').textContent = `${RANKS[rankOf(prefs.salvageTotal)][1]} · archive ${(catPct() * 100).toFixed(1)}% · ${goalLine()} · ${prefs.runs} runs`;
+}
+function campSelect(i) {
+  i = clamp(i, 0, MISSIONS.length - 1);
+  if (i === prefs.campSel) return;
+  prefs.campSel = i; savePrefs(); sfx.ui(); buildTiles();
+}
 // the title's story line: the newest unheard transmission, or the latest one
 function buildStoryLine() {
   const un = storyUnlocked(), fresh = storyUnheard(), e = fresh.length ? fresh[fresh.length - 1] : un[un.length - 1];
@@ -4824,6 +5172,13 @@ function buildKitLine() {
 const pressMulNow = () => Object.keys(PRESSURE).filter(k => prefs.pressure[k] && PRESSURE[k].ok()).reduce((m, k) => m * PRESSURE[k].mul, 1);
 function buildPress() {
   // the daily dive brings its own twist; drills and zen are practice: pressure switches sit those out
+  if (prefs.game === 'campaign') {
+    $('#pressBar').innerHTML = `<span class="lbl" style="margin-right:4px">Pace</span>` + CAMP_PACE.map(([nm, off], k) =>
+      `<button class="chip tier ${prefs.campPace === k ? 'on' : ''}" data-pace="${k}">${nm}${off ? ` ${off > 0 ? '+' : '−'}${Math.abs(off)}` : ''}</button>`).join('')
+      + `<span class="mult" style="color:var(--ink-3)">shifts every mission's threat level · pressure switches do not apply to the campaign</span>`;
+    document.querySelectorAll('[data-pace]').forEach(b => b.onclick = () => { prefs.campPace = +b.dataset.pace; savePrefs(); buildTiles(); ensureAudio(); sfx.ui(); });
+    return;
+  }
   if (['daily', 'drill', 'zen'].includes(prefs.game)) {
     $('#pressBar').innerHTML = `<span class="lbl" style="margin-right:4px">Pressure</span><span class="mult" style="color:var(--ink-3)">${prefs.game === 'daily' ? 'the daily dive brings its own twist: pressure switches do not apply' : 'pressure switches do not apply to practice'}</span>`;
     return;
@@ -4929,7 +5284,11 @@ addEventListener('keydown', e => {
   if (k === 'm') { toggleSound(); return; }
   if (k === 'u') { toggleMusic(); return; }
   if (k === 't') { toggleTheme(); return; }
-  if (screen === 'title') {
+  if (screen === 'title' && prefs.game === 'campaign' && (/^[0-9]$/.test(e.key) || e.key.startsWith('Arrow'))) {
+    // in the campaign the number keys and arrows pick a mission, not a difficulty
+    if (/^[0-9]$/.test(e.key)) campSelect(e.key === '0' ? 9 : +e.key - 1);
+    else campSelect(prefs.campSel + (e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : -1));
+  } else if (screen === 'title') {
     if (/^[0-9]$/.test(e.key)) select(e.key === '0' ? 10 : +e.key);
     else if (e.key === 'ArrowRight') select(Math.min(10, sel + 1));
     else if (e.key === 'ArrowLeft') select(Math.max(1, sel - 1));
@@ -4964,7 +5323,7 @@ addEventListener('keydown', e => {
     if (k === 'd' && performance.now() >= inputGuard) { openDock(); return; }
     if (k === 'l' && performance.now() >= inputGuard) { openLog(); return; }
     if (performance.now() < inputGuard) return;
-    if (e.key === 'Enter') startRun(G.diff, G.daily ? 'daily' : G.game);
+    if (e.key === 'Enter') runAgain();
     else if (e.key === 'Escape') quitToTitle();
   }
 });
@@ -4992,7 +5351,7 @@ $('#togShake').onclick = toggleShake;
 $('#togMusic').onclick = toggleMusic;
 $('#btnResume').onclick = resume;
 $('#btnQuit').onclick = quitToTitle;
-$('#btnAgain').onclick = () => startRun(G.diff, G.daily ? 'daily' : G.game);
+$('#btnAgain').onclick = runAgain;
 $('#btnChange').onclick = quitToTitle;
 $('#btnDock').onclick = () => openDock();
 $('#btnSet').onclick = openSettings;
