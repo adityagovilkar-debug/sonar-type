@@ -36,6 +36,11 @@ Every letter fires a tracer, and the score rewards hard words, fast typing and d
   a streak); **Zen** (no hull, no weapons); and six new contacts: allies (do not fire), krill swarms, mimics,
   divers, wardens and fading words.
 
+- **Combat depth** (v4.5): a hull **ability** on key 1 (Breath, Brace, Phase out, Overdrive, Chorus); **flow**
+  (fast clean words fill a meter; full, it scores ×1.25); **parry** (type a leviathan's shot within a second and it
+  flies back); a **ghost** of your best run in the Score panel; **hull mastery** (levels 1–5: trims, a perk,
+  a stronger ability); **expedition tiers** 1–5, each adding a modifier and +20% score and salvage.
+
 ## Tests
 
 `tests/` drives the game in headless Edge with a throwaway profile, so no real save is touched.
