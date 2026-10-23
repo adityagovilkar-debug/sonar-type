@@ -27,6 +27,17 @@ Every letter fires a tracer, and the score rewards hard words, fast typing and d
 - **Pressure**: switches unlocked by clearing sectors (Deep water, Fragile, Typo tax, Blackout, Bare hull) that
   make a run harder and multiply its score.
 
+- **The Archive** (v4.3): every word typed out is recovered into a catalogue (Logbook → Archive), rare gold
+  **relic** words carry catalogue cards, a **bestiary** records every kind of contact met, 44 **commendations**
+  pay salvage once each, and an **Operator rank** grows with all the salvage ever banked.
+
+## Tests
+
+`tests/` drives the game in headless Edge with a throwaway profile, so no real save is touched.
+Serve `game/` (`python -m http.server 8420 --directory game`), then for example:
+`node tests/run.cjs tests/archive.cjs` (checks + simulated runs) or `node tests/run.cjs tests/shots-archive.cjs`
+(screenshots). `node tests/packaged.cjs` smoke-tests the built app after `npm run dist`.
+
 ## Layout
 
 | Path | What it is |

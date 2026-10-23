@@ -192,6 +192,39 @@ body[data-screen="log"] #ovLog{display:flex}
 .key.na{border-style:dashed;opacity:.55}
 .lglegend{display:flex;gap:14px;justify-content:center;font-size:10px;color:var(--ink-3);margin-top:8px}
 .lglegend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.catbar{margin:14px 0 4px;overflow:hidden}
+.lgrid{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:6px}
+.lt{border:1px solid var(--rule);border-radius:var(--r);padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:var(--mono)}
+.lt b{font-size:13px}.lt span{font-size:8.5px;color:var(--ink-3)}
+.relics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.relic{border:1px dashed var(--rule-strong);border-radius:var(--r);padding:8px 10px;min-width:0}
+.relic b{font-family:var(--mono);font-size:12px;color:var(--ink-3);letter-spacing:.06em;word-break:break-all}
+.relic p{margin:4px 0 0;font-size:10.5px;line-height:1.4;color:var(--ink-3)}
+.relic span{display:block;margin-top:5px;font-family:var(--mono);font-size:8.5px;color:var(--ink-3)}
+.relic.on{border:1px solid color-mix(in srgb,var(--pen-4) 55%,var(--rule));background:color-mix(in srgb,var(--pen-4) 6%,var(--paper))}
+.relic.on b{color:var(--pen-4)}.relic.on p{color:var(--ink-2)}
+.recent{display:flex;flex-wrap:wrap;gap:6px}
+.recent span{font-family:var(--mono);font-size:10.5px;border:1px solid var(--rule);border-radius:var(--r);padding:2px 7px;color:var(--ink-2)}
+.beasts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.beast{padding:10px 12px}
+.beast canvas{width:100%;height:58px;display:block}
+.beast .nm{font-size:13px;font-weight:600;margin-top:4px}
+.beast p{margin:3px 0 0;font-size:10.5px;color:var(--ink-3);line-height:1.4}
+.beast .st{margin-top:6px;font-family:var(--mono);font-size:9.5px;color:var(--ink-3)}
+.beast .st b{color:var(--ink)}
+.beast.unk canvas{opacity:.12;filter:grayscale(1)}
+.rankbox{display:flex;flex-direction:column;gap:6px;padding:4px 0 2px}
+.rankbox b{font-size:22px;font-weight:600;letter-spacing:-.01em}
+.rankbox .rp{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);display:flex;gap:10px;align-items:center}
+.hons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
+.hon{display:grid;grid-template-columns:12px 1fr auto;gap:10px;align-items:center;padding:7px 0;border-top:1px dotted var(--rule-strong)}
+.hon i{width:9px;height:9px;border-radius:50%;border:1px solid var(--ink-4)}
+.hon.on i{background:var(--pen-4);border-color:var(--pen-4)}
+.hon b{display:block;font-size:11.5px;font-weight:600;color:var(--ink-3)}
+.hon.on b{color:var(--ink)}
+.hon span{display:block;font-size:10px;color:var(--ink-3);line-height:1.35}
+.hon em{font-style:normal;font-family:var(--mono);font-size:9.5px;color:var(--ink-3)}
+.hon.on em{color:var(--pen-4)}
 .txlist .tx.locked{border-left-color:var(--rule-strong)}
 .savep{color:var(--ink-2);font-size:12px;line-height:1.6;margin:16px 0 0;max-width:76ch}
 .savebtns{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
@@ -242,6 +275,11 @@ body[data-screen="log"] #ovLog{display:flex}
 #cvChart{width:100%;height:330px;display:block}
 #ovOver .panel,#ovLog .panel{max-height:100%;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--rule-strong) transparent}
 .tx{border-left:2px solid var(--pen-3);padding:8px 0 8px 12px;margin-top:14px}
+.tx.gold{border-left-color:var(--pen-4)}
+.tx.gold .no{color:var(--pen-4)}
+.tx p.honl{margin:5px 0 0;font-size:11.5px;line-height:1.4}
+.tx p.honl b{color:var(--ink);font-weight:600;margin-right:4px}
+.tx p.honl em{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--pen-4);margin-left:4px}
 .tx .no{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--pen-3)}
 .tx p{margin:6px 0 0;font-size:12px;line-height:1.55;color:var(--ink-2)}
 .row .val kbd{font-size:9px;padding:0 4px}
@@ -379,7 +417,7 @@ body[data-screen="log"] #ovLog{display:flex}
         <div id="lgBody"></div>
         <div class="foot">
           <button class="btn pri" id="btnLogBack">Back <kbd>Esc</kbd></button>
-          <span><kbd>1</kbd>–<kbd>4</kbd> pages</span>
+          <span><kbd>1</kbd>–<kbd>7</kbd> pages</span>
           <span class="r mono" id="lgNote"></span>
         </div>
       </div>
@@ -442,6 +480,7 @@ body[data-screen="log"] #ovLog{display:flex}
             </div>
             <div class="sech"><span class="lbl">Kills per 10 s</span></div>
             <canvas id="cvTimeline"></canvas>
+            <div id="dArchive"></div>
             <div id="dStory"></div>
             <div class="sech"><span class="lbl">Salvage</span></div>
             <div id="dSalvage"></div>
@@ -487,7 +526,7 @@ body[data-screen="log"] #ovLog{display:flex}
    clean typing (pulse / torpedo / nuke), supply crates, and a
    sector mode that ends with a leviathan.
    ============================================================ */
-const VERSION = '4.2.1';
+const VERSION = '4.3';
 const TAU = Math.PI * 2;
 const $ = s => document.querySelector(s);
 const wrap = a => ((a % TAU) + TAU) % TAU;
@@ -520,6 +559,11 @@ prefs.life = Object.assign({ words: 0, keys: 0, secs: 0, bestStreak: 0, bestWpm:
 prefs.heard = Object.assign({}, prefs.heard);
 if (prefs.adaptive == null) prefs.adaptive = true;
 prefs.beaten = Object.assign({}, prefs.beaten);
+// v4.3: the Archive. Catalogue (recovered words, saved as one space-separated string), relics, bestiary, commendations
+prefs.relics = Object.assign({}, prefs.relics);
+prefs.bestiary = Object.assign({}, prefs.bestiary);
+prefs.honours = Object.assign({}, prefs.honours);
+prefs.catRecent = Array.isArray(prefs.catRecent) ? prefs.catRecent : [];
 if (Object.keys(prefs.medals).length) prefs.beaten.leviathan = true;
 for (const ends of Object.values(prefs.expEnds)) for (const k of Object.keys(ends)) prefs.beaten[k] = true;
 // first launch of v4 on a computer with history: bank salvage for the records already set, so past play counts
@@ -535,7 +579,11 @@ if (!prefs.v4) {
   try { localStorage.setItem(STORE, JSON.stringify(prefs)); } catch {}
 }
 // once an import has written a new save, the old one still in memory must never be written back over it
-function savePrefs() { if (window.SonarSave && SonarSave.locked) return; try { localStorage.setItem(STORE, JSON.stringify(prefs)); } catch {} }
+const CATSTATE = { set: null, dirty: false };
+function savePrefs() {
+  if (window.SonarSave && SonarSave.locked) return;
+  if (CATSTATE.dirty && CATSTATE.set) { prefs.cat = [...CATSTATE.set].join(' '); CATSTATE.dirty = false; }
+  try { localStorage.setItem(STORE, JSON.stringify(prefs)); } catch {} }
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const shakeOn = () => prefs.shake && !reducedMotion;
 
@@ -699,6 +747,7 @@ const TRACERS = {
   sine:     { name: 'Sine wave', from: 'choir' },
   comet:    { name: 'Comet', feat: () => golds() >= 1, req: 'win a gold medal' },
   bubbles:  { name: 'Bubble chain', feat: () => clears() >= 5, req: 'clear five different sectors' },
+  quill:    { name: 'Quill', feat: () => relicCount() >= 10, req: 'recover ten relic words' },
   ribbon:   { name: 'Ribbon', cost: 250, blurb: 'Two strands that twist around each other in flight.' },
   zigzag:   { name: 'Lightning', cost: 300, blurb: 'A jagged, flickering bolt.' },
 };
@@ -709,6 +758,7 @@ const SCOPES = {
   green:  { name: 'Green CRT', cost: 200, dark: '#5BEA74', light: '#1E8F3A', blurb: 'A cathode-ray tube, freshly warmed up.' },
   ice:    { name: 'Ice', cost: 200, dark: '#8AD8FF', light: '#1B6FA0', blurb: 'Cold, clear, polar water.' },
   violet: { name: 'Violet', cost: 250, dark: '#B48CF2', light: '#6B3FA0', blurb: 'Deep-water bioluminescence.' },
+  gilt:   { name: 'Gilt', dark: '#E8C46A', light: '#9A7414', feat: () => catPct() >= .25, req: 'recover a quarter of the Archive', blurb: 'Gold leaf on the sweep, for a quarter of the Archive recovered.' },
   ember:  { name: 'Ember', cost: 250, dark: '#FF7A4D', light: '#C2410C', blurb: 'Running hot. Red lighting, battle stations.' },
 };
 const KILLFX = {
@@ -750,7 +800,7 @@ function owns(kind, key) {
   if (kind === 'hull') return !!HULLS[key] && (!HULLS[key].cost || !!prefs.owned['hull:' + key]);
   if (kind === 'card') return !!CARDS[key] && (!CARDS[key].rare || !!prefs.owned['card:' + key]);
   if (kind === 'tracer') { const t = TRACERS[key]; return !!t && (t.from ? owns('hull', t.from) : t.feat ? t.feat() : !!prefs.owned['tracer:' + key]); }
-  if (kind === 'scope') return !!SCOPES[key] && (!SCOPES[key].cost || !!prefs.owned['scope:' + key]);
+  if (kind === 'scope') { const sc = SCOPES[key]; return !!sc && (sc.feat ? sc.feat() : !sc.cost || !!prefs.owned['scope:' + key]); }
   if (kind === 'killfx') return !!KILLFX[key] && (!KILLFX[key].cost || !!prefs.owned['killfx:' + key]);
   const g = GEAR[kind] && GEAR[kind][key];
   return !!g && (!g.cost || !!prefs.owned[kind + ':' + key]);
@@ -945,6 +995,9 @@ const sfx = {
   aim:     p => { tone('square', 900, 1800, .4, .025, 0, { pan: p, filter: 'bandpass', ff: 1600, q: 4 }); },
   shot:    p => { tone('triangle', 1400, 300, .18, .09, 0, { pan: p, wet: .3 }); noise(.12, .15, 2600, 0, 'bandpass', { pan: p, q: 2 }); },
   // the Siren's call: a high, wavering glissando that climbs and falls back
+  // a relic surfacing: a soft, high shimmer; recovering one rings like a struck bell
+  relic:    p => [1568, 2093, 2637].forEach((f, i) => tone('sine', f, f, .9, .02, i * .09, { pan: p, wet: .9, attack: .05 })),
+  relicGet: () => { [523, 784, 1046, 1568, 2093].forEach((f, i) => tone('sine', f, f * .999, 1.8, .05, i * .05, { wet: .8 })); tone('triangle', 262, 262, 1.6, .05, 0, { wet: .7 }); },
   sirenCall: p => {
     tone('sine', 660, 990, 1.2, .07, 0, { pan: p, lfo: 7, depth: .03, wet: .9, attack: .3 });
     tone('sine', 990, 520, 1.6, .06, 1.1, { pan: p, lfo: 6, depth: .04, wet: .9, attack: .2 });
@@ -1024,14 +1077,14 @@ const G = { mode: 'demo', game: 'patrol', diff: 4, level: 4, words: [], tracers:
   kit: HULLS.skiff, hullType: 'skiff', gear: { torp: 'torpedo', pulse: 'pulse', nuke: 'nuke' }, tracer: 'standard', mods: {}, cards: [], press: {}, pressMul: 1, chargeMax: 50, ticks: TICKS };
 function newGame(diff, mode, game) {
   Object.assign(G, {
-    mode, game, diff, level: diff, kills: 0, points: 0, ptsBy: {}, bestWord: null, words: [], tracers: [], torps: [], fx: [], lock: null, boss: null,
+    mode, game, diff, level: diff, kills: 0, points: 0, ptsBy: {}, bestWord: null, words: [], tracers: [], torps: [], fx: [], lock: null, boss: null, bossBeat: false,
     spawnT: .8, nextId: 1, t: 0, correct: 0, miss: 0, sim: true, flash: 0, slowT: 0,
     hull: HULL_MAX, phase: { on: false, charge: 0, lastHit: -99, ripples: [], forge: 1 },
     iron: [false, false, false, false, false, false], ironForge: [1, 1, 1, 1, 1, 1],
     charge: 0, arsenal: { pulse: 0, torp: 0, nuke: 0 }, arm: 0, armHeld: false, armTick: 0, nuke: null, spawnHold: 0,
     crateT: game === 'sector' ? 14 : 30, hbT: 0,
     pingCd: 0, pingT: 0, alertT: 0, pingGlow: 0, thermo: null, thermoT: rnd(20, 35), storm: null, stormT: rnd(25, 40),
-    combo: 0, ripples: [], hurt: 0, letters: {}, bestCombo: 0, drillT: 90,
+    combo: 0, ripples: [], hurt: 0, letters: {}, bestCombo: 0, drillT: 90, newWords: 0, runBy: {}, runRelics: [], maxBlast: 0,
     weak: mode === 'play' && prefs.adaptive ? letterWeakness() : null,
     kills5: Array(24).fill(0), k5T: 0, killsRun: [0], kRunT: 0, keyTimes: [], peakWpm: 0, recent: [], longest: '', last: '',
     stats: { hullDmg: 0, hullHits: 0, phaseAbs: 0, ironHits: 0, hardest: null, used: { pulse: 0, torp: 0, nuke: 0, ping: 0 }, earned: { pulse: 0, torp: 0, nuke: 0 }, crates: { got: 0, seen: 0 }, mines: 0, decoys: 0 },
@@ -1086,12 +1139,12 @@ function pickFromTier(tier, minLen = 0) {
   const taken = new Set(G.words.filter(w => w.fired < w.text.length).map(w => w.text[w.fired].toLowerCase()));
   const ok = c => c.length >= minLen && !taken.has(c[0]) && !G.recent.includes(c) && !G.words.some(w => w.text === c);
   // adaptive words: draw a few candidates and lean towards the ones full of this typist's weakest letters
-  const want = G.weak ? (G.game === 'drill' ? 8 : 4) : 1, cands = [];
+  const want = G.weak ? (G.game === 'drill' ? 8 : 4) : 3, cands = [];
   for (let k = 0; k < 40 && cands.length < want; k++) { const c = pick(pool); if (ok(c) && !cands.includes(c)) cands.push(c); }
   if (!cands.length) return pool.filter(c => c.length >= minLen)[0] || pick(pool);
   if (cands.length === 1) return cands[0];
   const bias = G.game === 'drill' ? 12 : 3;
-  const wts = cands.map(c => { let s = 0; for (const ch of c.toLowerCase()) s += G.weak[ch] || 0; return 1 + bias * s / c.length; });
+  const wts = cands.map(c => { let s = 0; if (G.weak) for (const ch of c.toLowerCase()) s += G.weak[ch] || 0; return (1 + bias * s / c.length) * (CAT.has(c) ? 1 : 1.6); });
   let r = Math.random() * wts.reduce((a, b) => a + b, 0), i = 0;
   while (r > wts[i] && i < cands.length - 1) { r -= wts[i]; i++; }
   return cands[i];
@@ -1132,6 +1185,9 @@ function mk(kind, text, rx, ry, extra) {
 }
 function spawnEnemy(o = {}) {
   const ang = o.ang ?? bestBearing(), d = o.dist ?? edgeDist(ang) + 30;
+  // now and then an ordinary spawn surfaces as a relic: one at a time, never in a drill
+  if (!o.text && o.tier == null && o.trait === undefined && !o.shot && G.mode === 'play' && G.game !== 'drill' && G.level >= 2
+      && Math.random() < 1 / 75 && !G.words.some(w => w.relic)) return spawnRelic(ang, d);
   const trait = o.trait !== undefined ? o.trait : rollTrait(G.level);
   let text = o.text || (o.tier != null ? pickFromTier(o.tier) : pickWord());
   if (!o.text) {
@@ -1139,7 +1195,7 @@ function spawnEnemy(o = {}) {
     if (trait === 'mine') text = pickFromTier(Math.random() < .5 ? 0 : 1);
     if (trait === 'reversed' && text.length > 7) text = pickFromTier(2);
   }
-  const extra = { speed: o.speed ?? wordSpeed(G.level), trait };
+  const extra = { speed: o.speed ?? wordSpeed(G.level), trait, shot: !!o.shot };
   if (trait === 'cased') {
     if (Math.random() < .6) text = text[0].toUpperCase() + text.slice(1);
     if (!/[A-Z]/.test(text) || Math.random() < .5) text += pick([...PUNCT]);
@@ -1151,7 +1207,29 @@ function spawnEnemy(o = {}) {
   if (trait === 'mine') extra.speed *= .55;
   const w = mk('enemy', text, Math.cos(ang) * d, Math.sin(ang) * d, extra);
   G.words.push(w);
+  note(beastKey(w), 'seen');
   if (trait) tip(trait);
+  return w;
+}
+function recoverRelic(p, w) {
+  const k = w.text.toLowerCase(), first = !prefs.relics[k];
+  if (first) prefs.relics[k] = Date.now();
+  G.runRelics.push(k);
+  for (let i = 0; i < 3; i++) G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 10, r1: 70 + i * 40, n: 48, col: C['pen-4'], life: 1, max: 1, delay: i * .12 });
+  coreStamp(first ? 'RELIC RECOVERED' : 'RELIC RECOVERED AGAIN', C['pen-4'], 2.2);
+  if (first && RELICS[k]) tipQ.unshift([`RELIC · ${k.toUpperCase()}`, RELICS[k]]);
+  sfx.relicGet();
+}
+function relicDestroyed(p, w) {
+  G.fx.push({ k: 'stamp', x: p.x, y: p.y + 26, text: 'RELIC DESTROYED · TYPE RELICS BY HAND', col: C['ink-2'], life: 1.6, max: 1.6 });
+}
+// a relic: a word not yet recovered if there is one, gold, slow, and worth three times a normal word
+function spawnRelic(ang, d) {
+  const all = Object.keys(RELICS), fresh = all.filter(k => !prefs.relics[k]);
+  const text = pick(fresh.length ? fresh : all);
+  const w = mk('enemy', text, Math.cos(ang) * d, Math.sin(ang) * d, { speed: wordSpeed(G.level) * .7, trait: null, relic: true });
+  G.words.push(w);
+  note('relic', 'seen'); tip('relic'); sfx.relic(panAt(S.cx + w.rx));
   return w;
 }
 // supply crates drift ACROSS the scope (not at the core) and escape if not typed in time
@@ -1162,7 +1240,7 @@ function spawnCrate(ctype) {
   const sp = ctype === 'nuke' ? 66 : 44, n = Math.hypot(px - sx, py - sy);
   const text = ctype === 'nuke' ? pickFromTier(4, 10) : pickFromTier(3);
   G.words.push(mk('crate', text, sx, sy, { ctype, vx: (px - sx) / n * sp, vy: (py - sy) / n * sp, entered: false }));
-  G.stats.crates.seen++;
+  G.stats.crates.seen++; note('crate', 'seen');
   tip('crate');
 }
 // the Leviathan; on an expedition the route may end at the Siren (layers typed backwards, one tier shorter)
@@ -1180,7 +1258,7 @@ function spawnBoss(type = 'leviathan') {
   const a = bestBearing(), d = edgeDist(a) + 50;
   G.boss = mk('boss', layers[0], Math.cos(a) * d, Math.sin(a) * d, extra);
   G.words.push(G.boss);
-  G.boss.callT = .6; G.boss.wakeT = 0; G.bossType = type;
+  G.boss.callT = .6; G.boss.wakeT = 0; G.bossType = type; note(type, 'seen');
   tip('boss'); if (type !== 'leviathan') tip('boss_' + type);
 }
 function remove(w) { G.words = G.words.filter(o => o !== w); if (G.lock === w) G.lock = null; }
@@ -1333,8 +1411,8 @@ function splitInto(w) {
 }
 // a mine strips the untyped tail off every contact inside its blast ring
 function detonateMine(w) {
-  const p = pos(w);
-  remove(w);
+  const p = pos(w), killsBefore = G.kills + 1;
+  remove(w); recover(shown(w)); note('mine', 'kills');
   G.kills++; G.stats.mines++; G.kills5[G.kills5.length - 1]++; G.killsRun[G.killsRun.length - 1]++;
   const sc = typedPoints(w, !w.missed);
   G.fx.push({ k: 'stamp', x: p.x, y: p.y - 26, text: `+${sc.pts}  ${shown(w)}`, sub: sc.sub, col: C['pen-6'], life: 1.3, max: 1.3 });
@@ -1352,6 +1430,7 @@ function detonateMine(w) {
     if (Math.hypot(q.x - p.x, q.y - p.y) > mineR()) continue;
     stripTail(o, MINE_STRIP, C['pen-6'], 'mine');
   }
+  G.maxBlast = Math.max(G.maxBlast, G.kills - killsBefore);
   G.last = 'mine detonated';
 }
 // knock up to k untyped letters off the end of a contact (mines, swarm torpedoes, piercing tracers);
@@ -1378,7 +1457,7 @@ function springDecoy(w) {
 }
 function dissolve(w) {
   const p = pos(w);
-  remove(w);
+  remove(w); note('decoy', 'kills');
   if (sight(w) === 'clear') {
     G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 4, r1: 36, n: 20, col: C['ink-3'], life: .6, max: .6 });
     G.fx.push({ k: 'stamp', x: p.x, y: p.y - 22, text: 'DECOY', col: C['ink-3'], life: 1, max: 1 });
@@ -1402,7 +1481,10 @@ function kill(w, how) {
   if (clean) { G.combo++; G.bestCombo = Math.max(G.bestCombo, G.combo); }
   // weapon kills pay half the letters (as the word was before a mine stripped it) and nothing for speed; a nuke pays a flat salvage fee
   const whole = w.orig ? { ...w, text: w.orig } : w;
-  const sc = how === 'type' ? typedPoints(w, clean)
+  if (w.relic && how !== 'type') relicDestroyed(p, w);
+  else note(beastKey(w), 'kills');
+  if (how === 'type') { recover(shown(whole)); if (w.relic) recoverRelic(p, w); }
+  const sc = how === 'type' ? typedPoints(w, clean, w.relic ? 3 : 1)
     : { pts: addPoints(how === 'nuke' ? 5 : wordBase(whole) * .5, 'weapons'), sub: how === 'nuke' ? '' : 'WEAPON ×0.5' };
   if (how === 'type' || how === 'mine') {
     G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 6, r1: 86, n: 40, col: C['pen-2'], life: .6, max: .6 });
@@ -1555,7 +1637,7 @@ function grant(award) {
 function collect(w) {
   const p = pos(w);
   remove(w);
-  G.stats.crates.got++;
+  G.stats.crates.got++; note('crate', 'kills'); recover(w.text);
   const pts = addPoints(wordBase(w) * speedFactor(w) * (G.mods.magnet ? 2 : 1), 'crates');
   G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 6, r1: 90, n: 36, col: w.ctype === 'nuke' ? C['pen-1'] : C['pen-4'], life: .7, max: .7 });
   G.fx.push({ k: 'stamp', x: p.x, y: p.y - 28, text: `+ ${w.ctype === 'nuke' ? GEAR.nuke[G.gear.nuke].name.toUpperCase() : w.ctype.toUpperCase()}`, sub: `+${pts} pts`, col: w.ctype === 'nuke' ? C['pen-1'] : C['pen-4'], life: 1.4, max: 1.4, big: true });
@@ -1582,6 +1664,11 @@ function collect(w) {
 function coreHit(w) {
   const p = pos(w), a = angOf(w), pi = plateAt(a);
   remove(w);
+  if (w.relic) {
+    burstLetters(w, C['pen-4']);
+    G.fx.push({ k: 'stamp', x: p.x, y: p.y - 24, text: 'RELIC LOST', col: C['pen-4'], life: 1.4, max: 1.4, big: true });
+    sfx.fizz(panAt(p.x)); G.last = `relic lost: ${w.text}`; return;
+  }
   // a drill never hurts: a word that gets through just breaks the streak
   if (G.game === 'drill') {
     burstLetters(w, C['pen-1']); G.combo = 0; G.cleanRun = 0; G.stats.leaks = (G.stats.leaks || 0) + 1;
@@ -1797,10 +1884,11 @@ function bossLayer(w, how) {
   if (w.armour > 0 && how === 'type') {
     breakArmour(w); w.missed = false;
     // the Ironback's broken plates come at the hull as two small words
-    for (const sgn of [-1, 1]) { const f = spawnEnemy({ text: pickFromTier(0), trait: null, ang: angOf(w) + sgn * .22, dist: Math.max(S.R * .3, w.dist - 16), speed: wordSpeed(G.level) * 1.25 }); f.shot = true; }
+    for (const sgn of [-1, 1]) spawnEnemy({ text: pickFromTier(0), trait: null, ang: angOf(w) + sgn * .22, dist: Math.max(S.R * .3, w.dist - 16), speed: wordSpeed(G.level) * 1.25, shot: true });
     return;
   }
   const p = pos(w), cleared = w.layerTotal - w.layers.length + 1;
+  if (how === 'type') recover(shown(w));
   G.kills++; G.killsRun[G.killsRun.length - 1]++; G.kills5[G.kills5.length - 1]++;
   // every leviathan layer pays double; each layer's typing speed is timed on its own
   const sc = how === 'type' ? typedPoints(w, !w.missed, 2 * (w.btype === 'ironback' ? 2 : w.btype === 'siren' ? 1.5 : 1)) : { pts: addPoints(how === 'nuke' ? 5 : wordBase(w), 'weapons'), sub: 'WEAPON' };
@@ -1826,7 +1914,7 @@ function bossLayer(w, how) {
 function bossKilled(w) {
   const p = pos(w);
   remove(w); G.boss = null;
-  if (G.mode === 'play') prefs.beaten[w.btype || 'leviathan'] = true;
+  if (G.mode === 'play') { prefs.beaten[w.btype || 'leviathan'] = true; note(w.btype || 'leviathan', 'kills'); G.bossBeat = true; }
   for (let i = 0; i < 4; i++) G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 10, r1: 160 + i * 70, n: 64, col: i % 2 ? C['pen-3'] : C['pen-1'], life: 1.2, max: 1.2, delay: i * .15 });
   for (let i = 0; i < 70; i++) {
     const b = Math.random() * TAU, v = rnd(90, 520);
@@ -1870,8 +1958,7 @@ function bossAct(b, dt) {
 // the Archerfish's shot: a short word fired fast and straight at the hull
 function fireShot(b) {
   const p = pos(b);
-  const w = spawnEnemy({ text: pickFromTier(0), trait: null, ang: angOf(b) + rnd(-.1, .1), dist: Math.max(S.R * .25, b.dist - 30), speed: 95 + G.diff * 9 });
-  w.shot = true;
+  spawnEnemy({ text: pickFromTier(0), trait: null, ang: angOf(b) + rnd(-.1, .1), dist: Math.max(S.R * .25, b.dist - 30), speed: 95 + G.diff * 9, shot: true });
   G.fx.push({ k: 'dring', x: p.x, y: p.y, r0: 6, r1: 50, n: 26, col: C['pen-1'], life: .45, max: .45 });
   bubbles(p.x, p.y, 6); sfx.shot(panAt(p.x)); tip('shot');
 }
@@ -2278,7 +2365,7 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
   const mine = w.trait === 'mine', decoy = w.trait === 'decoy', rev = !!w.rev, exact = !!w.cased;
   const armoured = w.armour > 0, split = w.trait === 'splitter' && len > 1;
   const purple = C['pen-5'];
-  const accent = crate ? (w.ctype === 'nuke' ? C['pen-1'] : C['pen-4']) : boss ? C['pen-1'] : mine ? C['pen-6'] : rev ? purple : C['ink-3'];
+  const accent = crate ? (w.ctype === 'nuke' ? C['pen-1'] : C['pen-4']) : w.relic ? C['pen-4'] : boss ? C['pen-1'] : mine ? C['pen-6'] : rev ? purple : C['ink-3'];
   const slowed = !legend && G.slowT > 0, sung = !legend && G.songT > 0 && !boss;
 
   if (!ghost && !w.silent && !legend) {
@@ -2305,8 +2392,15 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
     c.setLineDash(ghost ? [4, 3] : decoy ? [2, 3] : [3, 2]);
     c.strokeStyle = ghost ? C['pen-3'] : decoy ? C['ink-3'] : accent; c.lineWidth = 1; c.strokeRect(x, y, chipW, chipH); c.setLineDash([]);
   } else {
-    c.strokeStyle = w.shot ? C['pen-1'] : boss ? C['ink-2'] : mine ? C['pen-6'] : rev ? purple : isLock ? C['ink-3'] : C['rule-strong'];
-    c.lineWidth = boss ? 2 : rev || w.shot ? 1.6 : 1; c.strokeRect(x, y, chipW, chipH);
+    c.strokeStyle = w.relic ? C['pen-4'] : w.shot ? C['pen-1'] : boss ? C['ink-2'] : mine ? C['pen-6'] : rev ? purple : isLock ? C['ink-3'] : C['rule-strong'];
+    c.lineWidth = boss ? 2 : w.relic ? 1.8 : rev || w.shot ? 1.6 : 1; c.strokeRect(x, y, chipW, chipH);
+  }
+  if (w.relic) {
+    // a relic: gold frame, a slow halo, and a diamond on its left
+    const glow = legend ? .5 : .35 + .25 * Math.sin(performance.now() / 300);
+    c.globalAlpha = mul * glow; c.strokeStyle = C['pen-4']; c.lineWidth = 1; c.strokeRect(x - 4, y - 4, chipW + 8, chipH + 8);
+    c.globalAlpha = mul; c.fillStyle = C['pen-4']; c.beginPath();
+    const dx = x - 12, dy = p.y; c.moveTo(dx, dy - 6); c.lineTo(dx + 5, dy); c.lineTo(dx, dy + 6); c.lineTo(dx - 5, dy); c.closePath(); c.fill();
   }
   if (w.shot && !legend) {
     // a shot carries an arrowhead pointing at the hull
@@ -2412,6 +2506,7 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
   let meta, mcol;
   if (crate) { meta = `SUPPLY · ${w.ctype.toUpperCase()}`; mcol = accent; }
   else if (w.shot) { meta = `SHOT  ${hitDamage(w)} DMG`; mcol = C['pen-1']; }
+  else if (w.relic) { meta = 'RELIC · TYPE IT BY HAND · NO DAMAGE'; mcol = C['pen-4']; }
   else if (boss) { meta = `${(BOSSES[w.btype] || BOSSES.leviathan).name.toUpperCase()} · ${w.layers.length}/${w.layerTotal} LAYERS · R ${(w.dist / S.R).toFixed(2)}`; mcol = C['pen-1']; }
   else {
     const label = w.trait ? `  ${TRAIT_LABEL[w.trait]}${armoured ? ' ×2' : w.trait === 'armour' ? ' · BROKEN' : ''}` : '';
@@ -2422,7 +2517,7 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
   c.fillStyle = mcol; c.fillText(meta, x, y + chipH + (armoured ? 8 : 5));
 }
 // tracer styles: each hull brings its own, and any unlocked style can be worn in the Dry Dock
-const TRACER_PEN = { standard: 'pen-2', slug: 'ink-2', ghost: 'pen-3', needle: 'pen-2', sine: 'pen-3', comet: 'pen-4', bubbles: 'pen-2', ribbon: 'pen-5', zigzag: 'pen-6' };
+const TRACER_PEN = { standard: 'pen-2', slug: 'ink-2', ghost: 'pen-3', needle: 'pen-2', sine: 'pen-3', comet: 'pen-4', bubbles: 'pen-2', ribbon: 'pen-5', zigzag: 'pen-6', quill: 'pen-4' };
 const tracerCol = (style = G.tracer) => C[TRACER_PEN[style] || 'pen-2'];
 function drawTracer(c, tr, style = tr.pierce ? 'standard' : G.tracer) {
   const col = tracerCol(style), e = Math.pow(Math.min(1, tr.t), 1.35), N = 14;
@@ -2465,7 +2560,7 @@ function drawTracer(c, tr, style = tr.pierce ? 'standard' : G.tracer) {
       else { c.lineWidth = 1; c.arc(q.x, q.y, 1 + 2.4 * k, 0, TAU); c.stroke(); }
     }
   } else {
-    const wid = { slug: [1.2, 4.6], needle: [.4, 1.4], comet: [.3, 3.8] }[style] || [.4, 2.6];
+    const wid = { slug: [1.2, 4.6], needle: [.4, 1.4], comet: [.3, 3.8], quill: [.2, 2] }[style] || [.4, 2.6];
     if (style === 'slug') c.strokeStyle = C.ink;
     for (let i = 1; i <= N; i++) {
       const k = i / N; c.globalAlpha = .15 + .85 * k; c.lineWidth = wid[0] + (wid[1] - wid[0]) * k;
@@ -2977,6 +3072,7 @@ const TIPS = {
   boss_archer:   ['ARCHERFISH', 'It stops at mid-range and fires short words at the hull. A red line means a shot is coming: type the shot first.'],
   boss_siren:    ['SIREN', 'Its layers are reversed, it circles as it closes, and every song speeds up the other contacts for 3 s.'],
   boss_ironback: ['IRONBACK', 'Each layer is plated: type it twice. Every plate you break flies at the hull as two small words.'],
+  relic:  ['RELIC', 'A gold contact: a word the Archive kept apart. Type it by hand to recover it for the catalogue. Weapons destroy it, and if it reaches the hull it is lost (it does no damage).'],
   shot:   ['SHOT', 'A short word fired straight at the hull. Start typing it even mid-word: the lock jumps to the more dangerous contact.'],
   switch: ['SWITCH TARGETS', 'Locked onto the wrong word? Just start typing the closer one and the lock jumps to it. Backspace drops the lock completely.'],
   ping:     ['ACTIVE PING · /', 'Reveals everything for 4 s, through noise and thermoclines. Contacts hear it and speed up. Recharges in 14 s.'],
@@ -3057,7 +3153,7 @@ function buildTiles() {
   });
   buildKitLine(); buildPress(); buildStoryLine();
   const medals = Object.keys(prefs.medals).length;
-  $('#runsNote').textContent = `${prefs.runs} run${prefs.runs === 1 ? '' : 's'} · ${medals} sector${medals === 1 ? '' : 's'} cleared`;
+  $('#runsNote').textContent = `${RANKS[rankOf(prefs.salvageTotal)][1]} · archive ${(catPct() * 100).toFixed(1)}% · ${prefs.runs} run${prefs.runs === 1 ? '' : 's'} · ${medals} sector${medals === 1 ? '' : 's'} cleared`;
 }
 function select(d) {
   sel = d;
@@ -3093,6 +3189,7 @@ const KEY = [
   ['beacon', { trait: 'decoy' }, 'Decoy', 'Outlined letters: leave it alone and it fades away.'],
   ['vessel', { trait: 'silent', silent: true }, 'Silent', 'Dashed teal echo: shows where it was, not where it is. Ping with /.'],
   ['ox', { shot: true }, 'Shot', 'Red, with an arrowhead: fired by a leviathan, fast and straight. Type it first.'],
+  ['fathom', { relic: true }, 'Relic', 'Gold, with a diamond: rare. Type it by hand to recover it; weapons destroy it. Harmless.'],
 ];
 function buildKey() {
   $('#keyList').innerHTML = KEY.map(([, , name, rule], i) => `<div class="keyrow"><canvas data-k="${i}"></canvas><div><b>${name}</b><span>${rule}</span></div></div>`).join('');
@@ -3136,8 +3233,16 @@ function gameOver(kind) {
   L.words += G.kills; L.keys += G.correct; L.secs += Math.round(G.t); L.bestStreak = Math.max(L.bestStreak, G.bestCombo);
   if (G.t >= 30 && runWpm) L.bestWpm = Math.max(L.bestWpm, runWpm);
   if (G.correct >= 100) L.bestAcc = Math.max(L.bestAcc, Math.round(acc * 10) / 10);
+  prefs.runs++;
+  // commendations are checked once the run is on the books; a promotion comes from all salvage ever banked
+  const rankBefore = rankOf(prefs.salvageTotal - salv);
+  const honours = awardCommendations({ game: G.game, diff: G.diff, cleared: kind === 'cleared', acc: accuracy() ?? 0, wpm: runWpm || 0, secs: G.t, pts: G.points,
+    combo: G.bestCombo, hullDmg: G.stats.hullDmg, hull: G.hull, secondUsed: !!G.secondUsed, bossBeat: G.bossBeat,
+    weapons: G.stats.used.pulse + G.stats.used.torp + G.stats.used.nuke, by: G.runBy, sprung: G.stats.decoys, maxBlast: G.maxBlast,
+    retargets: G.stats.retargets || 0, pressN: Object.keys(G.press).length, cards: G.cards.length });
+  const rankNow = rankOf(prefs.salvageTotal), promoted = rankNow > rankBefore ? RANKS[rankNow][1] : null;
   const heardNow = storyUnheard();
-  prefs.runs++; savePrefs();
+  savePrefs();
   G.result = { kind, medal };
   G.lock = null; G.armHeld = false;
   setScreen('over');
@@ -3201,8 +3306,18 @@ function gameOver(kind) {
     + (runMiss.length ? r('', 'Most missed', runMiss.map(([ch, R]) => `<kbd>${ch}</kbd> ×${R.miss}`).join(' ')) : '')
     + r('', 'Adaptive words lean on', !prefs.adaptive ? 'switched off' : weak.length ? weak.map(ch => `<kbd>${ch}</kbd>`).join(' ') : 'still learning your hands');
   // any part of the story this run unlocked
-  $('#dStory').innerHTML = heardNow.map(e => `<div class="tx"><div class="no">TRANSMISSION RECEIVED · ${e.no} · ${esc(e.title.toUpperCase())}</div><p>${esc(e.text)}</p></div>`).join('');
-  markHeard(heardNow);
+  // the Archive: words recovered, relics, commendations and promotions from this run
+  $('#dArchive').innerHTML = `<div class="sech"><span class="lbl">Archive</span></div>`
+    + r('var(--pen-4)', 'Words recovered', `+${G.newWords} <small class="u">catalogue ${(catPct() * 100).toFixed(1)}%</small>`)
+    + (G.runRelics.length ? r('var(--pen-4)', 'Relics recovered', G.runRelics.map(k => `<b>${esc(k)}</b>`).join(' · ')) : '')
+    + (promoted ? r('var(--pen-2)', 'Promoted', `<b>${promoted}</b>`) : '')
+    + (honours.length ? `<div class="tx gold"><div class="no">${honours.length === 1 ? 'COMMENDATION' : honours.length + ' COMMENDATIONS'} · +${honours.reduce((t, h) => t + h.pay, 0)} SALVAGE</div>`
+      + honours.map(h => `<p class="honl"><b>${esc(h.name)}</b> ${esc(h.desc)} <em>+${h.pay}</em></p>`).join('') + '</div>' : '');
+  // at most two transmissions here; any more stay unread for the Logbook, where the title line points
+  const shownTx = heardNow.slice(0, 2), moreTx = heardNow.length - shownTx.length;
+  $('#dStory').innerHTML = shownTx.map(e => `<div class="tx"><div class="no">TRANSMISSION RECEIVED · ${e.no} · ${esc(e.title.toUpperCase())}</div><p>${esc(e.text)}</p></div>`).join('')
+    + (moreTx ? `<p class="savep">${moreTx} more transmission${moreTx === 1 ? '' : 's'} waiting in the Logbook <kbd>L</kbd></p>` : '');
+  markHeard(shownTx);
   if (drill) {
     $('#dDamage').innerHTML = r('', 'Words that got through', `${st.leaks || 0} <small class="u">no damage in a drill</small>`);
     $('#dArsenal').innerHTML = r('', 'Retargets', st.retargets || 0) + r('', 'Longest clean streak', G.bestCombo);
@@ -3236,6 +3351,155 @@ function toast(msg) {
 function toggleFull() {
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   else document.documentElement.requestFullscreen().catch(() => {});
+}
+
+/* ------------------------------------------------------------ the Archive: catalogue, relics, bestiary, commendations */
+// Every word typed out is "recovered" into the catalogue: one long-term goal that rewards play, not speed.
+const BANK = new Set(POOLS.flat().map(w => w.toLowerCase()));
+const catKey = s => String(s).toLowerCase().replace(/[^a-z]/g, '');
+const CAT = CATSTATE.set = new Set(String(prefs.cat || '').split(' ').filter(Boolean));
+const catPct = () => BANK.size ? [...CAT].filter(w => BANK.has(w)).length / BANK.size : 0;
+function recover(word) {
+  if (G.mode !== 'play') return;
+  const k = catKey(word);
+  if (!BANK.has(k) || CAT.has(k)) return;
+  CAT.add(k); CATSTATE.dirty = true; G.newWords++;
+  prefs.catRecent.unshift(k); if (prefs.catRecent.length > 36) prefs.catRecent.length = 36;
+}
+// relics: rare words the Archive kept apart, each with its catalogue card. Typed by hand they are recovered;
+// a weapon destroys them, and one that reaches the hull is lost (it does no damage)
+const RELICS = {
+  fathom: 'A unit of depth, six feet; also, to understand. The Archive filed it under both.',
+  astrolabe: 'An instrument for taking the height of the stars. Catalogued beside every ship that ever got home.',
+  palimpsest: 'A page scraped clean and written over. The old words always show through.',
+  marginalia: 'Notes in the margins. The Archive kept these more carefully than the books.',
+  lexicon: 'The whole vocabulary of a language. This one was the Archive’s own, and it is incomplete.',
+  scriptorium: 'The room where books were copied by hand. Pelagia is starting to resemble one.',
+  hydrophone: 'An underwater microphone. You are listening through forty of them.',
+  bathysphere: 'A steel ball lowered on a cable to look at the deep. Its windows were three inches thick.',
+  codex: 'Pages bound along one edge: the shape every book still takes.',
+  vellum: 'Calfskin scraped and dried for writing. It outlasts paper by centuries, and the sea.',
+  colophon: 'The note at the end of a book saying who made it, where and when.',
+  quill: 'A flight feather cut to a point. The Archive’s first catalogue was written with one.',
+  cipher: 'A message that keeps its meaning to itself. Some of the deeper words may be ciphers.',
+  almanac: 'A yearly book of tides, moons and feast days. Sailors trusted it more than charts.',
+  sextant: 'Two mirrors and an arc, for measuring the sun above the horizon.',
+  nautilus: 'A shell that adds a chamber every year it lives and seals off the last.',
+  benthic: 'Of the sea floor. Where the Archive lies now.',
+  littoral: 'The strip of shore between the tides. The relief boat never got past it.',
+  maelstrom: 'A whirlpool strong enough to pull down ships. The word itself came off a map.',
+  doldrums: 'Windless water near the equator, where ships sat for weeks. Also, a mood.',
+  chronometer: 'A clock steady enough at sea to tell a navigator where they are.',
+  gazetteer: 'A dictionary of places. Half of the Archive’s places are under water now.',
+  glossary: 'A list of hard words and their meanings. You are building one by hand.',
+  etymology: 'Where a word came from. The Archive traced every word back as far as it could.',
+  isobath: 'A line on a chart joining points of equal depth.',
+  phosphorescence: 'Light given off without heat. The water around Pelagia glows like this at night.',
+  cartography: 'The drawing of maps. The Archive’s map room was the first to flood.',
+  folio: 'A sheet folded once to make two leaves. The largest books were made of them.',
+  lantern: 'A light you can carry. The station keeps one lit at the end of the jetty.',
+  compass: 'It points north even at the bottom of the sea.',
+  leeward: 'Downwind; sheltered. Pelagia’s leeward side is where the crew sleep.',
+  abyssal: 'Of the deep ocean floor, four to six thousand metres down.',
+  erratum: 'A mistake noted after printing. The Archive kept a list of its own.',
+  anthology: 'A gathering of pieces by many hands. The Archive was the largest ever made.',
+  manuscript: 'Written by hand, not printed. The oldest shelves held nothing else.',
+  semaphore: 'Signalling with flags held at angles. Pelagia still has a set in the stores.',
+  tidewater: 'Water that rises and falls with the tide. Most of the shelf is tidewater now.',
+  vocabulary: 'All the words a person knows. Yours is growing, one contact at a time.',
+  index: 'The list of everything a book holds, and where. The Ironback wore one as armour.',
+  archivist: 'One who keeps an archive. The post is vacant.',
+};
+const relicCount = () => Object.keys(prefs.relics).filter(k => RELICS[k]).length;
+// the bestiary: everything met on the scope, with a line of station lore each
+const BESTIARY = [
+  ['plain', 'Contact', 'A single word from the Archive, drifting towards the loudest thing on the shelf.'],
+  ['armour', 'Armoured', 'The Archive bound its important words twice over.'],
+  ['splitter', 'Splitter', 'A compound that comes apart under fire.'],
+  ['silent', 'Silent', 'It learned to stop answering the sweep.'],
+  ['mine', 'Mine', 'Short, heavy, and set to go off.'],
+  ['decoy', 'Decoy', 'Noise in the shape of a word. It wants you to finish it.'],
+  ['reversed', 'Reversed', 'Played back from the end, the way the deep remembers.'],
+  ['cased', 'Exact', 'A proper noun, with its punctuation intact.'],
+  ['shot', 'Shot', 'Spat by a leviathan, fast and straight.'],
+  ['crate', 'Supply crate', 'Station stores, cut loose by the storms and drifting.'],
+  ['relic', 'Relic', 'Something the Archive kept apart from the rest.'],
+  ['leviathan', 'Leviathan', 'The first stack the Archive ever pressed together. It lunges.'],
+  ['archer', 'Archerfish', 'Hangs at mid-range and corrects your spelling with short, fast words.'],
+  ['siren', 'Siren', 'Sings everything backwards, and the water listens.'],
+  ['ironback', 'Ironback', 'Plated twice over, as if something worked hard to keep it whole.'],
+];
+const BOSS_KEYS = ['leviathan', 'archer', 'siren', 'ironback'];
+const beastKey = w => w.kind === 'boss' ? (w.btype || 'leviathan') : w.kind === 'crate' ? 'crate' : w.relic ? 'relic' : w.shot ? 'shot' : w.trait || 'plain';
+function note(key, field) {
+  if (G.mode !== 'play') return;
+  const b = prefs.bestiary[key] || (prefs.bestiary[key] = { seen: 0, kills: 0, first: Date.now() });
+  b[field] = (b[field] || 0) + 1;
+  if (field === 'kills') G.runBy[key] = (G.runBy[key] || 0) + 1;
+}
+// Operator rank comes from all the salvage ever banked
+const RANKS = [[0, 'Hydrophone trainee'], [400, 'Listener'], [1200, 'Sonar operator'], [3000, 'Senior operator'], [6000, 'Watch officer'],
+  [10000, 'Sonar chief'], [16000, 'Chief of the watch'], [25000, 'Keeper of Pelagia']];
+const rankOf = total => { let i = 0; while (i + 1 < RANKS.length && total >= RANKS[i + 1][0]) i++; return i; };
+// commendations: checked at the end of every run; each pays a little salvage once
+const distinctDays = () => new Set(prefs.history.map(h => new Date(h.at).toDateString())).size;
+const COMMENDATIONS = [
+  ['first_light', 'First light', 'Finish your first run.', 25, () => true],
+  ['streak25', 'Unbroken', '25 clean words in a row.', 40, r => r.combo >= 25],
+  ['streak50', 'Steady current', '50 clean words in a row.', 80, r => r.combo >= 50],
+  ['streak100', 'Perfect tide', '100 clean words in a row.', 200, r => r.combo >= 100],
+  ['wpm40', 'Steady hands', 'Average 40 words a minute over a run of a minute or more.', 40, r => r.secs >= 60 && r.wpm >= 40],
+  ['wpm60', 'Quick study', 'Average 60 words a minute over a run of a minute or more.', 80, r => r.secs >= 60 && r.wpm >= 60],
+  ['wpm80', 'Rapid fire', 'Average 80 words a minute over a run of a minute or more.', 120, r => r.secs >= 60 && r.wpm >= 80],
+  ['wpm100', 'Torrent', 'Average 100 words a minute over a run of a minute or more.', 200, r => r.secs >= 60 && r.wpm >= 100],
+  ['score10k', 'Ten thousand', 'Score 10,000 in one run.', 40, r => r.pts >= 10000],
+  ['score50k', 'Fifty thousand', 'Score 50,000 in one run.', 100, r => r.pts >= 50000],
+  ['score100k', 'A hundred thousand', 'Score 100,000 in one run.', 200, r => r.pts >= 100000],
+  ['clean_sweep', 'Clean sweep', 'Clear a sector or an expedition with 100% accuracy.', 150, r => r.cleared && r.acc >= 99.95],
+  ['untouched', 'Untouched', 'Clear a sector or an expedition without the hull taking any damage.', 150, r => r.cleared && r.hullDmg === 0],
+  ['last_breath', 'Last breath', 'Clear a sector or an expedition with less than 10 hull left.', 120, r => r.cleared && r.hull < 10],
+  ['second', 'Second chance', 'Clear a sector or an expedition after Second wind saved you.', 100, r => r.cleared && r.secondUsed],
+  ['bare_knuckles', 'Bare knuckles', 'Destroy a leviathan without firing a weapon all run.', 120, r => r.bossBeat && r.weapons === 0],
+  ['gold3', 'Gilded', 'Hold gold medals in three sectors.', 100, () => golds() >= 3],
+  ['all10', 'Every sector', 'Clear all ten sectors.', 300, () => clears() >= 10],
+  ['slayer', 'Four of a kind', 'Destroy all four kinds of leviathan.', 250, () => BOSS_KEYS.every(beat)],
+  ['mirror', 'Mirror reader', 'Destroy 12 reversed words in one run.', 80, r => (r.by.reversed || 0) >= 12],
+  ['night_ears', 'Night ears', 'Destroy 10 silent contacts in one run.', 80, r => (r.by.silent || 0) >= 10],
+  ['not_fooled', 'Not fooled', 'Let 6 decoys fade in one run without springing any.', 80, r => (r.by.decoy || 0) >= 6 && r.sprung === 0],
+  ['chain', 'Chain reaction', 'Destroy 3 contacts with a single mine.', 80, r => r.maxBlast >= 3],
+  ['return_sender', 'Return to sender', 'Type out 10 shots in one run.', 100, r => (r.by.shot || 0) >= 10],
+  ['snap', 'Snap judgment', 'Retarget 8 times in one run.', 60, r => r.retargets >= 8],
+  ['pressure3', 'Under pressure', 'Clear a sector or an expedition with three pressure switches on.', 150, r => r.cleared && r.pressN >= 3],
+  ['pressure5', 'Crushing depth', 'Clear a sector or an expedition with all five pressure switches on.', 300, r => r.cleared && r.pressN >= 5],
+  ['cartographer', 'Cartographer', 'Complete an expedition.', 100, r => r.cleared && r.game === 'expedition'],
+  ['deep_chart', 'Deep chart', 'Complete an expedition at difficulty 07 or higher.', 200, r => r.cleared && r.game === 'expedition' && r.diff >= 7],
+  ['fitted', 'Fully fitted', 'Carry 8 modules at once.', 100, r => r.cards >= 8],
+  ['drills', 'Practice makes', 'Finish 10 drills.', 60, () => prefs.history.filter(h => h.game === 'drill').length >= 10],
+  ['relic1', 'First relic', 'Recover a relic word.', 50, () => relicCount() >= 1],
+  ['relic10', 'Relic hunter', 'Recover 10 relic words.', 150, () => relicCount() >= 10],
+  ['relic_all', 'The vault', 'Recover every relic word.', 400, () => relicCount() >= Object.keys(RELICS).length],
+  ['cat10', 'Archivist', 'Recover a tenth of the Archive.', 100, () => catPct() >= .1],
+  ['cat25', 'Librarian', 'Recover a quarter of the Archive.', 200, () => catPct() >= .25],
+  ['cat50', 'Keeper of the stacks', 'Recover half of the Archive.', 400, () => catPct() >= .5],
+  ['cat100', 'Catalogue complete', 'Recover every word in the Archive.', 1000, () => catPct() >= 1],
+  ['fleet', 'Shipwright', 'Own every hull.', 150, () => Object.keys(HULLS).every(k => owns('hull', k))],
+  ['salvage10k', 'Salvager', 'Bank 10,000 salvage in all.', 100, () => prefs.salvageTotal >= 10000],
+  ['watch1', 'Night watch', 'Spend an hour at the scope.', 50, () => prefs.life.secs >= 3600],
+  ['watch10', 'Long watch', 'Spend ten hours at the scope.', 200, () => prefs.life.secs >= 36000],
+  ['days7', 'Seven days', 'Play on seven different days.', 100, () => distinctDays() >= 7],
+  ['runs100', 'A hundred runs', 'Finish a hundred runs.', 150, () => prefs.runs >= 100],
+];
+// the end-of-run check: returns the commendations newly earned (their salvage is paid here)
+function awardCommendations(r) {
+  const got = [];
+  for (const [id, name, desc, pay, test] of COMMENDATIONS) {
+    if (prefs.honours[id]) continue;
+    let ok = false; try { ok = !!test(r); } catch {}
+    if (!ok) continue;
+    prefs.honours[id] = Date.now(); prefs.salvage += pay; prefs.salvageTotal += pay;
+    got.push({ id, name, desc, pay });
+  }
+  return got;
 }
 
 /* ------------------------------------------------------------ the story: The Drowned Archive */
@@ -3272,6 +3536,12 @@ const STORY = [
     text: 'It sang every layer backwards and you answered every one. When it broke apart, the hydrophones caught a phrase under the song, the right way round for once: thank you for listening.' },
   { id: 'b_ironback', no: 'LOG I', title: 'The Ironback', req: () => beat('ironback'), need: 'destroy an Ironback',
     text: 'Plated twice over, as if something had worked very hard to keep it whole. Under the plating the words were the Archive\u2019s own index: the list of everything it ever held.' },
+  { id: 'c10', no: 'LOG C1', title: 'The card index', req: () => catPct() >= .1, need: 'recover a tenth of the Archive',
+    text: 'The linguist has started a card index: one card for every word that reaches us and gets read. A tenth of the Archive so far, she says, and every card in your handwriting. She has run out of cards twice.' },
+  { id: 'r10', no: 'LOG R', title: 'The drawer', req: () => relicCount() >= 10, need: 'recover ten relic words',
+    text: 'The relics are different. They come up slowly, gold on the scope, and they never attack. The Archive kept them apart for a reason. We have started keeping them apart too, in a drawer under the radio.' },
+  { id: 'c50', no: 'LOG C2', title: 'Half', req: () => catPct() >= .5, need: 'recover half of the Archive',
+    text: 'Half the Archive is on cards now. The linguist sleeps again. She says a language is not lost while somebody can still read it, and that somebody is sitting at our scope.' },
   { id: 'end', no: 'LOG \u221e', title: 'Pelagia', req: () => Object.keys(BOSSES).every(beat) && maxClear() >= 10, need: 'clear sector 10 and destroy all four leviathans',
     text: 'All four are quiet. The Archive has finished sending. The words still rise, slower now, and the crew have started writing them down instead of only typing them out. Pelagia is a library now. Somebody has to keep it.' },
 ];
@@ -3641,7 +3911,7 @@ function drawGearIcon(c, slot, key, x, y, now) {
 }
 
 /* ------------------------------------------------------------ the Logbook: progress over time, letters, story */
-const LOG_TABS = [['progress', 'Progress'], ['letters', 'Letters'], ['story', 'Transmissions'], ['save', 'Save']];
+const LOG_TABS = [['progress', 'Progress'], ['letters', 'Letters'], ['archive', 'Archive'], ['bestiary', 'Bestiary'], ['honours', 'Commendations'], ['story', 'Transmissions'], ['save', 'Save']];
 let logTab = 'progress', logFrom = 'title';
 // save transfer (v4.2): the file waiting for a yes, and the last thing to tell the player about it
 let importPending = null, saveNote = null;
@@ -3717,6 +3987,49 @@ function renderLog() {
       + r('', 'Adaptive words', prefs.adaptive ? 'on: every mode leans a little towards these letters; Drill leans hard' : 'off: words are picked at random')
       + `<div style="margin-top:12px"><button class="btn" id="btnDrillNow">Drill these now · difficulty ${pad(sel)} <kbd>⏎</kbd></button></div>`;
     $('#lgNote').textContent = 'times are the gap before each letter inside a word, averaged over recent typing';
+  } else if (logTab === 'archive') {
+    const total = BANK.size, have = [...CAT].filter(w => BANK.has(w)).length, pct = have / total, found = relicCount(), nR = Object.keys(RELICS).length;
+    const next = [.1, .25, .5, 1].find(m => pct < m);
+    const ro = (k, v, sub) => `<div class="ro"><span class="k">${k}</span><span class="v">${v}</span><span class="s">${sub}</span></div>`;
+    html = `<div class="readouts" style="grid-template-columns:repeat(4,1fr)">
+      ${ro('Recovered', have.toLocaleString('en-US'), `of ${total.toLocaleString('en-US')} words`)}${ro('Catalogue', (pct * 100).toFixed(1) + '%', next ? `next mark ${next * 100}%` : 'complete')}
+      ${ro('Relics', `${found}<small class="u">/ ${nR}</small>`, 'kept apart')}${ro('Last recovered', prefs.catRecent[0] ? esc(prefs.catRecent[0]) : '–', 'most recent word')}</div>
+      <div class="catbar">${dotBar(pct, 60, 'var(--pen-4)', 2.4)}</div>
+      <p class="savep">Every word you type out is recovered into the Archive\u2019s catalogue. Weapons destroy words without reading them, so they do not count. New words turn up a little more often than ones you already hold.</p>`;
+    const tiers = ['Fragments · 2\u20133 letters', 'Short words · 4 letters', 'Words · 5\u20136 letters', 'Long words · 7\u20138 letters', 'Great words · 9+ letters'];
+    html += `<div class="sech"><span class="lbl">By length</span></div>` + POOLS.map((pool, t) => {
+      const uniq = [...new Set(pool.map(w => w.toLowerCase()))], got = uniq.filter(w => CAT.has(w)).length;
+      return r('', tiers[t], `${dotBar(got / uniq.length, 24, 'var(--pen-4)', 1.8)} ${got} / ${uniq.length}`);
+    }).join('');
+    const byLetter = {}; for (const w of BANK) { const l = w[0]; byLetter[l] = byLetter[l] || [0, 0]; byLetter[l][1]++; if (CAT.has(w)) byLetter[l][0]++; }
+    html += `<div class="sech"><span class="lbl">By first letter</span></div><div class="lgrid">${'abcdefghijklmnopqrstuvwxyz'.split('').map(l => {
+      const [g, n] = byLetter[l] || [0, 0], p = n ? g / n : 0;
+      return `<div class="lt"><b>${l}</b><span>${Math.round(p * 100)}%</span>${dotBar(p, 6, 'var(--pen-4)', 1.5)}</div>`;
+    }).join('')}</div>`;
+    html += `<div class="sech"><span class="lbl">Relics · ${found} of ${nR}</span></div><div class="relics">${Object.entries(RELICS).map(([k, card]) => prefs.relics[k]
+      ? `<div class="relic on"><b>${k}</b><p>${esc(card)}</p><span>recovered ${new Date(prefs.relics[k]).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span></div>`
+      : `<div class="relic"><b>${'\u2022'.repeat(k.length)}</b><p>Not yet recovered. ${k.length} letters.</p></div>`).join('')}</div>`;
+    if (prefs.catRecent.length) html += `<div class="sech"><span class="lbl">Recently recovered</span></div><div class="recent">${prefs.catRecent.map(w => `<span>${esc(w)}</span>`).join('')}</div>`;
+    $('#lgNote').textContent = 'the catalogue is part of your save, so it travels with an exported save file';
+  } else if (logTab === 'bestiary') {
+    const met = BESTIARY.filter(([k]) => prefs.bestiary[k]).length;
+    html = `<div class="beasts">${BESTIARY.map(([k, name, lore]) => {
+      const b = prefs.bestiary[k], verb = k === 'decoy' ? 'faded' : k === 'relic' ? 'recovered' : k === 'crate' ? 'collected' : 'destroyed';
+      return `<div class="unit beast ${b ? '' : 'unk'}"><canvas data-beast="${k}"></canvas><div class="nm">${b ? name : 'Unknown contact'}</div>
+        <p>${b ? esc(lore) : 'Not yet met on the scope.'}</p>${b ? `<div class="st">seen <b>${b.seen}</b> · ${verb} <b>${b.kills}</b> · first ${new Date(b.first).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</div>` : ''}</div>`;
+    }).join('')}</div>`;
+    $('#lgNote').textContent = `${met} of ${BESTIARY.length} kinds of contact met`;
+  } else if (logTab === 'honours') {
+    const ri = rankOf(prefs.salvageTotal), next = RANKS[ri + 1], got = COMMENDATIONS.filter(c => prefs.honours[c[0]]).length;
+    const prog = next ? (prefs.salvageTotal - RANKS[ri][0]) / (next[0] - RANKS[ri][0]) : 1;
+    html = `<div class="rankbox"><span class="lbl">Operator rank</span><b>${RANKS[ri][1]}</b>
+      <span class="rp">${dotBar(prog, 30, 'var(--pen-2)', 2)} ${next ? `${(next[0] - prefs.salvageTotal).toLocaleString('en-US')} salvage to ${next[1]}` : 'the highest rank on the station'}</span></div>
+      <div class="sech"><span class="lbl">Commendations · ${got} of ${COMMENDATIONS.length}</span></div>
+      <div class="hons">${COMMENDATIONS.map(([id, name, desc, pay]) => {
+        const at = prefs.honours[id];
+        return `<div class="hon ${at ? 'on' : ''}"><i></i><div><b>${name}</b><span>${esc(desc)}</span></div><em>${at ? new Date(at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '+' + pay}</em></div>`;
+      }).join('')}</div>`;
+    $('#lgNote').textContent = 'rank comes from all the salvage you have ever banked; each commendation pays its salvage once';
   } else if (logTab === 'save') {
     const day = iso => iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '–';
     const line = s => `${s.runs} run${s.runs === 1 ? '' : 's'} · ${s.salvage.toLocaleString('en-US')} salvage · best ${fmtPts(s.bestScore)} · ${s.medals} medal${s.medals === 1 ? '' : 's'} · ${s.owned} kit`;
@@ -3771,10 +4084,30 @@ function renderLog() {
     try { sessionStorage.setItem('sonar-type.after', 'swapped'); } catch {}
     location.reload();
   };
+  if (logTab === 'bestiary') requestAnimationFrame(drawBeasts);
   if (logTab === 'progress' && H.length >= 2) requestAnimationFrame(() => {
+    if (!$('#lgWpm')) return;
     const last = H.slice(-60);
     trendChart($('#lgWpm'), last.map(h => h.wpm), C['pen-2'], v => Math.round(v));
     trendChart($('#lgAcc'), last.map(h => h.acc), C['pen-3'], v => v.toFixed(0));
+  });
+}
+// the bestiary's specimens, drawn exactly as they appear on the scope
+const SPECIMENS = {
+  plain: ['anchor', {}], armour: ['harbour', { trait: 'armour', armour: 1 }], splitter: ['lighthouse', { trait: 'splitter' }], silent: ['vessel', { trait: 'silent', silent: true }],
+  mine: ['ox', { trait: 'mine' }], decoy: ['beacon', { trait: 'decoy' }], reversed: ['signal', { trait: 'reversed', rev: true }], cased: ['Signal.', { trait: 'cased', cased: true }],
+  shot: ['ox', { shot: true }], crate: ['supplies', { kind: 'crate', ctype: 'repair' }], relic: ['fathom', { relic: true }],
+  leviathan: ['leviathan', { kind: 'boss', btype: 'leviathan' }], archer: ['archer', { kind: 'boss', btype: 'archer' }],
+  siren: ['siren', { kind: 'boss', btype: 'siren', rev: true }], ironback: ['ironback', { kind: 'boss', btype: 'ironback', armour: 1 }],
+};
+function drawBeasts() {
+  document.querySelectorAll('canvas[data-beast]').forEach(el => {
+    const [word, traits] = SPECIMENS[el.dataset.beast], { c, w, h } = fitCanvas(el);
+    if (!w) return;
+    const text = traits.rev ? [...word].reverse().join('') : word;
+    const mock = { id: 0, kind: 'enemy', text, fired: 0, landed: 0, trail: [], hitT: 0, missT: 0, dist: 1e9, rx: 0, ry: -1e9, layers: ['a', 'b', 'c'], layerTotal: 3, ...traits };
+    drawContact(c, mock, 1, { x: w / 2 - (traits.armour ? 12 : 0), y: h / 2 + 4 }, !!traits.silent, true);
+    c.globalAlpha = 1;
   });
 }
 // one dot per run, with a dotted grid and a 5-run moving average drawn through them
@@ -3890,7 +4223,7 @@ addEventListener('keydown', e => {
     else if (k === 'a') toggleAdaptive();
   } else if (screen === 'log') {
     if (e.key === 'Escape' || k === 'l') closeLog();
-    else if (/^[1-4]$/.test(e.key)) { logTab = LOG_TABS[+e.key - 1][0]; importPending = null; saveNote = null; renderLog(); sfx.ui(); }
+    else if (/^[1-7]$/.test(e.key)) { logTab = LOG_TABS[+e.key - 1][0]; importPending = null; saveNote = null; renderLog(); sfx.ui(); }
     else if (k === 'a') toggleAdaptive();
     else if (e.key === 'Enter' && logTab === 'letters') startRun(sel, 'drill');
   } else if (screen === 'dock') {
