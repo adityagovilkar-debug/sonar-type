@@ -41,6 +41,11 @@ Every letter fires a tracer, and the score rewards hard words, fast typing and d
   flies back); a **ghost** of your best run in the Score panel; **hull mastery** (levels 1–5: trims, a perk,
   a stronger ability); **expedition tiers** 1–5, each adding a modifier and +20% score and salvage.
 
+- **Training & comfort** (v4.6): a **Settings** screen (O) with assist speed (records marked assisted), larger
+  text, a colour-blind palette, an easy-read font, an optional 30 s **warm-up** on weak letters, and keyboard
+  layouts (QWERTY, QWERTZ, AZERTY, Dvorak, Colemak). The Logbook adds letter **pairs**, a **finger map** and
+  hands summary, and a **weekly goal** (speed, accuracy, minutes or runs).
+
 ## Tests
 
 `tests/` drives the game in headless Edge with a throwaway profile, so no real save is touched.

@@ -20,6 +20,11 @@
   --pen-1:#FF5A3C; --pen-2:#5B8DEF; --pen-3:#2BC29B; --pen-4:#E0A526; --pen-5:#B48CF2; --pen-6:#F07A3A;
   color-scheme: dark;
 }
+/* colour-blind-safe pens (Okabe-Ito): red, blue and green stay apart for every common colour-vision type */
+:root[data-palette="cb"]{--pen-1:#C04A00;--pen-2:#0067A3;--pen-3:#00876A;--pen-4:#B07A00;--pen-5:#A64C88;--pen-6:#7A6A00}
+:root[data-palette="cb"][data-theme="dark"]{--pen-1:#E8823A;--pen-2:#56B4E9;--pen-3:#2EC4A0;--pen-4:#E6A817;--pen-5:#CC79A7;--pen-6:#E6D84A}
+:root[data-text="1.15"] .panel,:root[data-text="1.15"] .hud{zoom:1.08}
+:root[data-text="1.3"] .panel,:root[data-text="1.3"] .hud{zoom:1.16}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden;user-select:none}
@@ -180,6 +185,9 @@ body[data-screen="play"] .stage{cursor:none}
 body[data-screen="pick"] #ovPick,body[data-screen="dock"] #ovDock,body[data-screen="chart"] #ovChart{display:flex}
 body[data-screen="pick"] .hud.unit{display:block}
 body[data-screen="log"] #ovLog{display:flex}
+body[data-screen="settings"] #ovSet{display:flex}
+.sethelp p{margin:0 0 10px;font-size:11.5px;line-height:1.5;color:var(--ink-3)}
+.sethelp b{color:var(--ink-2);display:block;font-weight:600}
 .storyline{display:flex;gap:10px;align-items:baseline;margin:-4px 0 14px;font-size:11.5px;color:var(--ink-3);cursor:pointer;min-width:0}
 .storyline .no{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--pen-3);white-space:nowrap}
 .storyline .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
@@ -205,6 +213,15 @@ body[data-screen="log"] #ovLog{display:flex}
 .days i.today{outline:1px solid var(--ink-3);outline-offset:2px}
 .days span{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);margin-left:8px}
 .dgo{align-self:flex-end;font-family:var(--mono);font-size:11px;color:var(--pen-2);display:flex;gap:8px;align-items:center}
+.goalbox .gtypes{display:flex;gap:6px;flex-wrap:wrap}
+.goalbox .gset{display:flex;gap:10px;align-items:center;margin-top:10px}
+.goalbox .gset b{font-family:var(--mono);font-size:16px;min-width:34px;text-align:center}
+.goalbox .gset span{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);display:flex;gap:8px;align-items:center}
+.fingers{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin-top:4px}
+.finger{border:1px solid var(--rule);border-radius:var(--r);padding:7px 6px;text-align:center;font-family:var(--mono)}
+.finger b{display:block;font-size:13px;color:var(--ink)}
+.finger span{display:block;font-size:8.5px;color:var(--ink-3);margin-top:2px}
+.finger i{display:block;font-style:normal;font-size:9px;color:var(--ink-2);margin-top:4px;letter-spacing:.06em}
 .catbar{margin:14px 0 4px;overflow:hidden}
 .lgrid{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:6px}
 .lt{border:1px solid var(--rule);border-radius:var(--r);padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:var(--mono)}
@@ -377,7 +394,7 @@ body[data-screen="log"] #ovLog{display:flex}
             <div class="no">SELECT DIFFICULTY</div>
             <h1>Sonar Type <span>type the incoming words before they reach the core</span></h1>
           </div>
-          <div class="acts"><kbd>1</kbd>–<kbd>0</kbd> choose <kbd>Tab</kbd> mode <kbd>⏎</kbd> engage <button class="btn" id="btnLog" style="margin-left:8px">Logbook <kbd>L</kbd></button><button class="btn" id="btnDock">Dry Dock <kbd>D</kbd></button></div>
+          <div class="acts"><kbd>1</kbd>–<kbd>0</kbd> choose <kbd>Tab</kbd> mode <kbd>⏎</kbd> engage <button class="btn" id="btnSet" style="margin-left:8px">Settings <kbd>O</kbd></button><button class="btn" id="btnLog">Logbook <kbd>L</kbd></button><button class="btn" id="btnDock">Dry Dock <kbd>D</kbd></button></div>
         </div>
         <div class="storyline" id="storyLine"></div>
         <div class="modebar">
@@ -455,6 +472,26 @@ body[data-screen="log"] #ovLog{display:flex}
       </div>
     </div>
 
+    <div class="overlay" id="ovSet">
+      <div class="unit panel rise" style="width:min(760px,100%)">
+        <div class="th"><div><div class="no">SETTINGS</div><h1>Comfort <span>everything here is saved with your progress</span></h1></div></div>
+        <div class="pgrid">
+          <div>
+            <div class="sech" style="margin-top:0"><span class="lbl">Sound and look</span></div>
+            <button class="tog" data-set="sound"><span class="k">Sound <kbd>M</kbd></span><span class="sw"></span></button>
+            <button class="tog" data-set="music"><span class="k">Music <kbd>U</kbd></span><span class="sw"></span></button>
+            <button class="tog" data-set="theme"><span class="k">Theme <kbd>T</kbd></span><span class="val"></span></button>
+            <button class="tog" data-set="shake"><span class="k">Screen shake</span><span class="sw"></span></button>
+            <button class="tog" data-set="adaptive"><span class="k">Adaptive words</span><span class="sw"></span></button>
+            <div class="sech"><span class="lbl">Comfort</span></div>
+            <div class="cftList"></div>
+          </div>
+          <div class="sethelp" id="setHelp"></div>
+        </div>
+        <div class="foot"><button class="btn pri" id="btnSetBack">Back <kbd>Esc</kbd></button><span>click a row to change it</span></div>
+      </div>
+    </div>
+
     <div class="overlay" id="ovPause">
       <div class="unit panel rise" style="width:min(780px,100%)">
         <div class="th"><div><div class="no warn">PAUSED</div><h1>Holding position <span>contacts are frozen</span></h1></div></div>
@@ -466,6 +503,7 @@ body[data-screen="log"] #ovLog{display:flex}
             <button class="tog" id="togTheme"><span class="k">Theme <kbd>T</kbd></span><span class="val" id="vTheme"></span></button>
             <button class="tog" id="togShake"><span class="k">Screen shake <kbd>S</kbd></span><span class="sw"></span></button>
             <button class="tog" id="togAdapt2"><span class="k">Adaptive words <kbd>A</kbd></span><span class="sw"></span></button>
+            <div class="cftList"></div>
           </div>
           <div>
             <div class="sech" style="margin-top:0"><span class="lbl">Contact key</span></div>
@@ -547,7 +585,7 @@ body[data-screen="log"] #ovLog{display:flex}
    clean typing (pulse / torpedo / nuke), supply crates, and a
    sector mode that ends with a leviathan.
    ============================================================ */
-const VERSION = '4.5';
+const VERSION = '4.6';
 const TAU = Math.PI * 2;
 const $ = s => document.querySelector(s);
 const wrap = a => ((a % TAU) + TAU) % TAU;
@@ -593,6 +631,12 @@ prefs.catRecent = Array.isArray(prefs.catRecent) ? prefs.catRecent : [];
 prefs.mastery = Object.assign({}, prefs.mastery);
 prefs.ghosts = Object.assign({}, prefs.ghosts);
 prefs.expTier = prefs.expTier | 0; prefs.expTierSel = prefs.expTierSel | 0;
+// v4.6: comfort settings, letter pairs, the weekly goal
+prefs.comfort = Object.assign({ assist: 1, text: 1, palette: 'standard', easy: false, warmup: false, layout: 'qwerty' }, prefs.comfort);
+prefs.pairs = Object.assign({}, prefs.pairs);
+prefs.goal = Object.assign({ type: 'wpm', target: 40 }, prefs.goal);
+prefs.goalsMet = Object.assign({}, prefs.goalsMet);
+prefs.hiAssist = Object.assign({}, prefs.hiAssist);
 if (Object.keys(prefs.medals).length) prefs.beaten.leviathan = true;
 for (const ends of Object.values(prefs.expEnds)) for (const k of Object.keys(ends)) prefs.beaten[k] = true;
 // first launch of v4 on a computer with history: bank salvage for the records already set, so past play counts
@@ -628,7 +672,10 @@ function readColors() {
   dark = document.documentElement.dataset.theme === 'dark';
   const sc = typeof SCOPES !== 'undefined' && prefs.loadout && owns('scope', prefs.loadout.scope) ? SCOPES[prefs.loadout.scope] : null;
   C.sonar = sc && sc.dark ? (dark ? sc.dark : sc.light) : C['pen-3'];
-  S.font = `500 16px ${MONO}`; S.fontB = `600 20px ${MONO}`; S.fontSm = `500 9px ${MONO}`;
+  const ts = prefs.comfort.text, face = prefs.comfort.easy ? 'Verdana, Tahoma, sans-serif' : MONO;
+  // Verdana is much wider than the monospace face, so it is set a size smaller to keep chips a sensible length
+  const fs = prefs.comfort.easy ? .88 : 1;
+  S.font = `500 ${Math.round(16 * ts * fs)}px ${face}`; S.fontB = `600 ${Math.round(20 * ts * fs)}px ${face}`; S.fontSm = `500 9px ${MONO}`;
 }
 
 /* ------------------------------------------------------------ words + difficulty */
@@ -1147,7 +1194,8 @@ function resize() {
     }
   }
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.font = S.font; S.cw = ctx.measureText('m').width;
+  // each letter sits in its own cell; easy-read words get roomier cells
+  ctx.font = S.font; S.cw = prefs.comfort.easy ? ctx.measureText('n').width * 1.45 : ctx.measureText('m').width;
   ctx.font = S.fontB; S.cwB = ctx.measureText('m').width;
   // marine snow: specks of drifting matter that give the water depth
   S.snow = Array.from({ length: 70 }, () => ({ x: Math.random() * S.w, y: Math.random() * S.h, v: rnd(3, 9), ph: Math.random() * TAU, r: rnd(.6, 1.4) }));
@@ -1171,6 +1219,8 @@ function newGame(diff, mode, game) {
     flow: 0, inFlow: false, flowTime: 0, lastKillT: 0, trace: [0], tier: 0,
     ghost: mode === 'play' && !pendingDaily ? prefs.ghosts[game + ':' + diff] || null : null,
     weak: mode === 'play' && prefs.adaptive && !pendingDaily ? letterWeakness() : null,
+    weakPairs: mode === 'play' && prefs.adaptive && !pendingDaily ? pairWeakness() : null,
+    warmT: mode === 'play' && prefs.comfort.warmup && !pendingDaily && (game === 'sector' || game === 'descent') ? 30 : 0,
     kills5: Array(24).fill(0), k5T: 0, killsRun: [0], kRunT: 0, keyTimes: [], peakWpm: 0, recent: [], longest: '', last: '',
     stats: { hullDmg: 0, hullHits: 0, phaseAbs: 0, ironHits: 0, hardest: null, used: { pulse: 0, torp: 0, nuke: 0, ping: 0 }, earned: { pulse: 0, torp: 0, nuke: 0 }, crates: { got: 0, seen: 0 }, mines: 0, decoys: 0 },
     sec: { wave: 1, quota: 0, spawned: 0, stage: 'intro', t: 0 }, exp: null, freezeT: 0, aimS: null,
@@ -1225,12 +1275,17 @@ function pickFromTier(tier, minLen = 0) {
   const taken = new Set(G.words.filter(w => w.fired < w.text.length).map(w => w.text[w.fired].toLowerCase()));
   const ok = c => c.length >= minLen && !taken.has(c[0]) && !G.recent.includes(c) && !G.words.some(w => w.text === c);
   // adaptive words: draw a few candidates and lean towards the ones full of this typist's weakest letters
-  const want = G.weak ? (G.game === 'drill' ? 8 : 4) : 3, cands = [];
+  const hard = G.game === 'drill' || G.warmT > 0, want = G.weak || G.weakPairs ? (hard ? 8 : 4) : 3, cands = [];
   for (let k = 0; k < 40 && cands.length < want; k++) { const c = pool[Math.floor(R() * pool.length)]; if (ok(c) && !cands.includes(c)) cands.push(c); }
   if (!cands.length) return pool.filter(c => c.length >= minLen)[0] || pick(pool);
   if (cands.length === 1) return cands[0];
-  const bias = G.game === 'drill' ? 12 : 3;
-  const wts = cands.map(c => { let s = 0; if (G.weak) for (const ch of c.toLowerCase()) s += G.weak[ch] || 0; return (1 + bias * s / c.length) * (CAT.has(c) ? 1 : 1.6); });
+  const bias = hard ? 12 : 3;
+  const wts = cands.map(c => {
+    const lc = c.toLowerCase(); let s = 0;
+    if (G.weak) for (const ch of lc) s += G.weak[ch] || 0;
+    if (G.weakPairs) for (let i = 1; i < lc.length; i++) s += (G.weakPairs[lc[i - 1] + lc[i]] || 0) * 1.2;
+    return (1 + bias * s / c.length) * (CAT.has(c) ? 1 : 1.6);
+  });
   let r = R() * wts.reduce((a, b) => a + b, 0), i = 0;
   while (r > wts[i] && i < cands.length - 1) { r -= wts[i]; i++; }
   return cands[i];
@@ -1250,6 +1305,23 @@ function recordKey(ch, gap, ok) {
     if (timed) { L.ms = L.ms ? L.ms * .94 + gap * 60 : gap * 1000; R.t += gap; R.k++; }
   } else { L.miss = L.miss * .96 + .04; R.miss++; }
 }
+function recordPair(a, b, gap, ok) {
+  if (G.mode !== 'play') return;
+  const k = (a + b).toLowerCase();
+  if (!/^[a-z]{2}$/.test(k)) return;
+  const P = prefs.pairs[k] || (prefs.pairs[k] = { n: 0, ms: 0, miss: 0 });
+  if (ok) { P.n++; P.miss *= .95; if (gap != null && gap > .02 && gap < 1.5) P.ms = P.ms ? P.ms * .92 + gap * 80 : gap * 1000; }
+  else P.miss = P.miss * .95 + .05;
+}
+// pairs that are slower or missier than this typist's usual; drives Drill and adaptive words alongside letters
+function pairWeakness() {
+  const ps = Object.entries(prefs.pairs).filter(([, P]) => P.n >= 6 && P.ms);
+  if (ps.length < 12) return null;
+  const mean = ps.reduce((t, [, P]) => t + P.ms, 0) / ps.length, w = {};
+  for (const [k, P] of ps) { const v = Math.max(0, P.ms / mean - 1) * 1.5 + P.miss * 4; if (v > .1) w[k] = v; }
+  return w;
+}
+const weakestPairs = (n = 8) => { const w = pairWeakness(); return w ? Object.entries(w).sort((a, b) => b[1] - a[1]).slice(0, n).map(e => e[0]) : []; };
 // how much harder than average each letter is for this typist (0 = no harder); null until there is enough data
 function letterWeakness() {
   const ls = Object.entries(prefs.letters).filter(([, L]) => L.n >= 8 && L.ms);
@@ -1273,7 +1345,7 @@ function spawnEnemy(o = {}) {
   const ang = o.ang ?? bestBearing(), d = o.dist ?? edgeDist(ang) + 30;
   // now and then an ordinary spawn surfaces as a relic: one at a time, never in a drill
   if (!o.text && o.tier == null && o.trait === undefined && !o.shot && G.mode === 'play' && G.game !== 'drill' && G.level >= 2
-      && R() < (G.daily && G.daily.mod === 'relics' ? 4 : 1) / 75 && !G.words.some(w => w.relic)) return spawnRelic(ang, d);
+      && !G.warmT && R() < (G.daily && G.daily.mod === 'relics' ? 4 : 1) / 75 && !G.words.some(w => w.relic)) return spawnRelic(ang, d);
   const trait = o.trait !== undefined ? o.trait : rollTrait(G.level);
   if (trait === 'krill' && !o.text) return spawnKrill(ang, d);
   let text = o.text || (o.tier != null ? pickFromTier(o.tier) : pickWord());
@@ -1470,6 +1542,7 @@ function dropLock() { if (G.lock) { G.lock = null; sfx.drop(); } }
 function fire(w) {
   const idx = w.fired++;
   recordKey(w.text[idx], idx > 0 && w.lastKeyT != null ? G.t - w.lastKeyT : null, true);
+  if (idx > 0) recordPair(w.text[idx - 1], w.text[idx], w.lastKeyT != null ? G.t - w.lastKeyT : null, true);
   w.lastKeyT = G.t;
   // time each typing pass (armour has two) from its first keystroke to its last, for the speed score
   if (idx === 0) w.passT = G.t;
@@ -1489,7 +1562,10 @@ function fire(w) {
 }
 function miss() {
   G.miss++;
-  if (G.lock && G.lock.fired < G.lock.text.length) recordKey(G.lock.text[G.lock.fired], null, false);
+  if (G.lock && G.lock.fired < G.lock.text.length) {
+    recordKey(G.lock.text[G.lock.fired], null, false);
+    if (G.lock.fired > 0) recordPair(G.lock.text[G.lock.fired - 1], G.lock.text[G.lock.fired], null, false);
+  }
   // Streak keeper spends a banked miss: the word stays clean, and the streak and charge survive
   if ((G.mods.keeper && G.forgive > 0) || G.luck > 0) {
     if (G.luck > 0) G.luck--; else G.forgive--;
@@ -1809,7 +1885,7 @@ function cracks(n) {
 }
 
 function addCharge(n) {
-  if (calmGame()) return;
+  if (quiet()) return;
   const before = G.charge;
   G.charge = Math.min(G.chargeMax, G.charge + n);
   for (const [th, award] of G.ticks) if (before < th && G.charge >= th) grant(award);
@@ -1866,8 +1942,8 @@ function coreHit(w) {
     G.fx.push({ k: 'stamp', x: p.x, y: p.y - 24, text: 'RELIC LOST', col: C['pen-4'], life: 1.4, max: 1.4, big: true });
     sfx.fizz(panAt(p.x)); G.last = `relic lost: ${w.text}`; return;
   }
-  // a drill never hurts: a word that gets through just breaks the streak
-  if (calmGame()) {
+  // a drill, zen or warm-up never hurts: a word that gets through just breaks the streak
+  if (quiet()) {
     burstLetters(w, C['pen-1']); G.combo = 0; G.cleanRun = 0; G.stats.leaks = (G.stats.leaks || 0) + 1;
     G.fx.push({ k: 'stamp', x: p.x, y: p.y - 22, text: 'LEAKED', col: C['pen-1'], life: .9, max: .9 });
     sfx.miss(); return;
@@ -2176,13 +2252,32 @@ function enterZone(z) {
   if (Z.hadal) G.nextBossAt = G.depth + 30;
   if (G.mode === 'play') { G.pickQ++; newWaveMods(); }
 }
-function dive(m) { if (G.game === 'descent') G.depth += m; }
+function dive(m) { if (G.game === 'descent' && !G.warmT) G.depth += m; }
 // Zen: no hull to lose, no weapons, calm water; it ends when you end it (Esc, then E)
 function zenTick(dt) {
   G.spawnT -= dt;
   if (G.spawnT <= 0 && enemies() < Math.max(2, maxContacts(G.level) - 1)) { spawnEnemy({ speed: wordSpeed(G.level) * .7 }); G.spawnT = spawnInterval(G.level) * workLoad(G.level) * 1.35 * rnd(.8, 1.2); }
 }
 const calmGame = () => G.game === 'drill' || G.game === 'zen';
+// a drill, zen, or the warm-up before a run: nothing can hurt the hull and nothing extra spawns
+const quiet = () => calmGame() || G.warmT > 0;
+function warmTick(dt) {
+  G.warmT -= dt;
+  if (G.warmT <= 0) { endWarmup(); return; }
+  G.spawnT -= dt;
+  if (G.spawnT <= 0 && enemies() < Math.max(2, maxContacts(G.diff) - 1)) { spawnEnemy({ speed: wordSpeed(G.diff) * .75 }); G.spawnT = spawnInterval(G.diff) * 1.1 * rnd(.8, 1.2); }
+}
+// the warm-up's score and counts are wiped; letters, pairs and recovered words it taught are kept
+function endWarmup() {
+  G.warmT = 0; G.words = []; G.tracers = []; G.torps = []; G.lock = null; G.fx = G.fx.filter(f => f.k !== 'stamp');
+  Object.assign(G, { points: 0, ptsBy: {}, kills: 0, correct: 0, miss: 0, combo: 0, bestCombo: 0, bestWord: null, longest: '', t: 0, keyTimes: [], peakWpm: 0,
+    kills5: Array(24).fill(0), k5T: 0, killsRun: [0], kRunT: 0, trace: [0], letters: {}, runBy: {}, flow: 0, inFlow: false, flowTime: 0, spawnT: .8, cleanRun: 0, depth: 0, zone: null });
+  G.stats = { hullDmg: 0, hullHits: 0, phaseAbs: 0, ironHits: 0, hardest: null, used: { pulse: 0, torp: 0, nuke: 0, ping: 0 }, earned: { pulse: 0, torp: 0, nuke: 0 }, crates: { got: 0, seen: 0 }, mines: 0, decoys: 0 };
+  prefs.life.warmups = (prefs.life.warmups || 0) + 1;
+  if (G.game === 'descent') banner('DESCENT', 'warmed up · an endless dive: every 200 m the water changes', C.sonar);
+  else banner(`SECTOR ${pad(G.diff)} · WAVE 1/3`, `warmed up · ${DIFF_NAMES[G.diff - 1].toLowerCase()} · three waves, then the leviathan`, C['pen-2']);
+  sfx.engage();
+}
 // the Daily dive: one seeded sector a day, with a modifier and a set leviathan; only the first attempt counts
 const DAILY_MODS = {
   storm: ['Storm front', 'noise storms and thermoclines all run'],
@@ -2200,6 +2295,18 @@ function dailyConfig(key = dayKey()) {
   const rng = mulberry(h >>> 0), mods = Object.keys(DAILY_MODS);
   return { key, seed: h >>> 0, diff: 3 + Math.floor(rng() * 4), mod: mods[Math.floor(rng() * mods.length)], boss: BOSS_KEYS[Math.floor(rng() * BOSS_KEYS.length)] };
 }
+// the weekly goal: a target for this week (Monday to Sunday) in words a minute, accuracy, minutes or runs
+const GOALS = { wpm: ['average words a minute', [20, 120, 5]], acc: ['average accuracy %', [85, 100, 1]], minutes: ['minutes at the scope', [10, 300, 10]], runs: ['runs', [3, 50, 1]] };
+function weekStart(d = new Date()) { const w = new Date(d); w.setHours(0, 0, 0, 0); w.setDate(w.getDate() - (w.getDay() + 6) % 7); return w; }
+const weekKey = (d = new Date()) => dayKey(weekStart(d));
+function goalProgress() {
+  const from = weekStart().getTime(), runs = prefs.history.filter(h => h.at >= from), g = prefs.goal;
+  const timed = runs.filter(h => h.secs >= 30 && h.wpm), avg = (a, k) => a.length ? a.reduce((t, h) => t + h[k], 0) / a.length : 0;
+  const value = g.type === 'wpm' ? avg(timed, 'wpm') : g.type === 'acc' ? avg(runs.filter(h => h.acc != null), 'acc') : g.type === 'minutes' ? runs.reduce((t, h) => t + h.secs, 0) / 60 : runs.length;
+  const enough = (g.type === 'wpm' || g.type === 'acc') ? runs.length >= 3 : true;
+  return { value, target: g.target, met: enough && value >= g.target, runs: runs.length, enough };
+}
+const goalLine = () => { const p = goalProgress(), g = prefs.goal; return `goal ${g.type === 'acc' ? p.value.toFixed(1) : Math.round(p.value)}/${g.target} ${g.type === 'acc' ? '%' : g.type === 'wpm' ? 'wpm' : g.type}${p.met ? ' ✓' : ''}`; };
 // consecutive days with a counted dive, ending today (or yesterday, if today's is still to come)
 function dailyStreak() {
   const d = new Date(); if (!prefs.daily[dayKey(d)]) d.setDate(d.getDate() - 1);
@@ -2373,11 +2480,11 @@ function update(dt) {
 
   // sea conditions: a thermocline band from level 3, drifting noise storms from level 5
   const stormy = legType() === 'storm' || !!(G.daily && G.daily.mod === 'storm') || !!zoneOf().abyss;
-  if ((G.level >= 3 || stormy) && !calmGame()) {
+  if ((G.level >= 3 || stormy) && !quiet()) {
     G.thermoT -= dt;
     if (G.thermoT <= 0) { if (G.thermo) { G.thermo = null; G.thermoT = rnd(30, 50); } else { startThermo(); G.thermoT = rnd(25, 35); } }
   }
-  if ((G.level >= 5 || stormy) && !calmGame()) {
+  if ((G.level >= 5 || stormy) && !quiet()) {
     G.stormT -= dt;
     if (G.stormT <= 0) { if (G.storm) { G.storm = null; G.stormT = stormy ? rnd(4, 8) : rnd(30, 50); } else { startStorm(); G.stormT = stormy ? rnd(22, 30) : rnd(15, 20); } }
   }
@@ -2414,21 +2521,21 @@ function update(dt) {
     if (G.nuke.r > Math.min(G.nuke.maxR + 60, Math.hypot(S.w, S.h) / 2 + 80)) G.nuke = null;
   }
 
-  if (G.game === 'patrol') patrolTick(dt); else if (G.game === 'drill') drillTick(dt); else if (G.game === 'descent') descentTick(dt); else if (G.game === 'zen') zenTick(dt); else sectorTick(dt);
+  if (G.warmT > 0) warmTick(dt); else if (G.game === 'patrol') patrolTick(dt); else if (G.game === 'drill') drillTick(dt); else if (G.game === 'descent') descentTick(dt); else if (G.game === 'zen') zenTick(dt); else sectorTick(dt);
   if (!G.sim) return;
   G.crateT -= dt;
-  if (G.crateT <= 0 && !calmGame() && !G.spawnHold && G.words.filter(w => w.kind === 'crate').length < 2) {
+  if (G.crateT <= 0 && !quiet() && !G.spawnHold && G.words.filter(w => w.kind === 'crate').length < 2) {
     spawnCrate(pick(['iron', 'iron', 'phase', 'phase', 'repair'])); G.crateT = legType() === 'wreck' ? rnd(12, 18) : rnd(40, 60);
   }
 
   G.allyT = (G.allyT ?? rnd(15, 25)) - dt;
   if (G.allyT <= 0) {
     G.allyT = G.daily && G.daily.mod === 'convoy' ? rnd(9, 14) : rnd(28, 45);
-    if (G.level >= 3 && G.game !== 'drill' && !G.spawnHold && G.words.filter(w => w.kind === 'ally').length < 2) spawnAlly();
+    if (G.level >= 3 && !quiet() && !G.spawnHold && G.words.filter(w => w.kind === 'ally').length < 2) spawnAlly();
   }
   // speed: pulse halves it, freeze holds it at a fifth, a ping alerts, Deep water and Last stand push it either way
   const slow = G.breathT > 0 ? .25 : G.freezeT > 0 ? .2 : G.chorusT > 0 ? G.chorusSlow || .5 : G.slowT > 0 ? .45 : 1, alert = G.alertT > 0 ? 1.3 : 1;
-  const pace = (G.press.deep ? 1.15 : 1) * (G.mods.stand && G.hull < 25 ? .8 : 1) * (G.game === 'expedition' && G.tier >= 5 ? 1.1 : 1);
+  const pace = (G.mode === 'play' ? prefs.comfort.assist : 1) * (G.press.deep ? 1.15 : 1) * (G.mods.stand && G.hull < 25 ? .8 : 1) * (G.game === 'expedition' && G.tier >= 5 ? 1.1 : 1);
   for (const w of [...G.words]) {
     if (!live(w)) continue;
     if (w.haul) {
@@ -2664,7 +2771,7 @@ function drawLines(c, mul) {
 function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
   const p = at || pos(w), boss = w.kind === 'boss', crate = w.kind === 'crate';
   const cw = boss ? S.cwB : S.cw, len = w.text.length, padX = boss ? 12 : 9;
-  const chipW = Math.max(1, len) * cw + padX * 2, chipH = boss ? 34 : 26;
+  const chipW = Math.max(1, len) * cw + padX * 2, chipH = Math.round((boss ? 34 : 26) * (legend ? 1 : prefs.comfort.text));
   const jit = w.missT > 0 && !reducedMotion ? Math.sin(w.missT * 90) * 3.5 * (w.missT / .28) : 0;
   const x = Math.round(p.x - chipW / 2 + jit) + .5, y = Math.round(p.y - chipH / 2) + .5;
   const isLock = !legend && w === G.lock, danger = !legend && !crate && w.dist < S.R * .3, blink = performance.now() % 500 < 250;
@@ -3338,7 +3445,11 @@ function hud(dt) {
   $('#capStreak').innerHTML = G.combo >= 2 ? `streak <b style="color:var(--pen-2)">${G.combo}</b>${G.combo >= 2 ? ` ×${(1 + Math.min(20, G.combo) * .05).toFixed(2)}` : ''}` : 'streak –';
 
   const th = threats().filter(w => w.kind !== 'boss');
-  if (G.game === 'drill') {
+  if (G.warmT > 0) {
+    $('#tHead').textContent = 'Warm-up';
+    $('#mFloor').innerHTML = 'Enter skips';
+    dotArc($('#cvGauge'), G.warmT / 30, String(Math.ceil(G.warmT)), 'SECONDS', C['pen-3']);
+  } else if (G.game === 'drill') {
     $('#tHead').textContent = 'Drill';
     const weak = G.weak ? Object.entries(G.weak).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]).join(' ') : '';
     $('#mFloor').innerHTML = weak ? `focus <b>${weak}</b>` : 'practice';
@@ -3414,7 +3525,7 @@ function chrome() {
   const lk = G.lock && live(G.lock) ? G.lock : null, name = DIFF_NAMES[G.diff - 1];
   const en = G.exp && G.exp.node;
   const dz = G.game === 'descent' ? ZONES[Math.max(0, zoneIndex())].name : '';
-  const where = G.daily ? `daily dive · ${DAILY_MODS[G.daily.mod][0]} · sector <b>${pad(G.diff)}</b> · wave <b>${G.sec.wave}/3</b>`
+  const where = G.warmT > 0 ? `warm-up · <b>${Math.ceil(G.warmT)} s</b> · Enter skips` : G.daily ? `daily dive · ${DAILY_MODS[G.daily.mod][0]} · sector <b>${pad(G.diff)}</b> · wave <b>${G.sec.wave}/3</b>`
     : G.game === 'descent' ? `descent · difficulty <b>${pad(G.diff)}</b> · <b>${Math.floor(G.depth)} m</b> ${dz}`
     : G.game === 'zen' ? `zen · difficulty <b>${pad(G.diff)}</b> · <b>${fmtClock(G.t)}</b>`
     : G.game === 'drill' ? `drill · difficulty <b>${pad(G.diff)}</b> · <b>${fmtClock(G.drillT)}</b> left` : G.game === 'sector' ? `sector <b>${pad(G.diff)}</b> ${name} · wave <b>${G.sec.wave}/3</b>`
@@ -3422,15 +3533,15 @@ function chrome() {
     : `patrol · difficulty <b>${pad(G.diff)}</b> ${name} · threat <b>${pad(G.level)}</b>`;
   const pr = G.pressMul > 1 && G.mode === 'play' ? ` · pressure <b>×${G.pressMul.toFixed(2)}</b>` : '';
   const crumb = {
-    title: 'standing by · choose a mode and difficulty', log: `logbook · <b>${prefs.history.length}</b> runs logged`, dock: `dry dock · salvage <b>${prefs.salvage.toLocaleString('en-US')}</b>`,
+    title: 'standing by · choose a mode and difficulty', settings: 'settings', log: `logbook · <b>${prefs.history.length}</b> runs logged`, dock: `dry dock · salvage <b>${prefs.salvage.toLocaleString('en-US')}</b>`,
     pick: `upgrade · ${where}`, chart: `sea chart · ${where}`, play: `engaged · ${where}${pr}`, paused: `paused · ${where}${pr}`, over: `debrief · run <b>${prefs.runs}</b>`,
   }[screen];
   if ($('#crumb').innerHTML !== crumb) $('#crumb').innerHTML = crumb;
   const hint = screen === 'play' ? '<kbd>/</kbd> ping <kbd>Space</kbd> pulse <kbd>Tab</kbd> torpedo <kbd>hold ⏎</kbd> nuke <kbd>1</kbd> ability <kbd>⌫</kbd> drop lock <kbd>Esc</kbd> pause' : '<kbd>M</kbd> sound <kbd>U</kbd> music <kbd>T</kbd> theme';
   if ($('#hint').innerHTML !== hint) $('#hint').innerHTML = hint;
-  const st = { title: ['STANDBY', 'var(--ink-3)'], dock: ['DRY DOCK', 'var(--pen-4)'], log: ['LOGBOOK', 'var(--pen-3)'], pick: ['REFIT', 'var(--pen-2)'], chart: ['SEA CHART', 'var(--pen-3)'], play: ['SONAR ACTIVE', 'var(--pen-3)'], paused: ['PAUSED', 'var(--pen-4)'], over: ['SIGNAL LOST', 'var(--pen-1)'] }[screen];
+  const st = { title: ['STANDBY', 'var(--ink-3)'], dock: ['DRY DOCK', 'var(--pen-4)'], log: ['LOGBOOK', 'var(--pen-3)'], settings: ['SETTINGS', 'var(--ink-2)'], pick: ['REFIT', 'var(--pen-2)'], chart: ['SEA CHART', 'var(--pen-3)'], play: ['SONAR ACTIVE', 'var(--pen-3)'], paused: ['PAUSED', 'var(--pen-4)'], over: ['SIGNAL LOST', 'var(--pen-1)'] }[screen];
   $('#sbState').textContent = st[0]; $('#led').style.background = st[1];
-  const inRun = screen !== 'title' && screen !== 'dock' && screen !== 'log';
+  const inRun = screen !== 'title' && screen !== 'dock' && screen !== 'log' && screen !== 'settings';
   $('#sbTracked').innerHTML = inRun ? `tracked <b>${threats().length}</b>` : '';
   $('#sbLock').innerHTML = inRun ? (lk ? `lock <b>${lk.kind === 'crate' ? 'SUPPLY' : lk.kind === 'boss' ? (BOSSES[lk.btype] || BOSSES.leviathan).name.toUpperCase() : 'TK·' + pad(lk.id, 3)}</b> ${esc(shown(lk))}` : 'no lock') : '';
   $('#sbLast').innerHTML = inRun && G.last ? `last <b>${esc(G.last)}</b>` : '';
@@ -3504,7 +3615,7 @@ addEventListener('storage', e => {
 function setScreen(s) {
   if (saveReplaced && !IN_RUN.includes(s)) { reloadReplaced(s === 'over'); return; }
   screen = s; document.body.dataset.screen = s;
-  G.sim = s === 'title' || s === 'play' || s === 'dock' || (s === 'log' && G.mode === 'demo');
+  G.sim = s === 'title' || s === 'play' || s === 'dock' || s === 'settings' || (s === 'log' && G.mode === 'demo');
   if (s === 'title') buildTiles();
   hudT = 0;
 }
@@ -3544,7 +3655,7 @@ function buildTiles() {
     }
     else st = prefs.hi.patrol[d] != null ? `best <b>${fmtPts(prefs.hi.patrol[d])}</b>`
       : prefs.best[d] != null ? `old best <b>${prefs.best[d]}</b> kills` : 'no run yet';
-    if (prefs.game === 'sector' && prefs.hi.sector[d] != null) st += ` <span class="hi">${fmtPts(prefs.hi.sector[d])}</span>`;
+    if (prefs.game === 'sector' && prefs.hi.sector[d] != null) st += ` <span class="hi">${fmtPts(prefs.hi.sector[d])}${prefs.hiAssist['sector:' + d] ? ' · assisted' : ''}</span>`;
     return `<button class="unit tile rise ${d === sel ? 'sel' : ''}" data-d="${d}" style="--i:${i}">
       <div class="top"><span class="no">${pad(d)}</span><span class="st">${st}</span></div>
       <div class="nm">${nm}</div>
@@ -3559,7 +3670,7 @@ function buildTiles() {
   });
   buildKitLine(); buildPress(); buildStoryLine();
   const medals = Object.keys(prefs.medals).length;
-  $('#runsNote').textContent = `${RANKS[rankOf(prefs.salvageTotal)][1]} · archive ${(catPct() * 100).toFixed(1)}% · ${prefs.runs} run${prefs.runs === 1 ? '' : 's'} · ${medals} sector${medals === 1 ? '' : 's'} cleared`;
+  $('#runsNote').textContent = `${RANKS[rankOf(prefs.salvageTotal)][1]} · archive ${(catPct() * 100).toFixed(1)}% · ${goalLine()} · ${prefs.runs} run${prefs.runs === 1 ? '' : 's'}`;
 }
 function select(d) {
   sel = d;
@@ -3594,11 +3705,16 @@ function startRun(d, game) {
     banner(`DAILY DIVE · ${m[0].toUpperCase()}`, `${m[1]} · the ${BOSSES[daily.boss].name} waits · ${counted ? 'this attempt counts' : 'practice: today\u2019s dive is already logged'}`, C['pen-2']);
     return;
   }
+  if (G.warmT > 0) {
+    const wl = weakestLetters(4);
+    banner('WARM-UP · 30 SECONDS', `no damage, no score${wl.length ? ' · leaning on ' + wl.join(' ') : ''} · Enter skips`, C['pen-3']);
+    return;
+  }
   if (game === 'descent') { banner('DESCENT', 'an endless dive: every 200 m the water changes', C.sonar); return; }
   if (game === 'zen') { banner('ZEN', 'no hull to lose and no weapons: just the words · Esc, then E to end', C['pen-3']); return; }
   if (game === 'sector') banner(`SECTOR ${pad(d)} · WAVE 1/3`, `${DIFF_NAMES[d - 1].toLowerCase()} · three waves, then the leviathan`, C['pen-2']);
 }
-function pause() { if (screen === 'play') { G.armHeld = false; setScreen('paused'); syncToggles(); $('#btnEndZen').hidden = G.game !== 'zen'; requestAnimationFrame(drawKey); } }
+function pause() { if (screen === 'play') { G.armHeld = false; setScreen('paused'); syncToggles(); renderComfort(); $('#btnEndZen').hidden = G.game !== 'zen'; requestAnimationFrame(drawKey); } }
 // the pause screen's contact key: each type drawn exactly as it appears on the scope
 const KEY = [
   ['anchor', {}, 'Plain', 'Type it once.'],
@@ -3648,7 +3764,12 @@ function gameOver(kind) {
     // the day's first attempt is the one that counts; later ones are practice
     if (firstToday) { prefs.daily[daily.key] = { pts: G.points, medal, kind, acc: Math.round(acc * 10) / 10, mod: daily.mod, boss: daily.boss, diff: G.diff }; isNew = true; }
   } else {
-    if (G.points > 0 && (prevBest == null || G.points > prevBest)) { hi[G.diff] = G.points; isNew = true; }
+    if (G.points > 0 && (prevBest == null || G.points > prevBest)) {
+      hi[G.diff] = G.points; isNew = true;
+      // a record set with assist on is kept, and marked
+      const ak = G.game + ':' + G.diff;
+      if (prefs.comfort.assist < 1) prefs.hiAssist[ak] = prefs.comfort.assist; else delete prefs.hiAssist[ak];
+    }
     if (medal && (!prevMedal || rank[medal] > rank[prevMedal])) { if (exp) ends[exp.boss] = medal; else prefs.medals[G.diff] = medal; isNew = true; }
   }
   // a new best becomes the ghost for the next run at this mode and level
@@ -3666,14 +3787,14 @@ function gameOver(kind) {
   const tierUp = exp && kind === 'cleared' && G.tier >= prefs.expTier && prefs.expTier < TIERS.length;
   if (tierUp) prefs.expTier = G.tier + 1;
   // the logbook: one line per run, plus lifetime totals and records
-  const runWpm = wpm(), L = prefs.life;
+  const runWpm = wpm(), L = prefs.life, assisted = prefs.comfort.assist < 1 ? prefs.comfort.assist : undefined;
   if (zen) prefs.life.zen = (prefs.life.zen || 0) + Math.round(G.t);
   const mLvBefore = masteryLv(G.hullType);
   prefs.mastery[G.hullType] = masteryXp(G.hullType) + G.kills;
   const mLvNow = masteryLv(G.hullType);
   prefs.life.abilities = (prefs.life.abilities || 0) + (G.stats.abilities || 0);
   prefs.history.push({ at: Date.now(), game: daily ? 'daily' : G.game, diff: G.diff, depth: G.game === 'descent' ? Math.floor(G.depth) : undefined, pts: G.points, wpm: runWpm, acc: accuracy() == null ? null : Math.round(acc * 10) / 10,
-    kills: G.kills, secs: Math.round(G.t), medal, kind, combo: G.bestCombo });
+    kills: G.kills, secs: Math.round(G.t), medal, kind, combo: G.bestCombo, assist: assisted });
   if (prefs.history.length > 600) prefs.history.splice(0, prefs.history.length - 600);
   L.words += G.kills; L.keys += G.correct; L.secs += Math.round(G.t); L.bestStreak = Math.max(L.bestStreak, G.bestCombo);
   if (G.t >= 30 && runWpm) L.bestWpm = Math.max(L.bestWpm, runWpm);
@@ -3687,6 +3808,9 @@ function gameOver(kind) {
     retargets: G.stats.retargets || 0, pressN: Object.keys(G.press).length, cards: G.cards.length,
     flows: G.stats.flows || 0, flowTime: G.flowTime, parries: G.stats.parries || 0, ghostBeat, tier: G.tier });
   const rankNow = rankOf(prefs.salvageTotal), promoted = rankNow > rankBefore ? RANKS[rankNow][1] : null;
+  // the week's goal, met for the first time with this run
+  const goalNow = goalProgress(), goalHit = goalNow.met && !prefs.goalsMet[weekKey()];
+  if (goalHit) prefs.goalsMet[weekKey()] = true;
   const heardNow = storyUnheard();
   savePrefs();
   G.result = { kind, medal };
@@ -3705,7 +3829,7 @@ function gameOver(kind) {
     : G.game === 'sector' ? `SIGNAL LOST · HULL BREACHED · WAVE ${G.sec.wave}/3`
     : exp ? `SIGNAL LOST · HULL BREACHED · LEG ${exp.col + 1}/${CHART_COLS}` : 'SIGNAL LOST · HULL BREACHED';
   $('#dTitle').textContent = drill ? 'Drill complete' : zen ? 'Session complete' : daily ? (firstToday ? 'Daily dive' : 'Daily dive · practice') : G.game === 'descent' ? 'Dive over' : kind === 'cleared' ? (exp ? 'Expedition complete' : 'Sector cleared') : 'Debrief';
-  $('#dSub').textContent = `${daily ? 'daily dive ' + daily.key : G.game}${G.tier ? ' tier ' + G.tier : ''} · difficulty ${pad(G.diff)}${drill ? '' : ' · ' + name} · ${Math.floor(G.t / 60)} m ${Math.floor(G.t % 60)} s${G.pressMul > 1 ? ` · pressure ×${G.pressMul.toFixed(2)}` : ''}`;
+  $('#dSub').textContent = `${prefs.comfort.assist < 1 ? 'assisted ' + Math.round(prefs.comfort.assist * 100) + '% · ' : ''}${daily ? 'daily dive ' + daily.key : G.game}${G.tier ? ' tier ' + G.tier : ''} · difficulty ${pad(G.diff)}${drill ? '' : ' · ' + name} · ${Math.floor(G.t / 60)} m ${Math.floor(G.t % 60)} s${G.pressMul > 1 ? ` · pressure ×${G.pressMul.toFixed(2)}` : ''}`;
   $('#dActs').innerHTML = (medal ? `<span class="chip medal" style="color:${{ gold: 'var(--pen-4)', silver: 'var(--ink-2)', bronze: 'var(--pen-6)' }[medal]};border-color:currentColor">${medalSvg(medal, 16)} ${medal.toUpperCase()}</span>` : '')
     + (isNew ? '<span class="chip" style="color:var(--pen-2);border-color:var(--pen-2)">● new best</span>' : '')
     + (newlyAffordable.length ? '<span class="chip" style="color:var(--pen-4);border-color:var(--pen-4)">● new in the Dry Dock <kbd>D</kbd></span>' : '');
@@ -3763,6 +3887,7 @@ function gameOver(kind) {
     + r('var(--pen-4)', 'Words recovered', `+${G.newWords} <small class="u">catalogue ${(catPct() * 100).toFixed(1)}%</small>`)
     + (G.runRelics.length ? r('var(--pen-4)', 'Relics recovered', G.runRelics.map(k => `<b>${esc(k)}</b>`).join(' · ')) : '')
     + (promoted ? r('var(--pen-2)', 'Promoted', `<b>${promoted}</b>`) : '')
+    + (goalHit ? r('var(--pen-3)', 'Weekly goal met', `<b>${goalLine()}</b>`) : '')
     + (tierUp ? r('var(--pen-1)', `Expedition tier ${prefs.expTier} unlocked`, `<b>${TIERS[prefs.expTier - 1][0]}</b> ${TIERS[prefs.expTier - 1][1]}`) : '')
     + r('var(--pen-2)', `${HULLS[G.hullType].name} mastery`, `+${G.kills} <small class="u">${mLvNow > mLvBefore ? `<b style="color:var(--pen-2)">level ${mLvNow}!</b> ${mLvNow === 3 ? 'perk unlocked' : mLvNow === 5 ? 'ability upgraded' : 'new trim'}` : `level ${mLvNow}${mLvNow < 5 ? ` · ${MASTERY[mLvNow] - masteryXp(G.hullType)} to the next` : ''}`}</small>`)
     + (honours.length ? `<div class="tx gold"><div class="no">${honours.length === 1 ? 'COMMENDATION' : honours.length + ' COMMENDATIONS'} · +${honours.reduce((t, h) => t + h.pay, 0)} SALVAGE</div>`
@@ -3965,6 +4090,9 @@ const COMMENDATIONS = [
   ['tier3', 'Deep charts', 'Complete an expedition at tier 3.', 250, r => r.cleared && r.game === 'expedition' && r.tier >= 3],
   ['tier5', 'Uncharted', 'Complete an expedition at tier 5.', 500, r => r.cleared && r.game === 'expedition' && r.tier >= 5],
   ['ability25', 'Signature move', 'Use hull abilities 25 times in all.', 60, () => (prefs.life.abilities || 0) >= 25],
+  ['goal1', 'On target', 'Meet a weekly goal.', 100, () => Object.keys(prefs.goalsMet).length >= 1],
+  ['goal4', 'Steady practice', 'Meet the weekly goal in four different weeks.', 250, () => Object.keys(prefs.goalsMet).length >= 4],
+  ['warm10', 'Limber', 'Warm up before ten runs.', 60, () => (prefs.life.warmups || 0) >= 10],
 ];
 // the end-of-run check: returns the commendations newly earned (their salvage is paid here)
 function awardCommendations(r) {
@@ -4441,6 +4569,14 @@ function renderLog() {
       ${ro('Runs', prefs.runs, `${H.length} in the log`)}${ro('At the scope', L.secs ? fmtDur(L.secs) : '–', 'logged time')}
       ${ro('Destroyed', L.words.toLocaleString('en-US'), `${L.keys.toLocaleString('en-US')} keys`)}${ro('Best WPM', L.bestWpm || '–', 'one run, 30 s+')}
       ${ro('Best accuracy', L.bestAcc ? L.bestAcc + '%' : '–', '100 keys+')}${ro('Longest streak', L.bestStreak || '–', 'clean words')}</div>`;
+    {
+      const gp = goalProgress(), g = prefs.goal, [label, [lo, hi, stepv]] = GOALS[g.type];
+      html += `<div class="sech"><span class="lbl">This week's goal</span></div><div class="goalbox">
+        <div class="gtypes">${Object.entries(GOALS).map(([k, [nm]]) => `<button class="chip ${k === g.type ? 'on' : ''}" data-goal="${k}">${nm}</button>`).join('')}</div>
+        <div class="gset"><button class="btn sm" data-gstep="-1">−</button><b>${g.target}</b><button class="btn sm" data-gstep="1">+</button>
+        <span>${dotBar(Math.min(1, gp.value / g.target), 20, gp.met ? 'var(--pen-3)' : 'var(--pen-2)', 2)} ${g.type === 'acc' ? gp.value.toFixed(1) : Math.round(gp.value)} ${label} this week${gp.enough ? '' : ' · needs 3 runs'}${gp.met ? ' · <b style="color:var(--pen-3)">met</b>' : ''}</span></div>
+        <p class="savep">${Object.keys(prefs.goalsMet).length} week${Object.keys(prefs.goalsMet).length === 1 ? '' : 's'} with the goal met. The week runs Monday to Sunday.</p></div>`;
+    }
     const dives = Object.entries(prefs.daily), deepest = Math.max(0, ...Object.values(prefs.deepest));
     if (dives.length || deepest) html += `<div class="sech"><span class="lbl">Daily dives and Descent</span></div>`
       + r('var(--pen-2)', 'Daily dives logged', `${dives.length} · streak ${dailyStreak()} · best ${dives.length ? fmtPts(Math.max(...dives.map(([, d]) => d.pts))) : '–'}`)
@@ -4466,18 +4602,39 @@ function renderLog() {
     }
     $('#lgNote').textContent = H.length ? `first run logged ${new Date(H[0].at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : '';
   } else if (logTab === 'letters') {
-    const weak = letterWeakness(), rows = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
+    const weak = letterWeakness(), rows = LAYOUTS[prefs.comfort.layout][1];
     const tone = v => v == null ? '' : v < .12 ? 'var(--pen-3)' : v < .35 ? 'var(--ink-3)' : v < .7 ? 'var(--pen-4)' : 'var(--pen-1)';
     html = `<div class="kb">${rows.map((row, ri) => `<div class="r" style="margin-left:${ri * 22}px">${[...row].map(ch => {
+      if (ch === ' ') return '<div class="key na" style="visibility:hidden"></div>';
       const Lc = prefs.letters[ch], v = weak && weak[ch] != null ? weak[ch] : null, col = tone(v);
       if (!Lc || Lc.n < 8 || !Lc.ms) return `<div class="key na"><b>${ch}</b><span>${Lc ? Lc.n : 0} typed</span></div>`;
       return `<div class="key" style="background:color-mix(in srgb,${col} 18%,var(--paper));border-color:color-mix(in srgb,${col} 60%,var(--rule))"><b>${ch}</b><span>${Math.round(Lc.ms)} ms</span><span>${(Lc.miss * 100).toFixed(0)}% miss</span></div>`;
     }).join('')}</div>`).join('')}</div>
       <div class="lglegend"><span><i style="background:var(--pen-3)"></i>easy</span><span><i style="background:var(--ink-3)"></i>average</span><span><i style="background:var(--pen-4)"></i>slow</span><span><i style="background:var(--pen-1)"></i>weakest</span><span><i style="border:1px dashed var(--ink-3)"></i>not enough data</span></div>`;
+    // fingers: each key by its column on the chosen layout, touch-typing style
+    const FINGERS = ['L pinky', 'L ring', 'L middle', 'L index', 'L index', 'R index', 'R index', 'R middle', 'R ring', 'R pinky'];
+    const per = {};
+    rows.forEach(row => [...row].forEach((ch, col) => {
+      const L = prefs.letters[ch]; if (ch === ' ' || !L || L.n < 3 || !L.ms) return;
+      const fk = FINGERS[Math.min(9, col)], e = per[fk] || (per[fk] = { n: 0, ms: 0, miss: 0, keys: '' });
+      e.n += L.n; e.ms += L.ms * L.n; e.miss += L.miss * L.n; e.keys += ch;
+    }));
+    const order = ['L pinky', 'L ring', 'L middle', 'L index', 'R index', 'R middle', 'R ring', 'R pinky'];
+    const fms = order.filter(k => per[k]).map(k => per[k].ms / per[k].n), fmean = fms.length ? fms.reduce((a, b) => a + b, 0) / fms.length : 0;
+    const hand = h => { const ks = order.filter(k => k[0] === h && per[k]); const n = ks.reduce((t, k) => t + per[k].n, 0); return n ? ks.reduce((t, k) => t + per[k].ms, 0) / n : 0; };
+    html += `<div class="sech"><span class="lbl">Fingers · ${LAYOUTS[prefs.comfort.layout][0]}</span></div><div class="fingers">${order.map(k => {
+      const e = per[k]; if (!e) return `<div class="finger"><b>–</b><span>${k}</span></div>`;
+      const ms = e.ms / e.n, col = ms > fmean * 1.15 ? 'var(--pen-1)' : ms > fmean * 1.05 ? 'var(--pen-4)' : ms < fmean * .95 ? 'var(--pen-3)' : 'var(--ink-3)';
+      return `<div class="finger" style="border-color:color-mix(in srgb,${col} 55%,var(--rule))"><b>${Math.round(ms)}</b><span>ms · ${(e.miss / e.n * 100).toFixed(0)}% miss</span><span>${k}</span><i>${e.keys}</i></div>`;
+    }).join('')}</div>`;
+    const hl = hand('L'), hr = hand('R');
+    if (hl && hr) html += r('', 'Hands', `left ${Math.round(hl)} ms · right ${Math.round(hr)} ms${Math.abs(hl - hr) > 12 ? ` · the ${hl > hr ? 'left' : 'right'} hand is slower` : ' · evenly matched'}`);
+    const wp = weakestPairs();
+    html += r('', 'Slowest pairs', wp.length ? wp.map(k => `<kbd>${k}</kbd> ${Math.round(prefs.pairs[k].ms)}`).join(' ') + ' <small class="u">ms</small>' : 'type a few runs first');
     const w5 = weakestLetters();
     html += `<div class="sech"><span class="lbl">Focus</span></div>`
       + r('', 'Weakest letters', w5.length ? w5.map(ch => `<kbd>${ch}</kbd>`).join(' ') : 'type a few runs first')
-      + r('', 'Adaptive words', prefs.adaptive ? 'on: every mode leans a little towards these letters; Drill leans hard' : 'off: words are picked at random')
+      + r('', 'Adaptive words', prefs.adaptive ? 'on: every mode leans a little towards these letters and pairs; Drill and the warm-up lean hard' : 'off: words are picked at random')
       + `<div style="margin-top:12px"><button class="btn" id="btnDrillNow">Drill these now · difficulty ${pad(sel)} <kbd>⏎</kbd></button></div>`;
     $('#lgNote').textContent = 'times are the gap before each letter inside a word, averaged over recent typing';
   } else if (logTab === 'archive') {
@@ -4560,6 +4717,10 @@ function renderLog() {
   }
   $('#lgBody').innerHTML = html;
   const dn = $('#btnDrillNow'); if (dn) dn.onclick = () => startRun(sel, 'drill');
+  document.querySelectorAll('[data-goal]').forEach(b => b.onclick = () => { const k = b.dataset.goal; prefs.goal = { type: k, target: { wpm: 40, acc: 95, minutes: 60, runs: 10 }[k] }; savePrefs(); renderLog(); sfx.ui(); });
+  document.querySelectorAll('[data-gstep]').forEach(b => b.onclick = () => {
+    const [, [lo, hi, st]] = GOALS[prefs.goal.type]; prefs.goal.target = clamp(prefs.goal.target + st * +b.dataset.gstep, lo, hi); savePrefs(); renderLog(); sfx.ui();
+  });
   const bx = $('#btnExport'); if (bx) bx.onclick = () => {
     SonarSave.download(SonarSave.pack(prefs, VERSION, saveWhere()));
     saveNote = { ok: true, text: 'Exported. Import that file wherever you want this save to be.' }; renderLog(); sfx.ui();
@@ -4640,7 +4801,7 @@ function buildDailyPanel() {
     <div class="dgo">${done ? 'Dive again as practice' : 'Dive'} <kbd>⏎</kbd></div></button>`;
   $('#dailyGo').onclick = () => startRun(sel, 'daily');
   const medals = Object.keys(prefs.medals).length;
-  $('#runsNote').textContent = `${RANKS[rankOf(prefs.salvageTotal)][1]} · archive ${(catPct() * 100).toFixed(1)}% · ${prefs.runs} runs · ${medals} sectors cleared`;
+  $('#runsNote').textContent = `${RANKS[rankOf(prefs.salvageTotal)][1]} · archive ${(catPct() * 100).toFixed(1)}% · ${goalLine()} · ${prefs.runs} runs`;
 }
 // the title's story line: the newest unheard transmission, or the latest one
 function buildStoryLine() {
@@ -4688,7 +4849,9 @@ function buildPress() {
 const SOUND_ON = '<svg viewBox="0 0 16 16"><path d="M3 6h2.5L9 3v10L5.5 10H3z"/><path d="M11.5 5.5a3.5 3.5 0 0 1 0 5"/></svg>';
 const SOUND_OFF = '<svg viewBox="0 0 16 16"><path d="M3 6h2.5L9 3v10L5.5 10H3z"/><path d="M11.5 6l3 4M14.5 6l-3 4"/></svg>';
 function applyTheme() {
-  document.documentElement.dataset.theme = prefs.theme; readColors(); resize();
+  const de = document.documentElement;
+  de.dataset.theme = prefs.theme; de.dataset.palette = prefs.comfort.palette; de.dataset.text = String(prefs.comfort.text);
+  readColors(); resize();
   if (screen === 'over') dotCols($('#cvTimeline'), G.killsRun, C['pen-2'], Math.max(24, G.killsRun.length));
   if (screen === 'paused') requestAnimationFrame(drawKey);
   hudT = 0;
@@ -4697,6 +4860,38 @@ function toggleTheme() { prefs.theme = prefs.theme === 'dark' ? 'light' : 'dark'
 function toggleSound() { prefs.sound = !prefs.sound; savePrefs(); syncToggles(); audioActive(prefs.sound && document.hasFocus()); }
 function toggleShake() { prefs.shake = !prefs.shake; savePrefs(); syncToggles(); }
 function toggleMusic() { prefs.music = !prefs.music; savePrefs(); syncToggles(); }
+const LAYOUTS = {
+  qwerty: ['QWERTY', ['qwertyuiop', 'asdfghjkl', 'zxcvbnm']],
+  qwertz: ['QWERTZ', ['qwertzuiop', 'asdfghjkl', 'yxcvbnm']],
+  azerty: ['AZERTY', ['azertyuiop', 'qsdfghjklm', 'wxcvbn']],
+  dvorak: ['Dvorak', ['   pyfgcrl', 'aoeuidhtns', ' qjkxbmwvz']],
+  colemak: ['Colemak', ['qwfpgjluy', 'arstdhneio', 'zxcvbkm']],
+};
+const COMFORT = [
+  ['assist', 'Assist speed', () => prefs.comfort.assist === 1 ? 'off' : Math.round(prefs.comfort.assist * 100) + '%', [1, .9, .8, .7],
+    'Contacts move slower. Records set this way are marked assisted.'],
+  ['text', 'Text size', () => ({ 1: 'normal', 1.15: 'large', 1.3: 'larger' })[prefs.comfort.text], [1, 1.15, 1.3], 'Bigger words on the scope, and bigger panels.'],
+  ['palette', 'Colours', () => prefs.comfort.palette === 'cb' ? 'colour-blind safe' : 'standard', ['standard', 'cb'],
+    'A palette that keeps red, green and blue apart for colour-blind eyes.'],
+  ['easy', 'Easy-read words', () => prefs.comfort.easy ? 'on' : 'off', [false, true], 'Verdana with wider spacing, the kind of face dyslexia guides suggest.'],
+  ['warmup', 'Warm-up', () => prefs.comfort.warmup ? 'on' : 'off', [false, true], '30 s on your weak letters before Sector and Descent runs. Enter skips it.'],
+  ['layout', 'Keyboard layout', () => LAYOUTS[prefs.comfort.layout][0], Object.keys(LAYOUTS), 'For the Logbook\u2019s keyboard heatmap and finger map.'],
+];
+function comfortRows() {
+  return COMFORT.map(([k, nm, val, , help]) => `<button class="tog cft" data-cft="${k}" title="${help}"><span class="k">${nm}</span><span class="val"><b>${val()}</b></span></button>`).join('');
+}
+function cycleComfort(k) {
+  const row = COMFORT.find(r => r[0] === k), opts = row[3], i = opts.indexOf(prefs.comfort[k]);
+  prefs.comfort[k] = opts[(i + 1) % opts.length]; savePrefs();
+  if (k === 'text' || k === 'palette' || k === 'easy') applyTheme();
+  renderComfort(); sfx.ui();
+}
+function renderComfort() {
+  for (const el of document.querySelectorAll('.cftList')) el.innerHTML = comfortRows();
+  document.querySelectorAll('[data-cft]').forEach(b => b.onclick = () => { ensureAudio(); cycleComfort(b.dataset.cft); });
+  const help = $('#setHelp'); if (help) help.innerHTML = COMFORT.map(([, nm, , , h]) => `<p><b>${nm}</b> ${h}</p>`).join('');
+}
+function openSettings() { ensureAudio(); setScreen('settings'); renderComfort(); syncToggles(); sfx.ui(); }
 function syncToggles() {
   $('#btnSound').innerHTML = prefs.sound ? SOUND_ON : SOUND_OFF;
   $('#togSound').classList.toggle('on', prefs.sound);
@@ -4704,6 +4899,12 @@ function syncToggles() {
   $('#togShake').classList.toggle('on', prefs.shake);
   $('#togMusic').classList.toggle('on', prefs.music);
   $('#togAdapt2').classList.toggle('on', !!prefs.adaptive); $('#togAdaptive').classList.toggle('on', !!prefs.adaptive);
+  const sv = { sound: prefs.sound, music: prefs.music, shake: prefs.shake, adaptive: !!prefs.adaptive };
+  document.querySelectorAll('[data-set]').forEach(b => {
+    const k = b.dataset.set;
+    if (k === 'theme') b.querySelector('.val').innerHTML = prefs.theme === 'dark' ? '<b>backlit</b> · paper' : 'backlit · <b>paper</b>';
+    else b.classList.toggle('on', !!sv[k]);
+  });
 }
 
 /* ------------------------------------------------------------ input */
@@ -4715,7 +4916,7 @@ addEventListener('keydown', e => {
     if (e.key === 'Escape') { pause(); return; }
     if (e.key === 'Tab') { e.preventDefault(); if (!e.repeat) useTorp(); return; }
     if (e.key === ' ') { e.preventDefault(); if (!e.repeat) usePulse(); return; }
-    if (e.key === 'Enter') { e.preventDefault(); if (!e.repeat && G.arsenal.nuke) G.armHeld = true; return; }
+    if (e.key === 'Enter') { e.preventDefault(); if (G.warmT > 0) { if (!e.repeat) endWarmup(); return; } if (!e.repeat && G.arsenal.nuke) G.armHeld = true; return; }
     if (e.key === 'Backspace') { e.preventDefault(); dropLock(); return; }
     if (e.key === '/') { e.preventDefault(); if (!e.repeat) usePing(); return; }
     if (e.key === '1') { e.preventDefault(); if (!e.repeat) useAbility(); return; }
@@ -4736,6 +4937,7 @@ addEventListener('keydown', e => {
     else if (e.key === 'ArrowUp') select(Math.max(1, sel - 5));
     else if (e.key === 'Tab') { e.preventDefault(); setGame(GAMES[(GAMES.indexOf(prefs.game) + (e.shiftKey ? GAMES.length - 1 : 1)) % GAMES.length]); }
     else if (k === 'd') openDock();
+    else if (k === 'o') openSettings();
     else if (k === 'l') openLog();
     else if (e.key === 'Enter') startRun(sel, prefs.game);
   } else if (screen === 'paused') {
@@ -4744,6 +4946,8 @@ addEventListener('keydown', e => {
     else if (k === 'e' && G.game === 'zen') gameOver('zen');
     else if (k === 's') toggleShake();
     else if (k === 'a') toggleAdaptive();
+  } else if (screen === 'settings') {
+    if (e.key === 'Escape' || k === 'o') setScreen('title');
   } else if (screen === 'log') {
     if (e.key === 'Escape' || k === 'l') closeLog();
     else if (/^[1-7]$/.test(e.key)) { logTab = LOG_TABS[+e.key - 1][0]; importPending = null; saveNote = null; renderLog(); sfx.ui(); }
@@ -4791,6 +4995,14 @@ $('#btnQuit').onclick = quitToTitle;
 $('#btnAgain').onclick = () => startRun(G.diff, G.daily ? 'daily' : G.game);
 $('#btnChange').onclick = quitToTitle;
 $('#btnDock').onclick = () => openDock();
+$('#btnSet').onclick = openSettings;
+$('#btnSetBack').onclick = () => setScreen('title');
+document.querySelectorAll('[data-set]').forEach(b => b.onclick = () => {
+  ensureAudio();
+  const k = b.dataset.set;
+  if (k === 'sound') toggleSound(); else if (k === 'music') toggleMusic(); else if (k === 'theme') toggleTheme(); else if (k === 'shake') toggleShake(); else toggleAdaptive();
+  syncToggles();
+});
 $('#btnEndZen').onclick = () => { if (G.game === 'zen' && screen === 'paused') gameOver('zen'); };
 $('#btnLog').onclick = () => openLog();
 $('#btnLogBack').onclick = closeLog;
