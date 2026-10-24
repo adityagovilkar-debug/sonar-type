@@ -39,7 +39,18 @@ module.exports = [
     const st = awardCommendations({ by: {} }).map(h => h.id).filter(id => id === 'stylist' || id === 'wardrobe');
     closeDock();
     return 'tabs ' + tabs + ', crew rows ' + rows + ' items ' + items + ', showroom ' + show + ' (hulls tab ' + showHulls + ') | bought cat ' + cat + ' | projectiles items ' + proj + ', scope rows ' + scopeRows + ' | new looks for sale ' + sale + ' | surprise all owned ' + legal + ' | honours ' + st.join(',') + ' bought ' + looksBought() + '/' + looksForSale();`),
+  check('hull designs', `${OWN_ALL} const out = [];
+    for (const sk of Object.keys(HULLSKINS)) for (const h of Object.keys(HULLS)) { prefs.loadout.hullskin = sk; prefs.loadout.hull = h; let err = '';
+      try { applyKit('play'); G.words = []; const w = put('anchor', 40, .6); press('a'); for (let i = 0; i < 4; i++) { update(1 / 60); render(); } } catch (e) { err = e.message; }
+      if (err) out.push(sk + '/' + h + ' ERR ' + err); }
+    prefs.campaign.ending = null; prefs.beaten = {}; const lockedBell = !owns('hullskin', 'bell') && !owns('hullskin', 'wee');
+    prefs.campaign.ending = 'keep'; for (const k of BOSS_KEYS) prefs.beaten[k] = true; const openBell = owns('hullskin', 'bell') && owns('hullskin', 'wee');
+    const inShop = shopList().some(i => i.key === 'bell' || i.key === 'wee');
+    prefs.loadout.hull = 'bastion'; prefs.loadout.hullskin = 'teacup'; applyKit('play'); const keeps = G.hullType + ' iron ' + G.iron.filter(Boolean).length + ' ability ' + ABILITIES[G.hullType].name + ' look ' + look('hullskin');
+    G.words = []; G.lock = null; const k0 = G.keysTyped || 0; const w = put('wheel', 90, .6); type(w); const turned = (G.keysTyped || 0) - k0;
+    prefs.loadout.hull = 'skiff'; prefs.loadout.hullskin = 'match'; applyKit('play');
+    return (out.length ? out.join(' | ') : 'all ' + Object.keys(HULLSKINS).length + ' designs × ' + Object.keys(HULLS).length + ' hulls drew clean') + ' | earned designs locked before ' + lockedBell + ', open after ' + openBell + ', in the shop list ' + inShop + ' | bastion as teacup: ' + keeps + ' | keys counted ' + turned;`),
   [null, SIM, 30],
-  [null, `${OWN_ALL} JSON.stringify(sim(5, 'sector', 60, { loadout: { tracer: 'bee', killfx: 'fireworks', torpskin: 'duck', sweep: 'lighthouse', pet: 'octopus', sound: 'squeak', scope: 'prism' } }))`, 30],
+  [null, `${OWN_ALL} JSON.stringify(sim(5, 'sector', 60, { loadout: { hullskin: 'eye', tracer: 'bee', killfx: 'fireworks', torpskin: 'duck', sweep: 'lighthouse', pet: 'octopus', sound: 'squeak', scope: 'prism' } }))`, 30],
   [null, `JSON.stringify(sim(4, 'descent', 50, { loadout: { tracer: 'orbit', killfx: 'school', torpskin: 'narwhal', sweep: 'clock', pet: 'cat', sound: 'typewriter', scope: 'sakura' } }, .03, 200))`, 30],
 ];

@@ -629,7 +629,7 @@ body[data-screen="settings"] #ovSet{display:flex}
    clean typing (pulse / torpedo / nuke), supply crates, and a
    sector mode that ends with a leviathan.
    ============================================================ */
-const VERSION = '4.8';
+const VERSION = '4.9';
 const TAU = Math.PI * 2;
 const $ = s => document.querySelector(s);
 const wrap = a => ((a % TAU) + TAU) % TAU;
@@ -961,7 +961,23 @@ const SOUNDPACKS = {
   squeak:  { name: 'Squeaky toy', cost: 350, blurb: 'Exactly what it sounds like. Your neighbours will thank you.' },
 };
 // the cosmetic shelves that are a plain catalogue: owned once bought, worn from prefs.loadout[kind]
-const LOOKS = { torpskin: TORPSKINS, sweep: SWEEPS, pet: PETS, sound: SOUNDPACKS };
+// v4.9: hull designs. Any hull can wear any design; the hull underneath still decides the stats, the ability
+// and the mastery. 'match' wears the hull's own look.
+const HULLSKINS = {
+  match:     { name: 'Match the hull', cost: 0, blurb: 'Wear whichever look the fitted hull was built with.' },
+  sub:       { name: 'Yellow submarine', cost: 300, blurb: 'Portholes, a periscope, and a propeller that never stops.' },
+  buoy:      { name: 'Life ring', cost: 250, blurb: 'Red and white, bobbing gently. Very reassuring.' },
+  wheel:     { name: 'Ship’s wheel', cost: 300, blurb: 'Turns a notch with every letter you type.' },
+  compass:   { name: 'Compass rose', cost: 350, blurb: 'Its red needle swings to whatever you are aiming at.' },
+  nautilus:  { name: 'Nautilus', cost: 400, blurb: 'A chambered shell, turning slowly on its spiral.' },
+  clam:      { name: 'Clam', cost: 350, blurb: 'Opens a little with every keystroke. There is a pearl inside.' },
+  eye:       { name: 'Kraken’s eye', cost: 450, blurb: 'Watches every word coming in. Blinks, occasionally.' },
+  vinyl:     { name: 'Vinyl', cost: 400, blurb: 'A record on the platter. Spins faster when you are in flow.' },
+  teacup:    { name: 'Teacup', cost: 500, blurb: 'Defending the Archive with a nice cup of tea. Still steaming.' },
+  bell:      { name: 'Diving bell', feat: () => !!prefs.campaign.ending, req: 'finish the campaign', blurb: 'Brass, bolted, one round window. The bell that went down to the reading room.' },
+  wee:       { name: 'Little leviathan', feat: () => BOSS_KEYS.every(beat), req: 'destroy all four kinds of leviathan', blurb: 'A pocket-sized stack of layers, on your side for once.' },
+};
+const LOOKS = { hullskin: HULLSKINS, torpskin: TORPSKINS, sweep: SWEEPS, pet: PETS, sound: SOUNDPACKS };
 const prismCol = (off = 0) => `hsl(${Math.round((performance.now() / 1000 * 30 + off) % 360)}, 85%, ${dark ? 68 : 40}%)`;
 const look = kind => { const k = prefs.loadout[kind]; return k && owns(kind, k) ? k : Object.keys(LOOKS[kind])[0]; };
 // upgrade cards are offered three at a time after each wave; rare ones must be bought in the Dry Dock first
@@ -999,7 +1015,7 @@ function owns(kind, key) {
   if (kind === 'tracer') { const t = TRACERS[key]; return !!t && (t.from ? owns('hull', t.from) : t.feat ? t.feat() : !!prefs.owned['tracer:' + key]); }
   if (kind === 'scope') { const sc = SCOPES[key]; return !!sc && (sc.feat ? sc.feat() : !sc.cost || !!prefs.owned['scope:' + key]); }
   if (kind === 'killfx') return !!KILLFX[key] && (!KILLFX[key].cost || !!prefs.owned['killfx:' + key]);
-  if (LOOKS[kind]) return !!LOOKS[kind][key] && (!LOOKS[kind][key].cost || !!prefs.owned[kind + ':' + key]);
+  if (LOOKS[kind]) { const it = LOOKS[kind][key]; return !!it && (it.feat ? it.feat() : !it.cost || !!prefs.owned[kind + ':' + key]); }
   const g = GEAR[kind] && GEAR[kind][key];
   return !!g && (!g.cost || !!prefs.owned[kind + ':' + key]);
 }
@@ -1684,6 +1700,8 @@ function fire(w) {
     G.fx.push({ k: 'dot', x: sx, y: sy, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: 1.3, col: tracerCol(), life: .18, max: .18, drag: 6 });
   }
   bump(1); sfx.fire(panAt(p.x), noteFor(idx + Math.min(4, Math.floor(G.combo / 3))));
+  // the wheel turns and the clam opens with each keystroke
+  G.kp = 1; G.keysTyped = (G.keysTyped || 0) + 1;
 }
 function miss() {
   G.miss++;
@@ -2836,7 +2854,7 @@ function update(dt) {
   }
   G.shake *= Math.exp(-dt * 9);
   G.flash = Math.max(0, G.flash - dt * 1.3);
-  petTick(dt);
+  petTick(dt); G.kp = Math.max(0, (G.kp || 0) - dt * 3.5);
   for (const f of G.fx) {
     if (f.delay > 0) { f.delay -= dt; continue; }
     f.life -= dt;
@@ -3685,6 +3703,11 @@ function drawFx(c) {
 }
 // the hull at the centre of the scope. s scales it up for the Dry Dock's previews.
 function drawHull(c, x, y, type, s = 1, o = {}) {
+  if (o.skin && o.skin !== 'match' && HULLSKINS[o.skin]) {
+    drawHullSkin(c, x, y, o.skin, s, o);
+    if (o.trim) { c.save(); c.globalAlpha = .9; c.strokeStyle = o.trim; c.lineWidth = 1.3; c.beginPath(); c.arc(x, y, 21 * s, 0, TAU); c.stroke(); c.restore(); }
+    return;
+  }
   const now = performance.now() / 1000, glow = o.low ? C['pen-1'] : C['pen-3'];
   c.save(); c.translate(x, y); c.scale(s, s); c.lineCap = 'round'; c.lineJoin = 'round';
   const core = (r, a = 1) => { c.globalAlpha = a; c.fillStyle = C.ink; if (dark) { c.shadowColor = glow; c.shadowBlur = 14; } c.beginPath(); dotPath(c, 0, 0, r); c.fill(); c.shadowBlur = 0; };
@@ -3733,6 +3756,116 @@ function drawHull(c, x, y, type, s = 1, o = {}) {
   }
   c.restore();
   if (o.trim) { c.save(); c.globalAlpha = .9; c.strokeStyle = o.trim; c.lineWidth = 1.3; c.beginPath(); c.arc(x, y, 21 * s, 0, TAU); c.stroke(); c.restore(); }
+}
+// v4.9 hull designs, drawn inside the hull ring (about 18 px across the radius). Some react to play: the wheel turns
+// with every letter, the clam opens on each keystroke, the compass and the eye follow the aim, the record spins up in flow.
+// In the Dry Dock (outside a run) the reactions run on a gentle clock instead.
+function drawHullSkin(c, x, y, skin, s = 1, o = {}) {
+  const now = performance.now() / 1000, inRun = screen === 'play' || screen === 'paused';
+  const kp = inRun ? (G.kp || 0) : Math.max(0, Math.sin(now * 3)) ** 4, keys = inRun ? (G.keysTyped || 0) : Math.floor(now * 3);
+  const aim = o.aim ?? (-Math.PI / 4 + Math.sin(now) * .6), hot = o.low ? C['pen-1'] : null;
+  c.save(); c.translate(x, y); c.scale(s, s); c.lineCap = 'round'; c.lineJoin = 'round'; c.globalAlpha = 1;
+  const glowOn = col => { if (dark) { c.shadowColor = col; c.shadowBlur = 10; } };
+  const port = (px, py, r) => { c.fillStyle = dark ? '#BFE8FF' : '#DCEFFA'; c.beginPath(); dotPath(c, px, py, r); c.fill(); c.strokeStyle = C.ink; c.lineWidth = 1; c.beginPath(); c.arc(px, py, r, 0, TAU); c.stroke(); };
+  if (skin === 'sub') {
+    c.fillStyle = C['pen-4']; c.beginPath(); c.ellipse(0, 2, 15, 8, 0, 0, TAU); c.fill();
+    c.fillRect(-4, -10, 8, 6); c.strokeStyle = C['ink-2']; c.lineWidth = 1.3; c.beginPath(); c.moveTo(1, -10); c.lineTo(1, -15); c.lineTo(5, -15); c.stroke();
+    for (const px of [-8, -1, 6]) port(px, 2, 2.2);
+    // the propeller blades seen edge-on: they shrink and grow as they turn
+    const b = Math.abs(Math.cos(now * 14)) * 5; c.fillStyle = C['ink-2']; c.fillRect(-17.5, 2 - b, 2, b * 2); c.fillRect(-16, 1, 2, 2);
+  } else if (skin === 'buoy') {
+    const bob = 1 + Math.sin(now * 2) * .04; c.scale(bob, bob); c.lineWidth = 6;
+    for (let i = 0; i < 8; i++) { c.strokeStyle = i % 2 ? C.paper : C['pen-1']; c.beginPath(); c.arc(0, 0, 12, i * TAU / 8, (i + 1) * TAU / 8); c.stroke(); }
+    c.strokeStyle = C['ink-3']; c.lineWidth = .8; c.beginPath(); c.arc(0, 0, 15, 0, TAU); c.arc(0, 0, 9, 0, TAU); c.stroke();
+    c.fillStyle = C['ink-2']; c.beginPath(); for (let i = 0; i < 4; i++) { const a = i * TAU / 4 + TAU / 16; dotPath(c, Math.cos(a) * 16, Math.sin(a) * 16, 1.2); } c.fill();
+  } else if (skin === 'wheel') {
+    // it turns an eighth of a spoke per letter, easing towards where it should be
+    const want = keys * TAU / 64; o.wheelA = want; c.rotate(want - kp * TAU / 64 * .6);
+    c.strokeStyle = C['pen-6']; c.lineWidth = 2;
+    for (let i = 0; i < 8; i++) { const a = i * TAU / 8; c.beginPath(); c.moveTo(Math.cos(a) * 3, Math.sin(a) * 3); c.lineTo(Math.cos(a) * 17, Math.sin(a) * 17); c.stroke(); }
+    c.lineWidth = 3; c.beginPath(); c.arc(0, 0, 11, 0, TAU); c.stroke();
+    c.fillStyle = C['pen-6']; c.beginPath(); for (let i = 0; i < 8; i++) { const a = i * TAU / 8; dotPath(c, Math.cos(a) * 17.5, Math.sin(a) * 17.5, 1.8); } c.fill();
+    c.fillStyle = hot || C.ink; c.beginPath(); dotPath(c, 0, 0, 3.4); c.fill();
+  } else if (skin === 'compass') {
+    const pt = (a, r, w, col) => { c.fillStyle = col; c.beginPath(); c.moveTo(Math.cos(a) * r, Math.sin(a) * r); c.lineTo(Math.cos(a + Math.PI / 2) * w, Math.sin(a + Math.PI / 2) * w); c.lineTo(0, 0); c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(Math.cos(a) * r, Math.sin(a) * r); c.lineTo(Math.cos(a - Math.PI / 2) * w, Math.sin(a - Math.PI / 2) * w); c.lineTo(0, 0); c.closePath(); c.globalAlpha = .55; c.fill(); c.globalAlpha = 1; };
+    for (let i = 0; i < 4; i++) pt(-Math.PI / 4 + i * Math.PI / 2, 10, 2.6, C['ink-3']);
+    for (let i = 0; i < 4; i++) pt(-Math.PI / 2 + i * Math.PI / 2, 17, 3.4, i === 0 ? C['pen-1'] : C['ink-2']);
+    c.strokeStyle = C['ink-3']; c.lineWidth = .7; c.beginPath(); c.arc(0, 0, 13, 0, TAU); c.stroke();
+    // the needle points at whatever you are aiming at
+    c.save(); c.rotate(aim); glowOn(C['pen-1']); c.strokeStyle = C['pen-1']; c.lineWidth = 2; c.beginPath(); c.moveTo(-5, 0); c.lineTo(15, 0); c.stroke(); c.restore();
+    c.fillStyle = C.paper; c.beginPath(); dotPath(c, 0, 0, 1.6); c.fill();
+  } else if (skin === 'nautilus') {
+    c.rotate(now * .25); c.strokeStyle = C['pen-6']; c.lineWidth = 2.2; c.beginPath();
+    for (let t = 0; t <= 1; t += .02) { const a = t * TAU * 2.2, r = 2 + 15 * Math.pow(t, 1.6); c[t ? 'lineTo' : 'moveTo'](Math.cos(a) * r, Math.sin(a) * r); }
+    c.stroke();
+    c.lineWidth = .9; c.strokeStyle = C['pen-4']; c.beginPath();
+    for (let k = 4; k < 22; k += 2) { const t = k / 22, a = t * TAU * 2.2, r = 2 + 15 * Math.pow(t, 1.6), ri = 2 + 15 * Math.pow(Math.max(0, t - 1 / 2.2), 1.6); c.moveTo(Math.cos(a) * r, Math.sin(a) * r); c.lineTo(Math.cos(a) * ri, Math.sin(a) * ri); }
+    c.stroke();
+  } else if (skin === 'clam') {
+    const open = .12 + kp * .5;
+    c.fillStyle = C.paper; glowOn(C.paper); c.beginPath(); dotPath(c, 0, 1, 3.6); c.fill(); c.shadowBlur = 0;
+    c.strokeStyle = C['ink-2']; c.lineWidth = .8; c.beginPath(); c.arc(0, 1, 3.6, 0, TAU); c.stroke();
+    for (const sg of [-1, 1]) {
+      c.save(); c.translate(-14, 2); c.rotate(sg * open); c.translate(14, -2);
+      c.fillStyle = C['pen-5']; c.globalAlpha = .92; c.beginPath(); c.moveTo(-14, 2);
+      for (let i = 0; i <= 6; i++) { const a = Math.PI + (i / 6) * Math.PI; c.lineTo(Math.cos(a) * 14, 2 + sg * Math.abs(Math.sin(a)) * 11 * -1 + (i % 2 ? 0 : sg * -1.2)); }
+      c.lineTo(14, 2); c.closePath(); c.fill(); c.globalAlpha = 1;
+      c.strokeStyle = C.paper; c.lineWidth = .7; c.beginPath(); for (let i = 1; i < 6; i++) { const a = Math.PI + (i / 6) * Math.PI; c.moveTo(-14 + 1, 2); c.lineTo(Math.cos(a) * 12, 2 - sg * Math.abs(Math.sin(a)) * 9); } c.stroke();
+      c.restore();
+    }
+  } else if (skin === 'eye') {
+    const blink = (now % 4.3) < .14 ? 1 - Math.abs((now % 4.3) - .07) / .07 : 0, look = 4.5;
+    c.fillStyle = dark ? '#EDEBE3' : '#FBFAF6'; c.beginPath(); c.ellipse(0, 0, 16, 11 * (1 - blink), 0, 0, TAU); c.fill();
+    if (blink < .85) {
+      c.save(); c.beginPath(); c.ellipse(0, 0, 16, 11 * (1 - blink), 0, 0, TAU); c.clip();
+      const ix = Math.cos(aim) * look, iy = Math.sin(aim) * look * .7;
+      c.fillStyle = hot || C['pen-3']; c.beginPath(); dotPath(c, ix, iy, 7); c.fill();
+      c.fillStyle = C.ink; c.beginPath(); c.ellipse(ix, iy, 1.6 + kp, 5.5, 0, 0, TAU); c.fill();
+      c.fillStyle = '#fff'; c.beginPath(); dotPath(c, ix + 2.2, iy - 2.4, 1.3); c.fill();
+      c.restore();
+    }
+    c.strokeStyle = C['pen-5']; c.lineWidth = 1.6; c.beginPath(); c.ellipse(0, 0, 16, 11 * (1 - blink), 0, 0, TAU); c.stroke();
+  } else if (skin === 'vinyl') {
+    const spin = now * (inRun && G.inFlow ? 9 : 3);
+    // a record is black in either theme
+    c.fillStyle = '#141418'; c.beginPath(); dotPath(c, 0, 0, 17); c.fill();
+    if (dark) { c.strokeStyle = 'rgba(255,255,255,.3)'; c.lineWidth = .8; c.beginPath(); c.arc(0, 0, 17, 0, TAU); c.stroke(); }
+    c.strokeStyle = 'rgba(255,255,255,.16)'; c.lineWidth = .6; c.beginPath(); for (let r = 8; r < 17; r += 1.8) { c.moveTo(r, 0); c.arc(0, 0, r, 0, TAU); } c.stroke();
+    c.rotate(spin); c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1.4; c.beginPath(); c.arc(0, 0, 13, -.3, .3); c.stroke();
+    c.fillStyle = hot || C['pen-1']; c.beginPath(); dotPath(c, 0, 0, 6); c.fill();
+    c.fillStyle = C.paper; c.fillRect(-3, -2.6, 6, 1.2); c.beginPath(); dotPath(c, 0, 0, 1.1); c.fill();
+  } else if (skin === 'teacup') {
+    // steam first, curling up behind the cup
+    c.strokeStyle = C['ink-3']; c.lineWidth = 1.1;
+    for (let i = 0; i < 2; i++) { c.globalAlpha = .7; c.beginPath(); for (let j = 0; j <= 10; j++) { const t = j / 10, yy = -6 - t * 14, xx = -3 + i * 6 + Math.sin(now * 3 + t * 6 + i * 2) * 2.2; c[j ? 'lineTo' : 'moveTo'](xx, yy); } c.stroke(); }
+    c.globalAlpha = 1;
+    c.fillStyle = C.paper; c.strokeStyle = C.ink; c.lineWidth = 1.2;
+    c.beginPath(); c.ellipse(0, 9, 17, 4, 0, 0, TAU); c.fill(); c.stroke();
+    c.beginPath(); c.arc(13, 0, 4, -1.3, 1.3); c.stroke();
+    c.beginPath(); c.moveTo(-12, -4); c.lineTo(12, -4); c.quadraticCurveTo(11, 8, 0, 8); c.quadraticCurveTo(-11, 8, -12, -4); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = C['pen-6']; c.beginPath(); c.ellipse(0, -4, 11, 2.2, 0, 0, TAU); c.fill();
+    c.fillStyle = C['pen-1']; c.beginPath(); for (const [dx, dy] of [[-6, 2], [0, 4], [6, 2]]) dotPath(c, dx, dy, 1.1); c.fill();
+  } else if (skin === 'bell') {
+    c.strokeStyle = C['ink-3']; c.lineWidth = 1; c.setLineDash([2, 3]); c.beginPath(); c.moveTo(0, -14); c.lineTo(0, -26); c.stroke(); c.setLineDash([]);
+    c.fillStyle = C['pen-4']; glowOn(C['pen-4']); c.beginPath(); c.moveTo(-15, 12); c.lineTo(-13, -2); c.quadraticCurveTo(-12, -14, 0, -14); c.quadraticCurveTo(12, -14, 13, -2); c.lineTo(15, 12); c.closePath(); c.fill(); c.shadowBlur = 0;
+    c.fillStyle = C['ink-2']; c.fillRect(-16, 11, 32, 3);
+    c.fillStyle = C['ink-2']; c.beginPath(); for (let i = 0; i < 7; i++) dotPath(c, -12 + i * 4, 9, .9); c.fill();
+    port(0, 0, 5.5);
+    c.fillStyle = C['pen-4']; c.globalAlpha = .35 + .3 * Math.sin(now * 2); c.beginPath(); dotPath(c, 0, 0, 3.5); c.fill(); c.globalAlpha = 1;
+  } else if (skin === 'wee') {
+    // a little stack of layers with a face on the top one, wobbling contentedly
+    for (let k = 2; k >= 0; k--) {
+      const dx = k * 3, dy = -k * 3, wob = Math.sin(now * 2.4 + k) * .8;
+      c.fillStyle = C.paper; c.strokeStyle = k ? C['rule-strong'] : C['pen-1']; c.lineWidth = k ? 1 : 1.6;
+      c.fillRect(-12 + dx + wob, -6 + dy, 22, 12); c.strokeRect(-12 + dx + wob, -6 + dy, 22, 12);
+    }
+    const wob = Math.sin(now * 2.4) * .8;
+    c.fillStyle = C.ink; c.beginPath(); dotPath(c, -5 + wob, -1, 1.4); dotPath(c, 3 + wob, -1, 1.4); c.fill();
+    c.strokeStyle = C.ink; c.lineWidth = 1; c.beginPath(); c.arc(-1 + wob, 1.5, 2.4, .3, Math.PI - .3); c.stroke();
+    c.fillStyle = C['pen-1']; c.globalAlpha = .5; c.beginPath(); dotPath(c, -8 + wob, 2, 1.4); dotPath(c, 6 + wob, 2, 1.4); c.fill();
+  }
+  c.restore(); c.shadowBlur = 0;
 }
 // where card modules sit around the hull, in the order they were taken
 const MOD_SLOTS = [-.75, -Math.PI + .75, .75, Math.PI - .75, 0, Math.PI, Math.PI / 2, -Math.PI / 2];
@@ -3806,7 +3939,14 @@ function drawDefences(c) {
     const want = tgt ? angOf(tgt) : (G.aimS ?? -Math.PI / 2);
     G.aimS = G.aimS == null ? want : G.aimS + (wrap(want - G.aimS + Math.PI) - Math.PI) * .18;
   }
-  drawHull(c, cx, cy, G.hullType, 1, { low, aim: G.aimS, trim: G.mode === 'play' ? trimOf(G.hullType) : null });
+  // the aim is tracked for every hull now: the compass and the kraken's eye look where you are shooting
+  if (G.hullType !== 'lancer') {
+    let tgt = G.lock && live(G.lock) ? G.lock : null;
+    if (!tgt) for (const w of threats()) if (!tgt || w.dist < tgt.dist) tgt = w;
+    const want = tgt ? angOf(tgt) : (G.aimS ?? -Math.PI / 2);
+    G.aimS = G.aimS == null ? want : G.aimS + (wrap(want - G.aimS + Math.PI) - Math.PI) * .12;
+  }
+  drawHull(c, cx, cy, G.hullType, 1, { low, aim: G.aimS, trim: G.mode === 'play' ? trimOf(G.hullType) : null, skin: look('hullskin') });
   if (G.phaseOutT > 0 || G.brace > 0) {
     // phased out: a shimmer around the hull; braced: a heavy ring
     c.globalAlpha = G.phaseOutT > 0 ? .5 + .3 * Math.sin(performance.now() / 60) : .8; c.strokeStyle = G.phaseOutT > 0 ? C['pen-3'] : C['ink-2'];
@@ -5087,7 +5227,7 @@ function shopList() {
   for (const k of Object.keys(TRACERS)) if (TRACERS[k].cost && !owns('tracer', k)) out.push(['tracer', k]);
   for (const k of Object.keys(SCOPES)) if (SCOPES[k].cost && !owns('scope', k)) out.push(['scope', k]);
   for (const k of Object.keys(KILLFX)) if (!owns('killfx', k)) out.push(['killfx', k]);
-  for (const kind of Object.keys(LOOKS)) for (const k of Object.keys(LOOKS[kind])) if (!owns(kind, k)) out.push([kind, k]);
+  for (const kind of Object.keys(LOOKS)) for (const k of Object.keys(LOOKS[kind])) if (LOOKS[kind][k].cost && !owns(kind, k)) out.push([kind, k]);
   return out.map(([kind, key]) => ({ kind, key, name: itemOf(kind, key).name, cost: priceOf(kind, key) })).sort((a, b) => a.cost - b.cost);
 }
 function openDock(tab) {
@@ -5127,8 +5267,12 @@ function renderDock() {
   const row = (label, kind, cat) => `<div class="slotrow"><span class="lbl">${label}</span><div class="shop">${
     Object.keys(cat).map(k => itemHtml({ kind, key: k, owned: owns(kind, k), on: (LOOKS[kind] ? look(kind) : prefs.loadout[kind] || Object.keys(cat)[0]) === k, prev: `${kind}:${k}` })).join('')}</div></div>`;
   // the cosmetic shelves get the showroom: a live picture of the whole look as it is fitted now
-  $('#dkShow').hidden = !['tracers', 'scope', 'crew'].includes(dockTab);
-  if (dockTab === 'scope') {
+  $('#dkShow').hidden = !['hulls', 'tracers', 'scope', 'crew'].includes(dockTab);
+  if (dockTab === 'hulls') {
+    $('#dkBody').innerHTML = `<div class="shop">${dockItems().map(itemHtml).join('')}</div>`
+      + `<div class="sech"><span class="lbl">Hull design</span><span class="mult" style="margin-left:10px;font-size:10.5px;color:var(--ink-3)">looks only: the hull underneath keeps its stats, ability and mastery</span></div>`
+      + `<div class="shop">${Object.keys(HULLSKINS).map(k => itemHtml({ kind: 'hullskin', key: k, owned: owns('hullskin', k), on: look('hullskin') === k, prev: 'hullskin:' + k })).join('')}</div>`;
+  } else if (dockTab === 'scope') {
     $('#dkBody').innerHTML = row('Scope colour', 'scope', SCOPES) + row('Sweep', 'sweep', SWEEPS) + row('Kill effect', 'killfx', KILLFX);
   } else if (dockTab === 'crew') {
     $('#dkBody').innerHTML = row('Companion', 'pet', PETS) + row('Typing sound <small class="u" style="display:block;margin-top:4px;letter-spacing:0;text-transform:none">click a picture to hear it</small>', 'sound', SOUNDPACKS);
@@ -5147,7 +5291,7 @@ function renderDock() {
     if (kind === 'sound') el.querySelector('canvas').onclick = () => soundDemo(key);
   });
   const lo = prefs.loadout;
-  $('#showList').innerHTML = `<b>${G.tracer === HULLS[G.hullType].tracer && (!lo.tracer || lo.tracer === 'hull') ? 'Hull' : TRACERS[G.tracer].name}</b> tracers · <b>${TORPSKINS[look('torpskin')].name}</b><br>`
+  $('#showList').innerHTML = `<b>${HULLS[G.hullType].name}</b>${look('hullskin') !== 'match' ? ` as a <b>${HULLSKINS[look('hullskin')].name.toLowerCase()}</b>` : ''}<br><b>${G.tracer === HULLS[G.hullType].tracer && (!lo.tracer || lo.tracer === 'hull') ? 'Hull' : TRACERS[G.tracer].name}</b> tracers · <b>${TORPSKINS[look('torpskin')].name}</b><br>`
     + `<b>${SCOPES[owns('scope', lo.scope) ? lo.scope : 'teal'].name}</b> · <b>${SWEEPS[look('sweep')].name}</b> · <b>${KILLFX[G.killfx || 'burst'].name}</b><br>`
     + `<b>${PETS[look('pet')].name}</b> on the rim · <b>${SOUNDPACKS[look('sound')].name}</b> keys`;
   const nx = shopList()[0];
@@ -5184,7 +5328,11 @@ function drawDock() {
     if (type === 'hull') { dottedCircle(c, x, y, R_HULL * 1.45, 4, .8, C['ink-4'], 1); drawHull(c, x, y, a, 1.45, { aim: -Math.PI / 4 + Math.sin(now) * .4 }); }
     else if (type === 'card') { dottedCircle(c, x, y, 26, 5, .8, C['ink-3'], .5); drawModule(c, a, x, y, 0, 3.4); }
     else if (type === 'gear') drawGearIcon(c, a, b, x, y, now);
-    else if (type === 'torpskin') {
+    else if (type === 'hullskin') {
+      dottedCircle(c, x, y, R_HULL * 1.6, 4, .8, C['ink-4'], 1);
+      const hk = owns('hull', prefs.loadout.hull) ? prefs.loadout.hull : 'skiff';
+      drawHull(c, x, y, hk, 1.6, { aim: -Math.PI / 4 + Math.sin(now) * .8, skin: a });
+    } else if (type === 'torpskin') {
       // the torpedo swims across with a trail of bubbles
       const k = (now * .45) % 1, tx = 20 + (w - 40) * k, ty = y + Math.sin(k * TAU) * 6;
       c.strokeStyle = C['ink-3']; c.lineWidth = .8;
@@ -5239,7 +5387,7 @@ function drawShowroom() {
   c.fillStyle = col;
   for (let rr = 8; rr <= R0; rr += 6) for (let i = 0; i < 44; i++) { const an = i / 44 * TAU, lit = sweepLit(wrap(drawn - an), st); if (lit < .08) continue; c.globalAlpha = lit * .9; c.beginPath(); dotPath(c, x0 + Math.cos(an) * rr, y0 + Math.sin(an) * rr, .9); c.fill(); }
   drawBeam(c, x0, y0, R0, drawn, col, st, false);
-  c.globalAlpha = 1; c.fillStyle = C.ink; c.beginPath(); dotPath(c, x0, y0, 3.5); c.fill();
+  drawHull(c, x0, y0, G.hullType, .85, { aim: Math.atan2(-12, 250), skin: look('hullskin') });
   const pet = look('pet');
   // the word: six letters typed one by one, then it breaks up, then a new one
   const T = 3, k = now % T, word = 'lantern', wx = Math.min(w - 70, x0 + 250), wy = y0 - 12, shots = Math.min(word.length, Math.floor(k / .17));
@@ -5688,7 +5836,7 @@ function buildKitLine() {
   const lo = prefs.loadout, h = owns('hull', lo.hull) ? lo.hull : 'skiff';
   const g = s => GEAR[s][owns(s, lo[s]) ? lo[s] : Object.keys(GEAR[s])[0]].name;
   const nx = shopList()[0], ready = nx && prefs.salvage >= nx.cost;
-  $('#kitLine').innerHTML = `<span class="lbl">Kit</span><span><b>${HULLS[h].name}</b> hull</span><span>${g('torp')} · ${g('pulse')} · ${g('nuke')}</span>
+  $('#kitLine').innerHTML = `<span class="lbl">Kit</span><span><b>${HULLS[h].name}</b> hull${look('hullskin') !== 'match' ? ` <span style="color:var(--ink-3)">dressed as a</span> <b>${HULLSKINS[look('hullskin')].name.toLowerCase()}</b>` : ''}</span><span>${g('torp')} · ${g('pulse')} · ${g('nuke')}</span>
     <span class="r salv">salvage <b>${prefs.salvage.toLocaleString('en-US')}</b>${legacyGrant && prefs.salvage >= legacyGrant ? ` · <span style="color:var(--pen-4)">${legacyGrant} banked from your earlier records</span>`
       : ready ? ' · <span style="color:var(--pen-4)">new parts affordable in the Dry Dock</span>' : nx ? ` · next ${esc(nx.name)} at ${nx.cost}` : ''}</span>`;
 }

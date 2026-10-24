@@ -61,6 +61,11 @@ Every letter fires a tracer, and the score rewards hard words, fast typing and d
   cat) and typing sound packs (Typewriter, Marimba, Bubbles, Chiptune, Squeaky toy). The Dock has a live
   showroom of the fitted look and a Surprise me button. Looks change nothing about play.
 
+- **Hull designs** (v4.9): looks any hull can wear (the hull underneath keeps its stats, ability and mastery):
+  Yellow submarine, Life ring, Ship's wheel (turns with every letter), Compass rose (needle follows your aim),
+  Nautilus, Clam (opens as you type), Kraken's eye (watches your target, blinks), Vinyl (spins up in flow),
+  Teacup, and two earned ones: Diving bell (finish the campaign) and Little leviathan (destroy all four kinds).
+
 ## Tests
 
 `tests/` drives the game in headless Edge with a throwaway profile, so no real save is touched.
