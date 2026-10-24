@@ -324,7 +324,14 @@ body[data-screen="settings"] #ovSet{display:flex}
 .slotrow{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:start;padding:10px 0;border-top:1px dotted var(--rule-strong)}
 .slotrow:first-child{border-top:0;padding-top:0}
 .slotrow .lbl{padding-top:6px}
-.slotrow .shop{grid-template-columns:repeat(3,minmax(0,1fr))}
+.slotrow .shop{grid-template-columns:repeat(4,minmax(0,1fr))}
+.showroom{display:grid;grid-template-columns:1fr 210px;gap:14px;align-items:stretch;padding:8px 12px;margin:0 0 12px}
+.showroom[hidden]{display:none}
+.showroom canvas{width:100%;height:112px;display:block}
+.showside{display:flex;flex-direction:column;gap:6px;justify-content:center}
+.showside p{font-size:10.5px;line-height:1.5;color:var(--ink-3);margin:0}
+.showside p b{color:var(--ink-2);font-weight:600}
+.item canvas[data-prev^="sound:"]{cursor:pointer}
 .salv{font-family:var(--mono);font-size:12px;color:var(--ink-2);display:flex;align-items:center;gap:6px}
 .salv b{color:var(--pen-4);font-size:16px;font-weight:600}
 .kitline{display:flex;gap:14px;align-items:center;margin-top:12px;font-size:11px;color:var(--ink-3);flex-wrap:wrap}
@@ -468,10 +475,14 @@ body[data-screen="settings"] #ovSet{display:flex}
           <div class="acts"><span class="salv">salvage <b id="dkSalv"></b></span></div>
         </div>
         <div class="dtabs" id="dkTabs"></div>
+        <div class="showroom unit" id="dkShow" hidden>
+          <canvas id="cvShow"></canvas>
+          <div class="showside"><span class="lbl">Showroom</span><p id="showList"></p><button class="btn sm" id="btnSurprise">Surprise me <kbd>S</kbd></button></div>
+        </div>
         <div id="dkBody"></div>
         <div class="foot">
           <button class="btn pri" id="btnDockBack">Back <kbd>Esc</kbd></button>
-          <span><kbd>1</kbd>–<kbd>5</kbd> shelves</span>
+          <span><kbd>1</kbd>–<kbd>6</kbd> shelves</span>
           <span class="r mono" id="dkNote"></span>
         </div>
       </div>
@@ -618,7 +629,7 @@ body[data-screen="settings"] #ovSet{display:flex}
    clean typing (pulse / torpedo / nuke), supply crates, and a
    sector mode that ends with a leviathan.
    ============================================================ */
-const VERSION = '4.7';
+const VERSION = '4.8';
 const TAU = Math.PI * 2;
 const $ = s => document.querySelector(s);
 const wrap = a => ((a % TAU) + TAU) % TAU;
@@ -878,6 +889,15 @@ const TRACERS = {
   quill:    { name: 'Quill', feat: () => relicCount() >= 10, req: 'recover ten relic words' },
   ribbon:   { name: 'Ribbon', cost: 250, blurb: 'Two strands that twist around each other in flight.' },
   zigzag:   { name: 'Lightning', cost: 300, blurb: 'A jagged, flickering bolt.' },
+  // v4.8: tracers that fly their own way, not just look different
+  boomerang: { name: 'Boomerang', cost: 300, blurb: 'Swings out wide, overshoots, and comes curling back in. Always comes back.' },
+  corkscrew: { name: 'Corkscrew', cost: 300, blurb: 'Spirals around its own path like a drill bit going in.' },
+  plane:     { name: 'Paper plane', cost: 350, blurb: 'A folded note that glides in, and now and then does a loop-the-loop on the way.' },
+  skip:      { name: 'Skipping stone', cost: 250, blurb: 'Three hops across the water, each one shorter than the last.' },
+  bee:       { name: 'Bumblebee', cost: 350, blurb: 'Wanders, wobbles, gets there in the end. Striped.' },
+  letter:    { name: 'Letterpress', cost: 400, blurb: 'The letter you typed flies across itself, tumbling end over end.' },
+  orbit:     { name: 'Slingshot', cost: 400, blurb: 'Loops once around the hull for speed, then lets go.' },
+  ecg:       { name: 'Heartbeat', cost: 300, blurb: 'Draws a little cardiogram all the way there.' },
 };
 // scope colours recolour the sweep, the lit lattice and the ping; kill effects change how a destroyed word breaks up
 const SCOPES = {
@@ -888,6 +908,10 @@ const SCOPES = {
   violet: { name: 'Violet', cost: 250, dark: '#B48CF2', light: '#6B3FA0', blurb: 'Deep-water bioluminescence.' },
   gilt:   { name: 'Gilt', dark: '#E8C46A', light: '#9A7414', feat: () => catPct() >= .25, req: 'recover a quarter of the Archive', blurb: 'Gold leaf on the sweep, for a quarter of the Archive recovered.' },
   ember:  { name: 'Ember', cost: 250, dark: '#FF7A4D', light: '#C2410C', blurb: 'Running hot. Red lighting, battle stations.' },
+  sakura: { name: 'Sakura', cost: 250, dark: '#FF9EC7', light: '#B0306A', blurb: 'Cherry blossom pink, for a gentler watch.' },
+  mint:   { name: 'Mint', cost: 200, dark: '#7DF2C9', light: '#14805A', blurb: 'Cool and fresh, like a new notebook.' },
+  sepia:  { name: 'Sepia chart', cost: 200, dark: '#D9B38C', light: '#7A5230', blurb: 'An old sea chart, foxed at the edges.' },
+  prism:  { name: 'Prism', cost: 500, dark: '#FF9EC7', light: '#B0306A', prism: true, blurb: 'The sweep slowly cycles through every colour there is.' },
   lamp:   { name: 'Lamplight', dark: '#FFD9A0', light: '#9C5B12', feat: () => !!prefs.campaign.endings.keep, req: 'answer keep at the end of the campaign', blurb: 'The reading-room lamp, still lit. For keeping the Archive talking.' },
   still:  { name: 'Stillwater', dark: '#A9C3D6', light: '#3E5C73', feat: () => !!prefs.campaign.endings.rest, req: 'answer rest at the end of the campaign', blurb: 'Quiet water, nothing rising. For letting the Archive rest.' },
 };
@@ -896,7 +920,50 @@ const KILLFX = {
   shatter: { name: 'Shatter', cost: 250, blurb: 'The chip breaks into tumbling shards.' },
   bloom:   { name: 'Bloom', cost: 300, blurb: 'Three rings of petals open outward.' },
   ink:     { name: 'Ink', cost: 300, blurb: 'Heavy blots of ink that spread and fade.' },
+  confetti: { name: 'Confetti', cost: 250, blurb: 'Every word is a small party. Paper scraps in every pen colour.' },
+  fireworks: { name: 'Fireworks', cost: 400, blurb: 'Three little rockets go up and burst a beat later.' },
+  school:  { name: 'School of fish', cost: 350, blurb: 'The word breaks up into tiny fish that dart off in all directions.' },
+  type:    { name: 'Type slugs', cost: 300, blurb: 'The letters fall out like metal type off a press. Ding.' },
+  fizz:    { name: 'Fizz', cost: 250, blurb: 'Soap bubbles wobble up and pop.' },
+  hearts:  { name: 'Sweethearts', cost: 300, blurb: 'A puff of little hearts. The words had it coming, but still.' },
 };
+// v4.8: more things to buy that change only how the game looks and sounds
+const TORPSKINS = {
+  classic: { name: 'Torpedo', cost: 0, blurb: 'Regulation issue: grey, finned, sensible.' },
+  shark:   { name: 'Shark', cost: 350, blurb: 'Fin up, jaws open. The words get the message.' },
+  duck:    { name: 'Rubber duck', cost: 300, blurb: 'Squeak. It homes in just as well as the real thing.' },
+  pencil:  { name: 'Pencil', cost: 250, blurb: 'Sharpened at the front, an eraser at the back. Fitting, for an archive.' },
+  boat:    { name: 'Paper boat', cost: 250, blurb: 'Folded from an old catalogue card.' },
+  narwhal: { name: 'Narwhal', cost: 450, blurb: 'The unicorn of the sea, horn first.' },
+};
+const SWEEPS = {
+  classic:    { name: 'Classic beam', cost: 0, blurb: 'One clean line and a fading trail.' },
+  lighthouse: { name: 'Lighthouse', cost: 300, blurb: 'A broad, warm cone that glows on both sides of the beam.' },
+  clock:      { name: 'Ticking clock', cost: 300, blurb: 'The hand jumps a notch at a time, and the trail goes tick, tick, tick.' },
+  afterimage: { name: 'Afterimage', cost: 350, blurb: 'Three ghost beams follow the real one round.' },
+};
+const PETS = {
+  none:    { name: 'Nobody', cost: 0, blurb: 'Just you and the scope.' },
+  duck:    { name: 'Rubber duck', cost: 200, blurb: 'Bobs on the rim, hops when you hit, quacks when you miss.' },
+  octopus: { name: 'Octopus', cost: 300, blurb: 'Waves all eight arms (well, four you can see) at every streak.' },
+  puffer:  { name: 'Pufferfish', cost: 250, blurb: 'Puffs right up whenever the hull takes a hit.' },
+  angler:  { name: 'Anglerfish', cost: 350, blurb: 'Its lure flashes with every word you finish. Toothy but friendly.' },
+  crab:    { name: 'Crab', cost: 250, blurb: 'Scuttles along the rim and snaps its claws at every kill.' },
+  jelly:   { name: 'Jellyfish', cost: 300, blurb: 'Pulses gently, glows brighter when you are in flow.' },
+  cat:     { name: 'Ship’s cat', cost: 500, blurb: 'In a little diving helmet. Mostly asleep. Approves of good streaks.' },
+};
+const SOUNDPACKS = {
+  sonar:   { name: 'Sonar', cost: 0, blurb: 'Soft pentatonic pings, climbing with every letter.' },
+  typewriter: { name: 'Typewriter', cost: 250, blurb: 'Clack, clack, clack, and a bell at the end of every word.' },
+  marimba: { name: 'Marimba', cost: 250, blurb: 'Wooden bars, warm and round.' },
+  bubbles: { name: 'Bubbles', cost: 200, blurb: 'Every key a little blip of air.' },
+  chip:    { name: 'Chiptune', cost: 300, blurb: 'Square waves straight out of an old handheld.' },
+  squeak:  { name: 'Squeaky toy', cost: 350, blurb: 'Exactly what it sounds like. Your neighbours will thank you.' },
+};
+// the cosmetic shelves that are a plain catalogue: owned once bought, worn from prefs.loadout[kind]
+const LOOKS = { torpskin: TORPSKINS, sweep: SWEEPS, pet: PETS, sound: SOUNDPACKS };
+const prismCol = (off = 0) => `hsl(${Math.round((performance.now() / 1000 * 30 + off) % 360)}, 85%, ${dark ? 68 : 40}%)`;
+const look = kind => { const k = prefs.loadout[kind]; return k && owns(kind, k) ? k : Object.keys(LOOKS[kind])[0]; };
 // upgrade cards are offered three at a time after each wave; rare ones must be bought in the Dry Dock first
 const CARDS = {
   pierce:     { name: 'Piercing tracers', col: 'pen-2', blurb: 'A destroyed word’s last tracer flies on and knocks a letter off the nearest contact.' },
@@ -932,6 +999,7 @@ function owns(kind, key) {
   if (kind === 'tracer') { const t = TRACERS[key]; return !!t && (t.from ? owns('hull', t.from) : t.feat ? t.feat() : !!prefs.owned['tracer:' + key]); }
   if (kind === 'scope') { const sc = SCOPES[key]; return !!sc && (sc.feat ? sc.feat() : !sc.cost || !!prefs.owned['scope:' + key]); }
   if (kind === 'killfx') return !!KILLFX[key] && (!KILLFX[key].cost || !!prefs.owned['killfx:' + key]);
+  if (LOOKS[kind]) return !!LOOKS[kind][key] && (!LOOKS[kind][key].cost || !!prefs.owned[kind + ':' + key]);
   const g = GEAR[kind] && GEAR[kind][key];
   return !!g && (!g.cost || !!prefs.owned[kind + ':' + key]);
 }
@@ -1041,7 +1109,9 @@ function buildAudio(ac) {
   src.connect(nf).connect(ng).connect(ambBus); src.start(); lfo.start();
 }
 // in-game sounds play only during a run; UI and music voices pass { force: true }
-const audible = (o = {}) => prefs.sound && actx && (o.force || screen === 'play');
+const audible = (o = {}) => prefs.sound && actx && (o.force || sfxDemo || screen === 'play');
+// a Dry Dock sound preview plays outside a run, in a pack that may not be fitted yet
+let sfxDemo = false, sfxPack = null;
 const panAt = x => clamp((x - S.cx) / (S.w / 2 || 1), -1, 1) * .8;
 function route(node, o) {
   const p = actx.createStereoPanner(); p.pan.value = clamp(o.pan || 0, -1, 1);
@@ -1090,7 +1160,17 @@ function duck(hold) {
 const SCALE = [0, 3, 5, 7, 10, 12, 15, 17, 19, 22, 24, 27, 29, 31].map(s => 220 * Math.pow(2, s / 12));
 const noteFor = step => SCALE[clamp(Math.floor(step), 0, SCALE.length - 1)];
 const sfx = {
-  fire:    (p, f) => { tone('triangle', f, f * .995, .16, .07, 0, { pan: p, wet: .25 }); tone('sine', f * 2, f * 2, .09, .022, 0, { pan: p }); noise(.025, .05, 6000, 0, 'highpass', { pan: p }); },
+  // every keystroke: the fitted sound pack decides how it sounds, and the note still climbs letter by letter
+  fire:    (p, f) => {
+    const pk = sfxPack || look('sound');
+    if (pk === 'typewriter') { noise(.03, .13, 2600, 0, 'bandpass', { pan: p, q: 3 }); tone('square', 150, 90, .045, .03, 0, { pan: p, filter: 'lowpass', ff: 600 }); noise(.012, .06, 6500, .012, 'highpass', { pan: p }); return; }
+    if (pk === 'marimba') { tone('sine', f, f, .4, .09, 0, { pan: p, wet: .2, attack: .002 }); tone('sine', f * 4, f * 4, .07, .03, 0, { pan: p }); tone('sine', f * 9.9, f * 9.9, .025, .012, 0, { pan: p }); return; }
+    if (pk === 'bubbles') { tone('sine', f * .8, f * 2.6, .07, .07, 0, { pan: p, wet: .35 }); return; }
+    if (pk === 'chip') { tone('square', f, f, .07, .03, 0, { pan: p, filter: 'lowpass', ff: 3200 }); tone('square', f * 2, f * 2, .045, .014, .04, { pan: p, filter: 'lowpass', ff: 3200 }); return; }
+    if (pk === 'squeak') { tone('square', f * 2.2, f * 3.3, .05, .035, 0, { pan: p, filter: 'bandpass', ff: 2300, q: 2.5 }); tone('square', f * 3.3, f * 2.4, .07, .03, .05, { pan: p, filter: 'bandpass', ff: 2300, q: 2.5 }); return; }
+    tone('triangle', f, f * .995, .16, .07, 0, { pan: p, wet: .25 }); tone('sine', f * 2, f * 2, .09, .022, 0, { pan: p }); noise(.025, .05, 6000, 0, 'highpass', { pan: p });
+  },
+  ding:    p => { tone('sine', 2093, 2093, 1, .055, 0, { pan: p, wet: .6 }); tone('sine', 4186, 4186, .5, .018, 0, { pan: p, wet: .7 }); },
   hit:     p => { noise(.07, .1, 2800, 0, 'bandpass', { pan: p, q: 2, wet: .2 }); tone('triangle', 320, 120, .1, .08, 0, { pan: p }); tone('sine', 1600, 1300, .05, .02, 0, { pan: p, wet: .3 }); },
   kill:    (p, f) => {
     tone('sine', 150, 42, .5, .3, 0, { pan: p });
@@ -1623,7 +1703,7 @@ function miss() {
     if (!G.mods.steady) G.charge = Math.max(0, G.charge - MISS_COST);
     G.combo = 0; G.cleanRun = 0;
     G.fx.push({ k: 'x', x: S.cx, y: S.cy - 74, life: .45, max: .45 });
-    sfx.miss();
+    sfx.miss(); petReact('oops');
   }
   flashUnit('uCore', 'bad', 260);
   bump(1.5);
@@ -1651,11 +1731,57 @@ function bez(tr, s) {
   const cx = mx - dy * tr.kick, cy = my + dx * tr.kick, u = 1 - s;
   return { x: u * u * tr.sx + 2 * u * s * cx + s * s * tr.tx, y: u * u * tr.sy + 2 * u * s * cy + s * s * tr.ty };
 }
+// v4.8: where a tracer is at s (0 → 1) of its flight. Most styles ride the curve above; some fly their own way.
+// Piercing and parried shots always fly plain.
+function trPos(tr, s, style = G.tracer) {
+  const P = !tr.pierce && !tr.parry && TRACER_PATHS[style];
+  return P ? P(tr, s) : bez(tr, s);
+}
+const trAxes = tr => { const dx = tr.tx - tr.sx, dy = tr.ty - tr.sy, d = Math.hypot(dx, dy) || 1; return { ux: dx / d, uy: dy / d, nx: -dy / d, ny: dx / d, d }; };
+// a point on the plain curve, pushed sideways off it by `off` pixels
+const offCurve = (tr, s, off, kick) => { const b = bez(kick == null ? tr : { ...tr, kick }, s), a = trAxes(tr); return { x: b.x + a.nx * off, y: b.y + a.ny * off }; };
+const cubic = (p0, p1, p2, p3, s) => { const u = 1 - s; return { x: u * u * u * p0.x + 3 * u * u * s * p1.x + 3 * u * s * s * p2.x + s * s * s * p3.x, y: u * u * u * p0.y + 3 * u * u * s * p1.y + 3 * u * s * s * p2.y + s * s * s * p3.y }; };
+const trSide = tr => tr.kick < 0 ? -1 : 1, trSeed = tr => hash((tr.idx || 0) * 3.7 + tr.sx * .01 + tr.sy * .013);
+const TRACER_PATHS = {
+  // out wide to one side, past the target, and back in from behind it
+  boomerang: (tr, s) => {
+    const a = trAxes(tr), k = trSide(tr), L = Math.min(a.d, 420);
+    return cubic({ x: tr.sx, y: tr.sy }, { x: tr.sx + a.nx * k * L * .85 + a.ux * L * .15, y: tr.sy + a.ny * k * L * .85 + a.uy * L * .15 },
+      { x: tr.tx + a.ux * L * .5 + a.nx * k * L * .45, y: tr.ty + a.uy * L * .5 + a.ny * k * L * .45 }, { x: tr.tx, y: tr.ty }, s);
+  },
+  corkscrew: (tr, s) => offCurve(tr, s, Math.sin(s * TAU * 3.5 + trSeed(tr) * 6) * 9 * Math.sin(Math.PI * s), tr.kick * .4),
+  // about a third of paper planes loop the loop halfway: the curve pauses while the plane goes round
+  plane: (tr, s) => {
+    if (trSeed(tr) > .38 || s < .4) return offCurve(tr, s, 0);
+    const a = trAxes(tr), r = Math.min(16, a.d * .08);
+    if (s < .7) {
+      const th = (s - .4) / .3 * TAU, b = offCurve(tr, .4 + (s - .4) * .15, 0), k = -trSide(tr);
+      return { x: b.x + (a.ux * Math.sin(th) + a.nx * k * (1 - Math.cos(th))) * r, y: b.y + (a.uy * Math.sin(th) + a.ny * k * (1 - Math.cos(th))) * r };
+    }
+    return offCurve(tr, .445 + (s - .7) * (1 - .445) / .3, 0);
+  },
+  // three hops, each lower than the last, always up the screen like a stone off water
+  skip: (tr, s) => { const b = bez({ ...tr, kick: tr.kick * .2 }, s), a = trAxes(tr); return { x: b.x, y: b.y - Math.abs(Math.sin(Math.PI * s * 3)) * Math.min(30, a.d * .12) * (1 - s * .65) }; },
+  bee: (tr, s) => { const ph = trSeed(tr) * 9, env = Math.sin(Math.PI * s); return offCurve(tr, s + Math.sin(s * 17 + ph) * .025 * env, (Math.sin(s * 23 + ph) * 7 + Math.sin(s * 9 + ph * 2) * 6) * env); },
+  letter: (tr, s) => offCurve(tr, s, 0, trSide(tr) * .42),
+  // once round the hull at a tight radius, then off along the curve
+  orbit: (tr, s) => {
+    const a = trAxes(tr), ox = tr.sx - a.ux * 14, oy = tr.sy - a.uy * 14, r = 24, a0 = Math.atan2(a.uy, a.ux), k = trSide(tr);
+    if (s < .38) { const th = a0 + k * TAU * (s / .38); return { x: ox + Math.cos(th) * r, y: oy + Math.sin(th) * r }; }
+    return bez({ ...tr, sx: ox + Math.cos(a0) * r, sy: oy + Math.sin(a0) * r }, (s - .38) / .62);
+  },
+  // a heartbeat trace: flat, a small bump, a tall spike and a dip, five beats to the target
+  ecg: (tr, s) => {
+    const u = (s * 5) % 1, h = Math.min(14, trAxes(tr).d * .06);
+    const off = u < .15 ? -Math.sin(u / .15 * Math.PI) * h * .25 : u < .4 ? 0 : u < .46 ? -(u - .4) / .06 * h : u < .54 ? -h + (u - .46) / .08 * h * 1.7 : u < .6 ? h * .7 - (u - .54) / .06 * h * .7 : 0;
+    return offCurve(tr, s, off, tr.kick * .15);
+  },
+};
 function impact(tr) {
   const w = tr.w, tc = tracerCol(tr.pierce ? 'standard' : G.tracer);
-  const n = Math.max(6, Math.floor(Math.hypot(tr.tx - tr.sx, tr.ty - tr.sy) / 10));
+  const n = Math.max(6, Math.floor(Math.hypot(tr.tx - tr.sx, tr.ty - tr.sy) / 10)) * (TRACER_PATHS[G.tracer] ? 2 : 1);
   for (let i = 1; i < n; i++) {
-    const q = bez(tr, i / n);
+    const q = trPos(tr, i / n);
     G.fx.push({ k: 'dot', x: q.x, y: q.y, vx: 0, vy: 0, r: .95, col: tc, life: .55 * (i / n) + .15, max: .7, a0: .55 });
   }
   if (!live(w) || tr.layerNo !== w.layerNo || w.landed >= w.text.length) return;
@@ -1797,6 +1923,8 @@ function kill(w, how) {
     ripple(p.x, p.y, 6, 360, .9);
     bump(5);
     if (how === 'type') sfx.kill(panAt(p.x), noteFor(2 + Math.min(6, Math.floor(G.combo / 3))) * G.kit.kill[0]);
+    if (how === 'type' && look('sound') === 'typewriter' && G.killfx !== 'type') sfx.ding(panAt(p.x));
+    if (how === 'type') petReact(clean && G.combo && G.combo % 10 === 0 ? 'cheer' : 'happy');
     if (clean && G.combo % 10 === 0) streakFlourish();
   }
   if (w.trait === 'splitter' && how !== 'nuke') splitInto(w);
@@ -1828,6 +1956,30 @@ function killFx(p, w) {
   } else if (style === 'ink') {
     for (let i = 0; i < 10; i++) { const b = Math.random() * TAU, v = rnd(20, 120); G.fx.push({ k: 'dot', x: p.x, y: p.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(2.5, 6), col: C.ink, life: rnd(.9, 1.4), max: 1.4, drag: 4, a0: .85 }); }
     for (let i = 0; i < 22; i++) { const b = Math.random() * TAU, v = rnd(120, 340); G.fx.push({ k: 'dot', x: p.x, y: p.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(.8, 1.6), col: C.ink, life: rnd(.4, .8), max: .8, drag: 3.5 }); }
+  } else if (style === 'confetti') {
+    const pens = ['pen-1', 'pen-2', 'pen-3', 'pen-4', 'pen-5', 'pen-6'];
+    for (let i = 0; i < 26; i++) {
+      const b = -Math.PI / 2 + rnd(-1.2, 1.2), v = rnd(120, 340);
+      G.fx.push({ k: 'chunk', x: p.x + rnd(-14, 14), y: p.y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, rot: rnd(0, TAU), spin: rnd(-14, 14), w: rnd(3, 6), h: rnd(2, 3.5), g: 420, col: C[pick(pens)], life: rnd(.9, 1.4), max: 1.4 });
+    }
+  } else if (style === 'fireworks') {
+    // three rockets go up, then each bursts in its own colour
+    for (let k = 0; k < 3; k++) {
+      const bx = p.x + (k - 1) * 34 + rnd(-8, 8), by = p.y - rnd(40, 70), col = C[['pen-4', 'pen-1', 'pen-2'][k]], d = .22 + k * .12;
+      G.fx.push({ k: 'dot', x: p.x, y: p.y, vx: (bx - p.x) / d, vy: (by - p.y) / d, r: 1.6, col, life: d, max: d, delay: k * .12 });
+      for (let i = 0; i < 18; i++) { const b = i / 18 * TAU, v = rnd(60, 110); G.fx.push({ k: 'dot', x: bx, y: by, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: 1.4, col, life: .8, max: .8, drag: 2.2, g: 60, delay: d + k * .12 }); }
+    }
+  } else if (style === 'school') {
+    const n = Math.min(9, 3 + w.text.length), b0 = Math.random() * TAU;
+    for (let i = 0; i < n; i++) { const b = b0 + rnd(-.6, .6) + (i % 2 ? Math.PI : 0), v = rnd(70, 150); G.fx.push({ k: 'fish', x: p.x + rnd(-16, 16), y: p.y + rnd(-6, 6), vx: Math.cos(b) * v, vy: Math.sin(b) * v, seed: Math.random() * 9, col: C[i % 3 ? 'pen-2' : 'pen-4'], life: rnd(1, 1.5), max: 1.5 }); }
+  } else if (style === 'type') {
+    for (let i = 0; i < w.text.length; i++) { const q = letterPos(w, i); G.fx.push({ k: 'glyph', x: q.x, y: q.y, ch: shown(w)[i] || w.text[i], vx: rnd(-40, 40), vy: rnd(-120, -40), g: 520, slug: true, col: C['ink-2'], life: .9, max: .9 }); }
+    G.fx.push({ k: 'stamp', x: p.x + 28, y: p.y - 30, text: 'ding!', col: C['pen-4'], life: .8, max: .8 });
+    sfx.ding(panAt(p.x));
+  } else if (style === 'fizz') {
+    for (let i = 0; i < 9; i++) G.fx.push({ k: 'bubble', x: p.x + rnd(-24, 24), y: p.y + rnd(-6, 8), vx: rnd(-14, 14), vy: rnd(-90, -40), r: rnd(2, 6), life: rnd(.7, 1.3), max: 1.3, pop: true });
+  } else if (style === 'hearts') {
+    for (let i = 0; i < 8; i++) G.fx.push({ k: 'heart', x: p.x + rnd(-20, 20), y: p.y + rnd(-6, 6), vx: rnd(-40, 40), vy: rnd(-110, -50), s: rnd(3, 6), seed: Math.random() * 9, col: C[i % 3 ? 'pen-1' : 'pen-5'], life: rnd(.9, 1.4), max: 1.4, drag: 1.2 });
   } else {
     for (let i = 0; i < 26; i++) {
       const b = Math.random() * TAU, v = rnd(70, 400);
@@ -2040,7 +2192,7 @@ function coreHit(w) {
       const b = Math.random() * TAU, v = rnd(90, 360);
       G.fx.push({ k: 'dot', x: S.cx, y: S.cy, vx: Math.cos(b) * v, vy: Math.sin(b) * v, r: rnd(1.2, 2.6), col: C['pen-1'], life: rnd(.5, .9), max: .9, drag: 3 });
     }
-    G.charge = 0;
+    G.charge = 0; petReact('hurt');
     flashUnit('uCore', 'bad', 700);
     bump(4 + dmg / 5); sfx.breach();
     G.last = `${shown(w)} hit the hull for ${dmg}`;
@@ -2684,10 +2836,11 @@ function update(dt) {
   }
   G.shake *= Math.exp(-dt * 9);
   G.flash = Math.max(0, G.flash - dt * 1.3);
+  petTick(dt);
   for (const f of G.fx) {
     if (f.delay > 0) { f.delay -= dt; continue; }
     f.life -= dt;
-    if (f.k === 'dot' || f.k === 'glyph' || f.k === 'bubble' || f.k === 'chunk' || f.k === 'twinkle') {
+    if (f.k === 'dot' || f.k === 'glyph' || f.k === 'bubble' || f.k === 'chunk' || f.k === 'twinkle' || f.k === 'fish' || f.k === 'heart') {
       f.x += f.vx * dt; f.y += f.vy * dt;
       if (f.drag) { f.vx *= Math.exp(-dt * f.drag); f.vy *= Math.exp(-dt * f.drag); }
       if (f.g) f.vy += f.g * dt;
@@ -2864,8 +3017,43 @@ function dottedCircle(c, cx, cy, r, spacing, dr, col, alpha) {
   c.fill();
 }
 const hash = n => { const s = Math.sin(n * 12.9898) * 43758.5453; return s - Math.floor(s); };
+// v4.8 sweep styles. They change only how the sweep looks: what it reveals, and when, is the same beam for all of them.
+// The ticking clock draws its hand a notch at a time; the lattice glow follows the drawn hand.
+const CLOCK_TICK = TAU / 60;
+const sweepAt = (a, style) => style === 'clock' ? a - (a % CLOCK_TICK) : a;
+function sweepLit(da, style) {
+  if (style === 'lighthouse') return Math.exp(-Math.min(da, TAU - da) * 3.4) * .95;
+  if (style === 'clock') return Math.exp(-(da - (da % CLOCK_TICK)) * 2.6);
+  if (style === 'afterimage') { let v = Math.exp(-da * 3.2); for (const [g, s] of [[.45, .6], [.9, .4], [1.35, .25]]) v = Math.max(v, Math.exp(-Math.abs(da - g) * 16) * s); return v; }
+  return Math.exp(-da * 2.3);
+}
+function drawBeam(c, cx, cy, R, ang, col, style, glow = true) {
+  const ex = cx + Math.cos(ang) * R, ey = cy + Math.sin(ang) * R;
+  if (style === 'lighthouse') {
+    c.globalAlpha = dark ? .14 : .1; c.fillStyle = col; c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, R, ang - .2, ang + .2); c.closePath(); c.fill();
+    c.globalAlpha = dark ? .1 : .07; c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, R, ang - .42, ang + .42); c.closePath(); c.fill();
+  }
+  if (style === 'afterimage') for (const [g, al] of [[.45, .35], [.9, .2], [1.35, .1]]) {
+    c.globalAlpha = al; c.strokeStyle = col; c.lineWidth = 1; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(ang - g) * R, cy + Math.sin(ang - g) * R); c.stroke();
+  }
+  c.strokeStyle = col; c.globalAlpha = .75; c.lineWidth = style === 'clock' ? 1.6 : 1;
+  if (dark && glow) { c.shadowColor = col; c.shadowBlur = 10; }
+  c.beginPath(); c.moveTo(cx, cy); c.lineTo(ex, ey); c.stroke();
+  c.globalAlpha = 1; c.fillStyle = col; c.beginPath();
+  if (style === 'clock') {
+    // an arrowhead at the tip, and a counterweight behind the pivot
+    const hx = Math.cos(ang), hy = Math.sin(ang), s = Math.min(9, R * .09);
+    c.moveTo(ex + hx * s * .4, ey + hy * s * .4); c.lineTo(ex - hx * s + hy * s * .55, ey - hy * s - hx * s * .55); c.lineTo(ex - hx * s - hy * s * .55, ey - hy * s + hx * s * .55); c.closePath();
+    dotPath(c, cx - hx * s * 1.4, cy - hy * s * 1.4, s * .35);
+  } else dotPath(c, ex, ey, style === 'lighthouse' ? 3.2 : 2.4);
+  c.fill();
+  c.shadowBlur = 0; c.lineWidth = 1;
+}
 function drawScope(c) {
   const { cx, cy, R } = S, shock = G.nuke && G.nuke.r < G.nuke.maxR + 30 ? G.nuke.r : -1;
+  // Prism walks the sweep's colour slowly round the hue wheel
+  if (SCOPES[prefs.loadout.scope] && SCOPES[prefs.loadout.scope].prism && owns('scope', 'prism')) C.sonar = prismCol();
+  const sweepStyle = look('sweep'), sweepDrawn = sweepAt(G.sweep, sweepStyle);
   const pingR = G.pingGlow > 0 ? R * 1.08 * easeOut(1 - G.pingGlow) : -1;
   c.globalAlpha = dark ? 1 : .9; c.fillStyle = C['ink-4']; c.beginPath();
   const buckets = [[], [], [], [], [], []], blast = [], pinged = [], rip = G.ripples;
@@ -2885,7 +3073,7 @@ function drawScope(c) {
     }
     if (shock > 0 && Math.abs(p.r - shock) < 28) { blast.push(p); continue; }
     if (pingR > 0 && Math.abs(p.r - pingR) < 24) { pinged.push(p); continue; }
-    const lit = Math.max(Math.exp(-wrap(G.sweep - p0.a) * 2.3), Math.min(.85, glow));
+    const lit = Math.max(sweepLit(wrap(sweepDrawn - p0.a), sweepStyle), Math.min(.85, glow));
     if (lit < .05) dotPath(c, p.x, p.y, .85);
     else buckets[Math.min(5, Math.floor(lit * 6))].push(p);
   }
@@ -2948,12 +3136,7 @@ function drawScope(c) {
   c.fill();
   c.font = S.fontSm; c.textAlign = 'center'; c.textBaseline = 'middle';
   for (let d = 0; d < 360; d += 30) { const a = (d - 90) * Math.PI / 180; c.fillText(pad(d, 3), cx + Math.cos(a) * (R + 29), cy + Math.sin(a) * (R + 29)); }
-  const ex = cx + Math.cos(G.sweep) * R, ey = cy + Math.sin(G.sweep) * R;
-  c.strokeStyle = C.sonar; c.globalAlpha = .75;
-  if (dark) { c.shadowColor = C.sonar; c.shadowBlur = 10; }
-  c.beginPath(); c.moveTo(cx, cy); c.lineTo(ex, ey); c.stroke();
-  c.globalAlpha = 1; c.fillStyle = C.sonar; c.beginPath(); dotPath(c, ex, ey, 2.4); c.fill();
-  c.shadowBlur = 0;
+  drawBeam(c, cx, cy, R, sweepDrawn, C.sonar, sweepStyle);
   if (G.game === 'descent') {
     const z = zoneIndex();
     if (z > 0) { c.globalAlpha = (dark ? .1 : .05) * z; c.fillStyle = dark ? '#000' : C.ink; c.beginPath(); c.arc(cx, cy, R + 2, 0, TAU); c.fill(); }
@@ -3194,13 +3377,15 @@ function drawContact(c, w, mul, at, ghost = !!at, legend = false) {
   c.fillStyle = mcol; c.fillText(meta, x, y + chipH + (armoured ? 8 : 5));
 }
 // tracer styles: each hull brings its own, and any unlocked style can be worn in the Dry Dock
-const TRACER_PEN = { standard: 'pen-2', slug: 'ink-2', ghost: 'pen-3', needle: 'pen-2', sine: 'pen-3', comet: 'pen-4', bubbles: 'pen-2', ribbon: 'pen-5', zigzag: 'pen-6', quill: 'pen-4' };
+const TRACER_PEN = { standard: 'pen-2', slug: 'ink-2', ghost: 'pen-3', needle: 'pen-2', sine: 'pen-3', comet: 'pen-4', bubbles: 'pen-2', ribbon: 'pen-5', zigzag: 'pen-6', quill: 'pen-4',
+  boomerang: 'pen-6', corkscrew: 'pen-3', plane: 'ink-2', skip: 'pen-2', bee: 'pen-4', letter: 'pen-2', orbit: 'pen-5', ecg: 'pen-3' };
 const tracerCol = (style = G.tracer) => C[TRACER_PEN[style] || 'pen-2'];
 function drawTracer(c, tr, style = tr.pierce ? 'standard' : G.tracer) {
-  const col = tracerCol(style), e = Math.pow(Math.min(1, tr.t), 1.35), N = 14;
-  const tail = { slug: .2, needle: .6, comet: .5, sine: .42, bubbles: .5, ghost: .48 }[style] ?? .34, e0 = Math.max(0, e - tail);
+  const col = tracerCol(style), e = Math.pow(Math.min(1, tr.t), 1.35), path = !tr.pierce && !tr.parry && TRACER_PATHS[style], N = path ? 30 : 14;
+  const tail = { slug: .2, needle: .6, comet: .5, sine: .42, bubbles: .5, ghost: .48, boomerang: .5, corkscrew: .55, plane: .3, skip: .4, bee: .45, letter: .3, orbit: .5, ecg: .7 }[style] ?? .34, e0 = Math.max(0, e - tail);
   const pts = [];
-  for (let i = 0; i <= N; i++) pts.push(bez(tr, e0 + (e - e0) * i / N));
+  for (let i = 0; i <= N; i++) pts.push(trPos(tr, e0 + (e - e0) * i / N, style));
+  if (path && drawOddTracer(c, tr, style, pts, col, e)) return;
   if (style === 'sine') {
     // the sine style wavers either side of its path
     for (let i = 1; i < N; i++) {
@@ -3237,7 +3422,7 @@ function drawTracer(c, tr, style = tr.pierce ? 'standard' : G.tracer) {
       else { c.lineWidth = 1; c.arc(q.x, q.y, 1 + 2.4 * k, 0, TAU); c.stroke(); }
     }
   } else {
-    const wid = { slug: [1.2, 4.6], needle: [.4, 1.4], comet: [.3, 3.8], quill: [.2, 2] }[style] || [.4, 2.6];
+    const wid = { slug: [1.2, 4.6], needle: [.4, 1.4], comet: [.3, 3.8], quill: [.2, 2], ecg: [.6, 1.8], corkscrew: [.4, 2.2], orbit: [.3, 2.4] }[style] || [.4, 2.6];
     if (style === 'slug') c.strokeStyle = C.ink;
     for (let i = 1; i <= N; i++) {
       const k = i / N; c.globalAlpha = .15 + .85 * k; c.lineWidth = wid[0] + (wid[1] - wid[0]) * k;
@@ -3257,6 +3442,50 @@ function drawTracer(c, tr, style = tr.pierce ? 'standard' : G.tracer) {
   c.fill();
   c.shadowBlur = 0;
 }
+// the v4.8 tracers whose heads are little objects rather than a glowing dot: a dotted trail, then the thing itself.
+// Returns false for the ones that are just lines, which the plain drawing above handles.
+function drawOddTracer(c, tr, style, pts, col, e) {
+  const N = pts.length - 1, head = pts[N], prev = pts[Math.max(0, N - 2)], ang = Math.atan2(head.y - prev.y, head.x - prev.x), now = performance.now() / 1000;
+  const trail = (r0, r1, every = 1) => { c.fillStyle = col; for (let i = 1; i <= N; i += every) { const k = i / N; c.globalAlpha = .08 + .7 * k; c.beginPath(); dotPath(c, pts[i].x, pts[i].y, r0 + (r1 - r0) * k); c.fill(); } };
+  c.save();
+  if (style === 'plane') {
+    trail(.4, 1, 2);
+    c.translate(head.x, head.y); c.rotate(ang); c.globalAlpha = 1;
+    c.fillStyle = C.paper; c.strokeStyle = C.ink; c.lineWidth = 1; c.lineJoin = 'round';
+    c.beginPath(); c.moveTo(8, 0); c.lineTo(-6, -5.5); c.lineTo(-3, 0); c.lineTo(-6, 5.5); c.closePath(); c.fill(); c.stroke();
+    c.beginPath(); c.moveTo(8, 0); c.lineTo(-3, 0); c.stroke();
+  } else if (style === 'bee') {
+    trail(.5, .9, 2);
+    c.translate(head.x, head.y); c.rotate(ang); c.globalAlpha = 1;
+    // wings flap fast; the body is gold with two dark stripes
+    const flap = Math.sin(now * 60 + (tr.idx || 0)) * .5 + .5;
+    c.fillStyle = dark ? 'rgba(255,255,255,.7)' : 'rgba(40,60,90,.35)';
+    c.beginPath(); c.ellipse(-1, -4, 3.2, 1.6 + flap * 1.6, -.5, 0, TAU); c.ellipse(-1, 4, 3.2, 1.6 + flap * 1.6, .5, 0, TAU); c.fill();
+    c.fillStyle = C['pen-4']; c.beginPath(); c.ellipse(0, 0, 5, 3.4, 0, 0, TAU); c.fill();
+    c.fillStyle = C.ink; c.fillRect(-1.6, -3.2, 1.3, 6.4); c.fillRect(1.2, -3, 1.2, 6); c.beginPath(); dotPath(c, 4.6, 0, 1.3); c.fill();
+  } else if (style === 'letter') {
+    trail(.4, .8, 3);
+    c.translate(head.x, head.y); c.rotate(e * TAU * 1.5 * trSide(tr)); c.globalAlpha = 1;
+    c.fillStyle = col; c.font = `700 ${Math.round(15 * prefs.comfort.text)}px ${MONO}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    if (dark) { c.shadowColor = col; c.shadowBlur = 8; }
+    c.fillText(tr.ch || '·', 0, 0);
+  } else if (style === 'skip') {
+    // a dotted wake, little splash rings where the stone touches the water, and the flat stone
+    trail(.4, .9, 2);
+    for (const touch of [1 / 3, 2 / 3]) if (e > touch && e < touch + .25) {
+      const q = trPos(tr, touch, style), k = (e - touch) / .25;
+      c.globalAlpha = (1 - k) * .8; c.strokeStyle = col; c.lineWidth = 1; c.beginPath(); c.ellipse(q.x, q.y, 3 + k * 10, 1.5 + k * 3, 0, 0, TAU); c.stroke();
+    }
+    c.translate(head.x, head.y); c.rotate(now * 14); c.globalAlpha = 1; c.fillStyle = C['ink-2'];
+    c.beginPath(); c.ellipse(0, 0, 4.2, 2.6, 0, 0, TAU); c.fill();
+  } else if (style === 'boomerang') {
+    trail(.5, 1.3);
+    c.translate(head.x, head.y); c.rotate(now * 22); c.globalAlpha = 1; c.strokeStyle = col; c.lineWidth = 2.4; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(-6, 4); c.lineTo(0, -2); c.lineTo(6, 4); c.stroke();
+  } else { c.restore(); return false; }
+  c.restore(); c.globalAlpha = 1; c.shadowBlur = 0;
+  return true;
+}
 function drawTorp(c, tp) {
   const a = Math.atan2(tp.vy, tp.vx);
   if (tp.harpoon) {
@@ -3270,15 +3499,57 @@ function drawTorp(c, tp) {
   }
   c.save(); c.translate(tp.x, tp.y); c.rotate(a);
   if (tp.mini) c.scale(.62, .62);
-  c.globalAlpha = 1;
-  if (dark) { c.shadowColor = C['pen-2']; c.shadowBlur = 14; }
-  c.fillStyle = C['pen-2'];
-  c.beginPath(); c.moveTo(-11, -3); c.lineTo(6, -3); c.arc(6, 0, 3, -Math.PI / 2, Math.PI / 2); c.lineTo(-11, 3); c.closePath(); c.fill();
-  c.fillStyle = dark ? '#fff' : C.ink; c.beginPath(); dotPath(c, 8, 0, 1.6); c.fill();
-  c.shadowBlur = 0;
-  c.strokeStyle = C['pen-2']; c.lineWidth = 1.2;
-  c.beginPath(); c.moveTo(-11, -3); c.lineTo(-15, -6); c.moveTo(-11, 3); c.lineTo(-15, 6); c.stroke();
+  torpSkin(c, look('torpskin'), a);
   c.restore();
+}
+// a torpedo's body, nose along +x. Animals and boats stay the right way up whichever way they are heading.
+function torpSkin(c, skin, a = 0) {
+  const now = performance.now() / 1000;
+  c.globalAlpha = 1; c.lineJoin = 'round'; c.lineCap = 'round';
+  if (skin !== 'classic' && skin !== 'pencil' && Math.cos(a) < 0) c.scale(1, -1);
+  if (skin === 'shark') {
+    const bite = .5 + .5 * Math.sin(now * 9);
+    c.fillStyle = C['ink-2'];
+    c.beginPath(); c.moveTo(10, 0); c.quadraticCurveTo(4, -6, -8, -3); c.lineTo(-13, -7); c.lineTo(-11, 0); c.lineTo(-13, 7); c.lineTo(-8, 3); c.quadraticCurveTo(4, 6, 10, 0); c.fill();
+    c.beginPath(); c.moveTo(-1, -4.5); c.lineTo(-5, -10); c.lineTo(-6, -3.8); c.fill();
+    c.fillStyle = C.paper; c.beginPath(); c.moveTo(10, 0); c.lineTo(5, 1 + bite * 2); c.lineTo(4, 1); c.fill();
+    c.beginPath(); dotPath(c, 5.5, -2, .9); c.fill();
+  } else if (skin === 'duck') {
+    const bob = Math.sin(now * 8) * .8;
+    c.fillStyle = C['pen-4']; c.beginPath(); c.ellipse(-2, 1, 8, 5, 0, 0, TAU); c.fill();
+    c.beginPath(); c.moveTo(-9, -1); c.lineTo(-13, -4); c.lineTo(-10, 2); c.fill();
+    c.beginPath(); c.arc(5, -4 + bob, 4, 0, TAU); c.fill();
+    c.fillStyle = C['pen-6']; c.beginPath(); c.moveTo(8.5, -4.5 + bob); c.lineTo(12, -3.5 + bob); c.lineTo(8.5, -2.5 + bob); c.fill();
+    c.fillStyle = C.ink; c.beginPath(); dotPath(c, 6, -5 + bob, .9); c.fill();
+  } else if (skin === 'pencil') {
+    c.fillStyle = C['pen-4']; c.fillRect(-11, -3, 15, 6);
+    c.fillStyle = C['ink-3']; c.fillRect(-13, -3, 2, 6);
+    c.fillStyle = C['pen-1']; c.fillRect(-16, -3, 3, 6);
+    c.fillStyle = dark ? '#E9D2B0' : '#D8B98C'; c.beginPath(); c.moveTo(4, -3); c.lineTo(10, 0); c.lineTo(4, 3); c.fill();
+    c.fillStyle = C.ink; c.beginPath(); c.moveTo(8, -1); c.lineTo(11, 0); c.lineTo(8, 1); c.fill();
+    c.globalAlpha = .4; c.fillStyle = C.ink; c.fillRect(-11, -.4, 15, .8);
+  } else if (skin === 'boat') {
+    c.fillStyle = C.paper; c.strokeStyle = C.ink; c.lineWidth = 1;
+    c.beginPath(); c.moveTo(-11, 0); c.lineTo(11, 0); c.lineTo(7, 5); c.lineTo(-7, 5); c.closePath(); c.fill(); c.stroke();
+    c.beginPath(); c.moveTo(-6, 0); c.lineTo(0, -9); c.lineTo(6, 0); c.closePath(); c.fill(); c.stroke();
+    c.beginPath(); c.moveTo(0, -9); c.lineTo(0, 0); c.stroke();
+  } else if (skin === 'narwhal') {
+    c.fillStyle = C['pen-2'];
+    c.beginPath(); c.ellipse(-2, 0, 9, 5, 0, 0, TAU); c.fill();
+    c.beginPath(); c.moveTo(-10, 0); c.lineTo(-15, -5); c.lineTo(-13, 0); c.lineTo(-15, 5); c.fill();
+    c.strokeStyle = dark ? '#F4EEDC' : C['ink-2']; c.lineWidth = 1.3;
+    c.beginPath(); c.moveTo(6, -1.5); c.lineTo(20, -3.5); c.stroke();
+    c.lineWidth = .6; c.beginPath(); for (let x = 8; x < 20; x += 2.4) { c.moveTo(x, -3.2 + (x - 8) * -.14); c.lineTo(x + 1, -.8 + (x - 8) * -.14); } c.stroke();
+    c.fillStyle = C.paper; c.beginPath(); dotPath(c, 3, -1.5, .9); c.fill();
+  } else {
+    if (dark) { c.shadowColor = C['pen-2']; c.shadowBlur = 14; }
+    c.fillStyle = C['pen-2'];
+    c.beginPath(); c.moveTo(-11, -3); c.lineTo(6, -3); c.arc(6, 0, 3, -Math.PI / 2, Math.PI / 2); c.lineTo(-11, 3); c.closePath(); c.fill();
+    c.fillStyle = dark ? '#fff' : C.ink; c.beginPath(); dotPath(c, 8, 0, 1.6); c.fill();
+    c.shadowBlur = 0;
+    c.strokeStyle = C['pen-2']; c.lineWidth = 1.2;
+    c.beginPath(); c.moveTo(-11, -3); c.lineTo(-15, -6); c.moveTo(-11, 3); c.lineTo(-15, 6); c.stroke();
+  }
 }
 function drawFx(c) {
   // most particles are plain dots: batch them by colour and alpha step into a handful of paths
@@ -3310,7 +3581,7 @@ function drawFx(c) {
       for (let i = 0; i < f.n; i++) { const a = i / f.n * TAU; dotPath(c, f.x + Math.cos(a) * r, f.y + Math.sin(a) * r, 1.9 * (1 - t) + .5); }
       c.fill();
     } else if (f.k === 'glyph') {
-      const s = 1 + easeOut(t) * 1.4, col = f.col || C['pen-2'];
+      const s = f.slug ? 1 : 1 + easeOut(t) * 1.4, col = f.col || C['pen-2'];
       c.save(); c.translate(f.x, f.y); c.scale(s, s);
       c.globalAlpha = 1 - t; c.fillStyle = col; c.font = f.big ? S.fontB : S.font; c.textAlign = 'center'; c.textBaseline = 'middle';
       if (dark) { c.shadowColor = col; c.shadowBlur = 10; }
@@ -3338,8 +3609,33 @@ function drawFx(c) {
       c.globalAlpha = Math.min(1, f.life / f.max * 1.6); c.fillStyle = f.col; c.fillRect(-f.w / 2, -f.h / 2, f.w, f.h);
       c.restore();
     } else if (f.k === 'bubble') {
-      c.globalAlpha = (1 - t) * .8; c.strokeStyle = C['ink-2']; c.lineWidth = .8;
-      c.beginPath(); c.arc(f.x, f.y, f.r * (1 + t * .6), 0, TAU); c.stroke();
+      if (f.pop) {
+        // a soap bubble: wobbles as it rises, catches a highlight, and pops into a ring of droplets
+        const wob = Math.sin(t * 20 + f.r) * .12;
+        if (t < .85) {
+          c.globalAlpha = .85; c.strokeStyle = C['pen-3']; c.lineWidth = 1;
+          c.beginPath(); c.ellipse(f.x, f.y, f.r * (1 + wob), f.r * (1 - wob), 0, 0, TAU); c.stroke();
+          c.globalAlpha = .7; c.fillStyle = dark ? '#fff' : C['pen-3']; c.beginPath(); dotPath(c, f.x - f.r * .4, f.y - f.r * .4, Math.max(.6, f.r * .18)); c.fill();
+        } else dottedCircle(c, f.x, f.y, f.r * (1 + (t - .85) * 8), 3, .8, C['pen-3'], (1 - t) / .15);
+      } else {
+        c.globalAlpha = (1 - t) * .8; c.strokeStyle = C['ink-2']; c.lineWidth = .8;
+        c.beginPath(); c.arc(f.x, f.y, f.r * (1 + t * .6), 0, TAU); c.stroke();
+      }
+    } else if (f.k === 'fish') {
+      // a tiny fish, nose first, tail flicking
+      c.save(); c.translate(f.x, f.y); c.rotate(Math.atan2(f.vy, f.vx));
+      c.globalAlpha = Math.min(1, (1 - t) * 2); c.fillStyle = f.col;
+      c.beginPath(); c.ellipse(0, 0, 4.5, 2.2, 0, 0, TAU); c.fill();
+      const fl = Math.sin(t * 50 + f.seed) * 1.8;
+      c.beginPath(); c.moveTo(-3.5, 0); c.lineTo(-7.5, -2.6 + fl); c.lineTo(-7.5, 2.6 + fl); c.closePath(); c.fill();
+      c.fillStyle = C.paper; c.beginPath(); dotPath(c, 2.3, -.5, .6); c.fill();
+      c.restore();
+      f.vx += Math.sin(t * 9 + f.seed) * 6; f.vy += Math.cos(t * 7 + f.seed) * 6;
+    } else if (f.k === 'heart') {
+      const s = f.s * (t < .15 ? t / .15 : 1), sx = f.x + Math.sin(t * 8 + f.seed) * 4;
+      c.globalAlpha = Math.min(1, (1 - t) * 1.8); c.fillStyle = f.col; c.beginPath();
+      c.moveTo(sx, f.y + s * .9); c.bezierCurveTo(sx - s * 1.6, f.y - s * .2, sx - s * .7, f.y - s * 1.3, sx, f.y - s * .45);
+      c.bezierCurveTo(sx + s * .7, f.y - s * 1.3, sx + s * 1.6, f.y - s * .2, sx, f.y + s * .9); c.fill();
     } else if (f.k === 'arcflash') {
       c.globalAlpha = 1 - t; c.strokeStyle = dark ? '#fff' : C.ink; c.lineWidth = 8 * (1 - t) + 1;
       c.beginPath(); c.arc(S.cx, S.cy, f.r, f.a0, f.a1); c.stroke();
@@ -3536,6 +3832,104 @@ function drawDefences(c) {
     if ('letterSpacing' in c) c.letterSpacing = '0px';
   }
 }
+// v4.8: the companion sits on the scope's rim, out of the way of the words, and reacts to the run
+const PET = { mood: 'idle', t: 9, puff: 0 };
+function petReact(m) {
+  // a hurt or a cheer is not interrupted by an ordinary kill
+  if (m === 'happy' && (PET.mood === 'hurt' || PET.mood === 'cheer') && PET.t < .8) return;
+  PET.mood = m; PET.t = 0;
+  if (m === 'hurt') PET.puff = 1;
+}
+function petTick(dt) { PET.t += dt; PET.puff = Math.max(0, PET.puff - dt * .6); if (PET.t > 1.4 && PET.mood !== 'idle') PET.mood = 'idle'; }
+function drawPetOnRim(c) {
+  const key = look('pet'); if (key === 'none') return;
+  const a = Math.PI * .58, r = S.R + 26;
+  drawPet(c, key, S.cx + Math.cos(a) * r, S.cy + Math.sin(a) * r, 1.5, PET.mood, PET.t, screen === 'play' ? 1 : .8);
+}
+// one companion at (x, y); mood is idle, happy, cheer, hurt or oops, mt is how long ago that started
+function drawPet(c, key, x, y, s = 1, mood = 'idle', mt = 9, alpha = 1) {
+  const now = performance.now() / 1000, k = Math.min(1, mt / .35);
+  const hop = mood === 'happy' || mood === 'cheer' ? -Math.sin(k * Math.PI) * 6 : 0;
+  const shake = mood === 'hurt' ? Math.sin(mt * 60) * 2.2 * Math.max(0, 1 - mt / .6) : mood === 'oops' ? Math.sin(mt * 25) * 1.2 * Math.max(0, 1 - mt / .5) : 0;
+  const sleepy = screen !== 'play' && mood === 'idle';
+  c.save(); c.translate(x + shake, y + hop); c.scale(s, s); c.globalAlpha = alpha; c.lineCap = 'round'; c.lineJoin = 'round';
+  const eye = (ex, ey, r = 1.1, shut = false) => {
+    if (shut) { c.strokeStyle = C.ink; c.lineWidth = .9; c.beginPath(); c.arc(ex, ey - .5, r, .2, Math.PI - .2); c.stroke(); return; }
+    c.fillStyle = C.paper; c.beginPath(); dotPath(c, ex, ey, r * 1.4); c.fill(); c.fillStyle = C.ink; c.beginPath(); dotPath(c, ex + .3, ey, r * .8); c.fill();
+  };
+  if (key === 'duck') {
+    const bob = Math.sin(now * 2.2) * 1;
+    c.translate(0, bob);
+    c.fillStyle = C['pen-4']; c.beginPath(); c.ellipse(-1, 3, 9, 5.5, 0, 0, TAU); c.fill();
+    c.beginPath(); c.moveTo(-9, 1); c.lineTo(-12, -3); c.lineTo(-7, 0); c.fill();
+    c.beginPath(); c.arc(4, -4, 4.6, 0, TAU); c.fill();
+    c.fillStyle = C['pen-6']; c.beginPath(); c.moveTo(8, -4.5); c.lineTo(12.5, -3); c.lineTo(8, -1.8); c.fill();
+    eye(5, -5.2, 1, sleepy);
+    c.translate(0, -bob); drawDottedLine(c, -13, 8.5, 13, 8.5, 2.6, C['pen-3'], .6 * alpha, .7);
+  } else if (key === 'octopus') {
+    const wave = mood === 'cheer' || mood === 'happy' ? 3 : 1.2;
+    c.strokeStyle = C['pen-5']; c.lineWidth = 2.2;
+    for (let i = 0; i < 4; i++) {
+      const bx = -4.5 + i * 3; c.beginPath(); c.moveTo(bx, 2);
+      for (let j = 1; j <= 5; j++) c.lineTo(bx + Math.sin(now * 4 + i + j * .9) * wave * j / 5 + (i - 1.5) * j * .5, 2 + j * 1.8 - (mood === 'cheer' ? j * 1.6 : 0));
+      c.stroke();
+    }
+    c.fillStyle = C['pen-5']; c.beginPath(); c.ellipse(0, -3, 7, 6.5, 0, Math.PI, TAU); c.lineTo(7, 2); c.lineTo(-7, 2); c.fill();
+    eye(-2.5, -2.5, 1.1, sleepy); eye(2.5, -2.5, 1.1, sleepy);
+  } else if (key === 'puffer') {
+    const rr = 5.5 + PET.puff * 3.5 + Math.sin(now * 3) * .3;
+    c.fillStyle = C['pen-4']; c.strokeStyle = C['pen-6']; c.lineWidth = 1.1;
+    if (PET.puff > .05 || mood === 'hurt') { c.beginPath(); for (let i = 0; i < 12; i++) { const b = i / 12 * TAU; c.moveTo(Math.cos(b) * rr, Math.sin(b) * rr); c.lineTo(Math.cos(b) * (rr + 2.5), Math.sin(b) * (rr + 2.5)); } c.stroke(); }
+    c.beginPath(); c.moveTo(-rr + 1, 0); c.lineTo(-rr - 4, -3.5); c.lineTo(-rr - 4, 3.5); c.fill();
+    c.beginPath(); dotPath(c, 0, 0, rr); c.fill();
+    eye(rr * .35, -rr * .3, 1.1, sleepy);
+    c.strokeStyle = C.ink; c.lineWidth = .9; c.beginPath(); c.arc(rr * .65, rr * .2, 1.2, -1, 1); c.stroke();
+  } else if (key === 'angler') {
+    const glow = mood === 'happy' || mood === 'cheer' ? 1 : .45 + .25 * Math.sin(now * 2);
+    c.strokeStyle = C['ink-2']; c.lineWidth = 1; c.beginPath(); c.moveTo(3, -4); c.quadraticCurveTo(6, -13, 11, -10); c.stroke();
+    c.fillStyle = C['pen-4']; if (dark) { c.shadowColor = C['pen-4']; c.shadowBlur = 12 * glow; }
+    c.globalAlpha = alpha * (.5 + .5 * glow); c.beginPath(); dotPath(c, 11, -10, 2 + glow); c.fill(); c.shadowBlur = 0; c.globalAlpha = alpha;
+    c.fillStyle = C['ink-2']; c.beginPath(); c.ellipse(0, 1, 9, 6, 0, 0, TAU); c.fill();
+    c.beginPath(); c.moveTo(-8, 1); c.lineTo(-13, -3); c.lineTo(-13, 5); c.fill();
+    c.fillStyle = C.paper; c.beginPath(); for (let i = 0; i < 4; i++) { c.moveTo(4 + i * 1.3, 3); c.lineTo(4.6 + i * 1.3, 5); c.lineTo(5.2 + i * 1.3, 3); } c.fill();
+    eye(4, -1.5, 1.1, sleepy);
+  } else if (key === 'crab') {
+    const scut = screen === 'play' ? Math.sin(now * 1.4) * 4 : 0, snap = mood === 'happy' || mood === 'cheer' ? Math.abs(Math.sin(mt * 18)) : .3;
+    c.translate(scut, 0);
+    c.strokeStyle = C['pen-1']; c.lineWidth = 1.2;
+    for (const sg of [-1, 1]) for (let i = 0; i < 3; i++) { c.beginPath(); c.moveTo(sg * 5, 2 + i); c.lineTo(sg * (9 + i), 6 + i * 1.2 + Math.sin(now * 8 + i) * (screen === 'play' ? .8 : 0)); c.stroke(); }
+    for (const sg of [-1, 1]) {
+      c.beginPath(); c.moveTo(sg * 5, -1); c.lineTo(sg * 9, -5); c.stroke();
+      c.fillStyle = C['pen-1']; c.beginPath(); c.arc(sg * 10, -7, 3, sg > 0 ? -2.2 + snap : .9 - snap, sg > 0 ? 2.2 - snap + Math.PI : 5.4 + snap); c.lineTo(sg * 10, -7); c.fill();
+    }
+    c.fillStyle = C['pen-1']; c.beginPath(); c.ellipse(0, 1, 7, 4.5, 0, 0, TAU); c.fill();
+    c.beginPath(); c.moveTo(-2, -2); c.lineTo(-2.5, -6); c.moveTo(2, -2); c.lineTo(2.5, -6); c.stroke();
+    eye(-2.5, -6.5, .9, sleepy); eye(2.5, -6.5, .9, sleepy);
+  } else if (key === 'jelly') {
+    const pulse = 1 + Math.sin(now * 3) * .08, lit = G.inFlow || mood === 'cheer' ? 1 : .55;
+    c.strokeStyle = C['pen-3']; c.lineWidth = .9; c.globalAlpha = alpha * .7;
+    for (let i = 0; i < 5; i++) { const bx = -5 + i * 2.5; c.beginPath(); c.moveTo(bx, 1); for (let j = 1; j <= 6; j++) c.lineTo(bx + Math.sin(now * 2.5 + i + j) * 1.4, 1 + j * 2); c.stroke(); }
+    c.globalAlpha = alpha * lit; c.fillStyle = C['pen-3']; if (dark) { c.shadowColor = C['pen-3']; c.shadowBlur = 10 * lit; }
+    c.beginPath(); c.ellipse(0, 1, 7 * pulse, 7 / pulse, 0, Math.PI, TAU); c.closePath(); c.fill(); c.shadowBlur = 0; c.globalAlpha = alpha;
+    eye(-2.2, -2, .9, sleepy); eye(2.2, -2, .9, sleepy);
+  } else if (key === 'cat') {
+    const nap = sleepy || (mood === 'idle' && Math.sin(now * .4) > .3);
+    c.fillStyle = C['ink-2']; c.beginPath(); c.ellipse(0, 1.5, 6, 5, 0, 0, TAU); c.fill();
+    c.beginPath(); c.moveTo(-5.5, -1); c.lineTo(-4.5, -7); c.lineTo(-1.5, -3.5); c.moveTo(5.5, -1); c.lineTo(4.5, -7); c.lineTo(1.5, -3.5); c.fill();
+    if (nap) { c.strokeStyle = C.paper; c.lineWidth = .9; c.beginPath(); c.arc(-2.3, 0, 1.2, .3, Math.PI - .3); c.arc(2.3, 0, 1.2, .3, Math.PI - .3); c.stroke(); }
+    else { c.fillStyle = C['pen-4']; c.beginPath(); c.ellipse(-2.3, .2, 1.2, 1.5, 0, 0, TAU); c.ellipse(2.3, .2, 1.2, 1.5, 0, 0, TAU); c.fill(); c.fillStyle = C.ink; c.fillRect(-2.6, -.9, .6, 2.2); c.fillRect(2, -.9, .6, 2.2); }
+    c.strokeStyle = C['ink-3']; c.lineWidth = .5; c.beginPath(); for (const sg of [-1, 1]) { c.moveTo(sg * 3, 3); c.lineTo(sg * 8, 2.4); c.moveTo(sg * 3, 3.6); c.lineTo(sg * 8, 4.2); } c.stroke();
+    // the diving helmet, with a glint
+    c.strokeStyle = C['pen-2']; c.lineWidth = 1.4; c.beginPath(); c.arc(0, 0, 10, 0, TAU); c.stroke();
+    c.globalAlpha = alpha * .5; c.strokeStyle = dark ? '#fff' : C['pen-2']; c.lineWidth = 1.2; c.beginPath(); c.arc(0, 0, 7.5, -2.4, -1.7); c.stroke(); c.globalAlpha = alpha;
+    c.fillStyle = C['ink-3']; c.fillRect(-6, 9, 12, 2.5);
+    if (nap && mood === 'idle') { c.fillStyle = C['ink-3']; c.font = `600 8px ${MONO}`; c.textAlign = 'left'; c.globalAlpha = alpha * (.5 + .5 * Math.sin(now * 2)); c.fillText('z', 10, -10 - (now * 4) % 4); }
+  }
+  // a little thought above its head
+  const say = mood === 'cheer' ? '♪' : mood === 'hurt' ? '!' : mood === 'oops' ? '?' : '';
+  if (say && mt < 1.2) { c.globalAlpha = alpha * Math.min(1, (1.2 - mt) * 2); c.fillStyle = mood === 'hurt' ? C['pen-1'] : mood === 'cheer' ? C['pen-4'] : C['ink-2']; c.font = `700 11px ${MONO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(say, 6, -18 - mt * 6); }
+  c.restore();
+}
 function render() {
   const c = ctx;
   c.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);
@@ -3555,6 +3949,7 @@ function render() {
   for (const tp of G.torps) drawTorp(c, tp);
   drawFx(c);
   drawDefences(c);
+  drawPetOnRim(c);
   c.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);
   // red edge glow: a pulse when the hull is hit, a slow throb while it is critical
   const low = screen === 'play' && G.hull < 25, edge = Math.max(G.hurt * .5, low ? .18 + .12 * Math.sin(performance.now() / 160) : 0);
@@ -4407,7 +4802,13 @@ const COMMENDATIONS = [
   ['stars30', 'Every mark', 'Earn all 30 campaign stars.', 400, () => campTotal() >= MISSIONS.length * 3],
   ['gauntlet', 'Run the gauntlet', 'Clear the Gauntlet.', 150, r => r.cleared && r.game === 'gauntlet'],
   ['gauntlet7', 'Iron nerve', 'Clear the Gauntlet at difficulty 07 or higher.', 300, r => r.cleared && r.game === 'gauntlet' && r.diff >= 7],
+  ['stylist', 'Dressed for the deep', 'Buy ten looks in the Dry Dock (tracers, torpedoes, colours, sweeps, effects, companions, sounds).', 100, () => looksBought() >= 10],
+  ['wardrobe', 'Full wardrobe', 'Own every look in the Dry Dock.', 400, () => looksBought() >= looksForSale()],
 ];
+const LOOK_KINDS = ['tracer', 'scope', 'killfx', ...Object.keys(LOOKS)];
+const looksBought = () => Object.keys(prefs.owned).filter(k => LOOK_KINDS.includes(k.split(':')[0])).length;
+const looksForSale = () => Object.keys(TRACERS).filter(k => TRACERS[k].cost).length + Object.keys(SCOPES).filter(k => SCOPES[k].cost).length
+  + Object.keys(KILLFX).filter(k => KILLFX[k].cost).length + Object.keys(LOOKS).reduce((t, kind) => t + Object.values(LOOKS[kind]).filter(v => v.cost).length, 0);
 // the end-of-run check: returns the commendations newly earned (their salvage is paid here)
 function awardCommendations(r) {
   const got = [];
@@ -4673,9 +5074,9 @@ function buildLine() {
 }
 
 /* ------------------------------------------------------------ the Dry Dock */
-const DOCK_TABS = [['hulls', 'Hulls'], ['arsenal', 'Arsenal'], ['cards', 'Upgrade cards'], ['tracers', 'Tracers'], ['scope', 'Scope & effects']];
+const DOCK_TABS = [['hulls', 'Hulls'], ['arsenal', 'Arsenal'], ['cards', 'Upgrade cards'], ['tracers', 'Projectiles'], ['scope', 'Scope & effects'], ['crew', 'Companions & sound']];
 let dockTab = 'hulls';
-function itemOf(kind, key) { return kind === 'hull' ? HULLS[key] : kind === 'card' ? CARDS[key] : kind === 'tracer' ? TRACERS[key] : kind === 'scope' ? SCOPES[key] : kind === 'killfx' ? KILLFX[key] : GEAR[kind][key]; }
+function itemOf(kind, key) { return kind === 'hull' ? HULLS[key] : kind === 'card' ? CARDS[key] : kind === 'tracer' ? TRACERS[key] : kind === 'scope' ? SCOPES[key] : kind === 'killfx' ? KILLFX[key] : LOOKS[kind] ? LOOKS[kind][key] : GEAR[kind][key]; }
 const priceOf = (kind, key) => kind === 'card' ? CARDS[key].rare || 0 : (itemOf(kind, key).cost || 0);
 // everything that can be bought and is not owned yet, cheapest first
 function shopList() {
@@ -4686,6 +5087,7 @@ function shopList() {
   for (const k of Object.keys(TRACERS)) if (TRACERS[k].cost && !owns('tracer', k)) out.push(['tracer', k]);
   for (const k of Object.keys(SCOPES)) if (SCOPES[k].cost && !owns('scope', k)) out.push(['scope', k]);
   for (const k of Object.keys(KILLFX)) if (!owns('killfx', k)) out.push(['killfx', k]);
+  for (const kind of Object.keys(LOOKS)) for (const k of Object.keys(LOOKS[kind])) if (!owns(kind, k)) out.push([kind, k]);
   return out.map(([kind, key]) => ({ kind, key, name: itemOf(kind, key).name, cost: priceOf(kind, key) })).sort((a, b) => a.cost - b.cost);
 }
 function openDock(tab) {
@@ -4722,10 +5124,17 @@ function renderDock() {
   $('#dkSalv').textContent = prefs.salvage.toLocaleString('en-US');
   $('#dkTabs').innerHTML = DOCK_TABS.map(([k, nm], i) => `<button class="chip ${k === dockTab ? 'on' : ''}" data-tab="${k}"><kbd>${i + 1}</kbd> ${nm}</button>`).join('');
   document.querySelectorAll('#dkTabs [data-tab]').forEach(b => b.onclick = () => { dockTab = b.dataset.tab; renderDock(); sfx.ui(); });
+  const row = (label, kind, cat) => `<div class="slotrow"><span class="lbl">${label}</span><div class="shop">${
+    Object.keys(cat).map(k => itemHtml({ kind, key: k, owned: owns(kind, k), on: (LOOKS[kind] ? look(kind) : prefs.loadout[kind] || Object.keys(cat)[0]) === k, prev: `${kind}:${k}` })).join('')}</div></div>`;
+  // the cosmetic shelves get the showroom: a live picture of the whole look as it is fitted now
+  $('#dkShow').hidden = !['tracers', 'scope', 'crew'].includes(dockTab);
   if (dockTab === 'scope') {
-    const row = (label, kind, cat) => `<div class="slotrow"><span class="lbl">${label}</span><div class="shop">${
-      Object.keys(cat).map(k => itemHtml({ kind, key: k, owned: owns(kind, k), on: (prefs.loadout[kind] || Object.keys(cat)[0]) === k, prev: `${kind}:${k}` })).join('')}</div></div>`;
-    $('#dkBody').innerHTML = row('Scope colour', 'scope', SCOPES) + row('Kill effect', 'killfx', KILLFX);
+    $('#dkBody').innerHTML = row('Scope colour', 'scope', SCOPES) + row('Sweep', 'sweep', SWEEPS) + row('Kill effect', 'killfx', KILLFX);
+  } else if (dockTab === 'crew') {
+    $('#dkBody').innerHTML = row('Companion', 'pet', PETS) + row('Typing sound <small class="u" style="display:block;margin-top:4px;letter-spacing:0;text-transform:none">click a picture to hear it</small>', 'sound', SOUNDPACKS);
+  } else if (dockTab === 'tracers') {
+    $('#dkBody').innerHTML = `<div class="shop">${dockItems().map(itemHtml).join('')}</div>`
+      + `<div class="sech"><span class="lbl">Torpedo</span></div><div class="shop">${Object.keys(TORPSKINS).map(k => itemHtml({ kind: 'torpskin', key: k, owned: owns('torpskin', k), on: look('torpskin') === k, prev: 'torpskin:' + k })).join('')}</div>`;
   } else if (dockTab === 'arsenal') {
     $('#dkBody').innerHTML = Object.keys(GEAR).map(slot => `<div class="slotrow"><span class="lbl">${SLOT_NAMES[slot]}</span><div class="shop">${
       Object.keys(GEAR[slot]).map(k => itemHtml({ kind: slot, key: k, owned: owns(slot, k), on: prefs.loadout[slot] === k, prev: `gear:${slot}:${k}` })).join('')}</div></div>`).join('');
@@ -4735,7 +5144,12 @@ function renderDock() {
     const b = el.querySelector('[data-buy]'), e = el.querySelector('[data-equip]');
     if (b) b.onclick = () => buy(kind, key);
     if (e) e.onclick = () => equip(kind, key);
+    if (kind === 'sound') el.querySelector('canvas').onclick = () => soundDemo(key);
   });
+  const lo = prefs.loadout;
+  $('#showList').innerHTML = `<b>${G.tracer === HULLS[G.hullType].tracer && (!lo.tracer || lo.tracer === 'hull') ? 'Hull' : TRACERS[G.tracer].name}</b> tracers · <b>${TORPSKINS[look('torpskin')].name}</b><br>`
+    + `<b>${SCOPES[owns('scope', lo.scope) ? lo.scope : 'teal'].name}</b> · <b>${SWEEPS[look('sweep')].name}</b> · <b>${KILLFX[G.killfx || 'burst'].name}</b><br>`
+    + `<b>${PETS[look('pet')].name}</b> on the rim · <b>${SOUNDPACKS[look('sound')].name}</b> keys`;
   const nx = shopList()[0];
   $('#dkNote').innerHTML = `banked over all runs <b>${prefs.salvageTotal.toLocaleString('en-US')}</b>${nx ? ` · cheapest next: ${nx.name} (${nx.cost})` : ' · everything bought'}`;
   drawDock();
@@ -4754,7 +5168,7 @@ function equip(kind, key, quiet) {
   else if (kind === 'tracer') prefs.loadout.tracer = key;
   else if (kind === 'scope') { prefs.loadout.scope = key; readColors(); }
   else if (kind === 'killfx') prefs.loadout.killfx = key;
-  else if (GEAR[kind]) prefs.loadout[kind] = key;
+  else if (GEAR[kind] || LOOKS[kind]) prefs.loadout[kind] = key;
   else return;
   savePrefs();
   // the attract loop behind the panel wears the new kit straight away
@@ -4770,8 +5184,35 @@ function drawDock() {
     if (type === 'hull') { dottedCircle(c, x, y, R_HULL * 1.45, 4, .8, C['ink-4'], 1); drawHull(c, x, y, a, 1.45, { aim: -Math.PI / 4 + Math.sin(now) * .4 }); }
     else if (type === 'card') { dottedCircle(c, x, y, 26, 5, .8, C['ink-3'], .5); drawModule(c, a, x, y, 0, 3.4); }
     else if (type === 'gear') drawGearIcon(c, a, b, x, y, now);
-    else if (type === 'scope') {
-      const col = a === 'teal' ? C['pen-3'] : dark ? SCOPES[a].dark : SCOPES[a].light, sw = now * 1.2 % TAU;
+    else if (type === 'torpskin') {
+      // the torpedo swims across with a trail of bubbles
+      const k = (now * .45) % 1, tx = 20 + (w - 40) * k, ty = y + Math.sin(k * TAU) * 6;
+      c.strokeStyle = C['ink-3']; c.lineWidth = .8;
+      for (let i = 1; i < 7; i++) { const bx = tx - 18 - i * 9, by = ty + Math.sin(now * 3 + i) * 3; c.globalAlpha = .5 - i * .06; c.beginPath(); c.arc(bx, by, 1 + (i % 3) * .6, 0, TAU); c.stroke(); }
+      c.save(); c.translate(tx, ty); c.rotate(Math.cos(k * TAU) * .25); c.scale(1.7, 1.7); torpSkin(c, a, 0); c.restore();
+    } else if (type === 'sweep') {
+      const col = C.sonar, sw = now * 1.2 % TAU, st = sweepAt(sw, a), R0 = Math.min(36, h / 2 - 4);
+      dottedCircle(c, x, y, R0, 5, .7, C['ink-4'], 1);
+      c.fillStyle = col;
+      for (let rr = 8; rr <= R0; rr += 5) for (let i = 0; i < 40; i++) { const an = i / 40 * TAU, lit = sweepLit(wrap(st - an), a); if (lit < .08) continue; c.globalAlpha = lit * .9; c.beginPath(); dotPath(c, x + Math.cos(an) * rr, y + Math.sin(an) * rr, .9); c.fill(); }
+      drawBeam(c, x, y, R0, st, col, a, false);
+    } else if (type === 'pet') {
+      if (a === 'none') { dottedCircle(c, x, y, 16, 5, .8, C['ink-4'], 1); }
+      else {
+        // it hops now and then, so the preview shows how it reacts
+        const cyc = now % 3.2, mood = cyc < .5 ? 'happy' : cyc > 2 && cyc < 2.6 ? (a === 'puffer' ? 'hurt' : 'cheer') : 'idle';
+        if (a === 'puffer') PET.puff = Math.max(PET.puff, mood === 'hurt' ? 1 : 0);
+        drawDottedLine(c, x - 40, y + 18, x + 40, y + 18, 4, C['ink-4'], 1);
+        drawPet(c, a, x, y + 4, 1.8, mood, mood === 'happy' ? cyc : mood === 'idle' ? 9 : cyc - 2);
+      }
+    } else if (type === 'sound') {
+      // a little equaliser, in the shape of the pack's sound
+      const shape = { sonar: [3, 5, 7, 5, 3], typewriter: [8, 2, 8, 2, 8], marimba: [6, 8, 6, 4, 2], bubbles: [2, 5, 8, 5, 2], chip: [8, 8, 4, 4, 8], squeak: [3, 8, 3, 8, 3] }[a] || [5, 5, 5, 5, 5];
+      c.fillStyle = C['pen-2'];
+      shape.forEach((v, i) => { const hh = v * 3 * (.6 + .4 * Math.abs(Math.sin(now * 5 + i * 1.3))); for (let j = 0; j < hh; j += 4) { c.globalAlpha = .4 + .6 * j / 24; c.beginPath(); dotPath(c, x - 30 + i * 15, y + 14 - j, 1.6); c.fill(); } });
+      c.globalAlpha = .7; c.fillStyle = C['ink-3']; c.font = `500 9px ${MONO}`; c.textAlign = 'center'; c.fillText('click to hear', x, y + 26);
+    } else if (type === 'scope') {
+      const col = a === 'teal' ? C['pen-3'] : SCOPES[a].prism ? prismCol() : dark ? SCOPES[a].dark : SCOPES[a].light, sw = now * 1.2 % TAU;
       for (let rr = 10; rr <= 34; rr += 8) dottedCircle(c, x, y + 4, rr, 5, .7, C['ink-4'], 1);
       c.fillStyle = col;
       for (let rr = 10; rr <= 34; rr += 4) for (let k = 0; k < 10; k++) { const an = sw - k * .09; c.globalAlpha = (1 - k / 10) * .9; c.beginPath(); dotPath(c, x + Math.cos(an) * rr, y + 4 + Math.sin(an) * rr, 1); c.fill(); }
@@ -4779,12 +5220,65 @@ function drawDock() {
     } else if (type === 'killfx') drawKillPreview(c, a, x, y + 2, (now * .7) % 1);
     else if (type === 'tracer') {
       const style = a === 'hull' ? HULLS[owns('hull', prefs.loadout.hull) ? prefs.loadout.hull : 'skiff'].tracer : a;
-      const tr = { sx: 14, sy: h - 12, tx: w - 18, ty: 16, kick: .22, t: .25 + ((now * .55) % 1) * .75, idx: 0 };
-      for (let i = 0; i <= 24; i++) { const q = bez(tr, i / 24); c.globalAlpha = .35; c.fillStyle = C['ink-4']; c.beginPath(); dotPath(c, q.x, q.y, .8); c.fill(); }
+      // a slingshot needs room to circle the hull, so it starts further in
+      const orbit = style === 'orbit', tr = { sx: orbit ? 44 : 14, sy: orbit ? h - 32 : h - 12, tx: w - 18, ty: 16, kick: .22, t: .25 + ((now * .55) % 1) * .75, idx: Math.floor(now * .55), ch: 'a' };
+      for (let i = 0; i <= 48; i++) { const q = trPos(tr, i / 48, style); c.globalAlpha = .35; c.fillStyle = C['ink-4']; c.beginPath(); dotPath(c, q.x, q.y, .8); c.fill(); }
       drawTracer(c, tr, style);
     }
     c.globalAlpha = 1;
   });
+  if (!$('#dkShow').hidden) drawShowroom();
+}
+// the showroom: a little scope wearing the fitted sweep and colour, the companion on its rim, tracers flying at a
+// word in the fitted style, the kill effect when it breaks, and the torpedo skin cruising past underneath
+function drawShowroom() {
+  const el = $('#cvShow'), { c, w, h } = fitCanvas(el); if (!w) return;
+  const now = performance.now() / 1000, x0 = 70, y0 = h / 2, R0 = 44, sw = now * 1.2 % TAU, st = look('sweep'), drawn = sweepAt(sw, st);
+  const col = SCOPES[prefs.loadout.scope] && SCOPES[prefs.loadout.scope].prism && owns('scope', 'prism') ? prismCol() : C.sonar;
+  for (const rr of [R0 * .5, R0]) dottedCircle(c, x0, y0, rr, 5, .7, C['ink-4'], 1);
+  c.fillStyle = col;
+  for (let rr = 8; rr <= R0; rr += 6) for (let i = 0; i < 44; i++) { const an = i / 44 * TAU, lit = sweepLit(wrap(drawn - an), st); if (lit < .08) continue; c.globalAlpha = lit * .9; c.beginPath(); dotPath(c, x0 + Math.cos(an) * rr, y0 + Math.sin(an) * rr, .9); c.fill(); }
+  drawBeam(c, x0, y0, R0, drawn, col, st, false);
+  c.globalAlpha = 1; c.fillStyle = C.ink; c.beginPath(); dotPath(c, x0, y0, 3.5); c.fill();
+  const pet = look('pet');
+  // the word: six letters typed one by one, then it breaks up, then a new one
+  const T = 3, k = now % T, word = 'lantern', wx = Math.min(w - 70, x0 + 250), wy = y0 - 12, shots = Math.min(word.length, Math.floor(k / .17));
+  if (pet !== 'none') drawPet(c, pet, x0 + Math.cos(Math.PI * .58) * (R0 + 12), y0 + Math.sin(Math.PI * .58) * (R0 + 12), .9, k > 1.35 && k < 1.9 ? 'happy' : 'idle', k - 1.35, 1);
+  if (k < 1.35) {
+    const cw = 9.2, chipW = word.length * cw + 18;
+    c.globalAlpha = 1; c.fillStyle = C.paper; c.fillRect(wx - chipW / 2, wy - 13, chipW, 26); c.strokeStyle = C['rule-strong']; c.lineWidth = 1; c.strokeRect(wx - chipW / 2 + .5, wy - 12.5, chipW, 26);
+    c.font = `500 15px ${MONO}`; c.textAlign = 'left'; c.textBaseline = 'middle';
+    [...word].forEach((ch, i) => { c.fillStyle = i < shots ? C['ink-3'] : C.ink; c.fillText(ch, wx - chipW / 2 + 9 + i * cw, wy + 1); });
+    for (let i = 0; i < shots; i++) {
+      const t = (k - i * .17) / .3; if (t > 1) continue;
+      drawTracer(c, { sx: x0 + 10, sy: y0, tx: wx - chipW / 2 + 13 + i * cw, ty: wy, kick: i % 2 ? .2 : -.2, t, idx: i, ch: word[i] }, G.tracer);
+    }
+  } else if (k < 2.3) drawKillPreview(c, G.killfx || 'burst', wx, wy, (k - 1.35) / .95);
+  // the torpedo cruises along the bottom
+  const tk = (now * .22) % 1, tx = x0 + 80 + (w - x0 - 100) * tk, ty = h - 16 + Math.sin(tk * TAU * 2) * 3;
+  c.save(); c.translate(tx, ty); c.scale(1.2, 1.2); torpSkin(c, look('torpskin'), 0); c.restore();
+  c.globalAlpha = 1;
+}
+// a few notes in a sound pack, played on the spot in the Dry Dock
+function soundDemo(key) {
+  ensureAudio(); if (!prefs.sound) { toast('Sound is off (M)'); return; }
+  [0, 1, 2, 3, 4].forEach(i => setTimeout(() => {
+    sfxDemo = true; sfxPack = key;
+    sfx.fire(0, noteFor(i + 1)); if (i === 4 && key === 'typewriter') sfx.ding(0);
+    sfxDemo = false; sfxPack = null;
+  }, i * 130));
+}
+// put on a random look from everything owned
+function surpriseMe() {
+  const pickOwned = (kind, keys) => { const ks = keys.filter(k => owns(kind, k)); return ks[Math.floor(Math.random() * ks.length)]; };
+  const lo = prefs.loadout;
+  lo.tracer = pickOwned('tracer', Object.keys(TRACERS)) || 'hull';
+  lo.scope = pickOwned('scope', Object.keys(SCOPES)) || 'teal';
+  lo.killfx = pickOwned('killfx', Object.keys(KILLFX)) || 'burst';
+  for (const kind of Object.keys(LOOKS)) lo[kind] = pickOwned(kind, Object.keys(LOOKS[kind]));
+  savePrefs(); readColors(); if (G.mode === 'demo') applyKit('demo');
+  sfx.card(); renderDock();
+  toast(`New look: ${TRACERS[lo.tracer] ? TRACERS[lo.tracer].name : 'hull tracer'}, ${SCOPES[lo.scope].name}, ${PETS[lo.pet].name.toLowerCase()} on the rim`);
 }
 // a looping picture of each kill effect: t runs 0 → 1
 function drawKillPreview(c, key, x, y, t) {
@@ -4799,6 +5293,38 @@ function drawKillPreview(c, key, x, y, t) {
       c.fillStyle = col; c.globalAlpha = fade;
       for (let i = 0; i < 12; i++) { const an = i / 12 * TAU + k * .26 + t * .8; c.beginPath(); dotPath(c, x + Math.cos(an) * rr * e, y + Math.sin(an) * rr * e, 2.2 - k * .4); c.fill(); }
     });
+  } else if (key === 'confetti') {
+    for (let i = 0; i < 18; i++) {
+      const b = -Math.PI / 2 + (hash(i) - .5) * 2.4, v = 30 + hash(i * 3.1) * 24, gx = x + Math.cos(b) * v * e, gy = y + Math.sin(b) * v * e + 46 * t * t;
+      c.save(); c.translate(gx, gy); c.rotate(t * 10 * (hash(i * 7) - .5) + i); c.globalAlpha = Math.min(1, fade * 1.6); c.fillStyle = C['pen-' + (1 + i % 6)]; c.fillRect(-2.5, -1.5, 5, 3); c.restore();
+    }
+  } else if (key === 'fireworks') {
+    [[-22, -10, 'pen-4'], [0, -18, 'pen-1'], [22, -8, 'pen-2']].forEach(([dx, dy, pen], k) => {
+      const tt = clamp((t - k * .12) / .7, 0, 1), up = Math.min(1, tt / .3), burst = clamp((tt - .3) / .7, 0, 1);
+      c.fillStyle = C[pen];
+      if (tt > 0 && up < 1) { c.globalAlpha = 1; c.beginPath(); dotPath(c, x + dx * up, y + 18 + (dy - 18) * up, 1.4); c.fill(); }
+      if (burst > 0) for (let i = 0; i < 12; i++) { const b = i / 12 * TAU, rr = 4 + 16 * easeOut(burst); c.globalAlpha = 1 - burst; c.beginPath(); dotPath(c, x + dx + Math.cos(b) * rr, y + dy + Math.sin(b) * rr + burst * 6, 1.2); c.fill(); }
+    });
+  } else if (key === 'school') {
+    for (let i = 0; i < 6; i++) {
+      const b = hash(i * 2.7) * TAU, v = 10 + 30 * e, fx = x + Math.cos(b) * v, fy = y + Math.sin(b) * v;
+      c.save(); c.translate(fx, fy); c.rotate(b); c.globalAlpha = fade * 1.3; c.fillStyle = C[i % 3 ? 'pen-2' : 'pen-4'];
+      c.beginPath(); c.ellipse(0, 0, 4.5, 2.2, 0, 0, TAU); c.fill(); const fl = Math.sin(t * 40 + i) * 1.8;
+      c.beginPath(); c.moveTo(-3.5, 0); c.lineTo(-7.5, -2.6 + fl); c.lineTo(-7.5, 2.6 + fl); c.fill(); c.restore();
+    }
+  } else if (key === 'type') {
+    c.font = `600 12px ${MONO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = C['ink-2'];
+    [...'word'].forEach((ch, i) => { const vx = (i - 1.5) * 9, gy = y - 8 - 30 * t + 70 * t * t; c.globalAlpha = Math.min(1, fade * 2); c.fillText(ch, x + (i - 1.5) * 11 + vx * t, gy); });
+    if (t > .1 && t < .7) { c.globalAlpha = 1; c.fillStyle = C['pen-4']; c.font = `600 10px ${MONO}`; c.fillText('ding!', x + 26, y - 22); }
+  } else if (key === 'fizz') {
+    c.strokeStyle = C['pen-3']; c.lineWidth = 1;
+    for (let i = 0; i < 7; i++) { const r = 2 + hash(i) * 4, bx = x + (hash(i * 5.3) - .5) * 40 + Math.sin(t * 9 + i) * 2, by = y + 12 - (20 + hash(i * 2.1) * 30) * e; c.globalAlpha = fade; c.beginPath(); c.arc(bx, by, r, 0, TAU); c.stroke(); }
+  } else if (key === 'hearts') {
+    for (let i = 0; i < 6; i++) {
+      const s = 3 + hash(i) * 3, hx = x + (hash(i * 3.3) - .5) * 44 + Math.sin(t * 8 + i) * 3, hy = y + 8 - (16 + hash(i * 1.7) * 26) * e;
+      c.globalAlpha = Math.min(1, fade * 1.8); c.fillStyle = C[i % 3 ? 'pen-1' : 'pen-5']; c.beginPath();
+      c.moveTo(hx, hy + s * .9); c.bezierCurveTo(hx - s * 1.6, hy - s * .2, hx - s * .7, hy - s * 1.3, hx, hy - s * .45); c.bezierCurveTo(hx + s * .7, hy - s * 1.3, hx + s * 1.6, hy - s * .2, hx, hy + s * .9); c.fill();
+    }
   } else if (key === 'ink') {
     c.fillStyle = C.ink;
     for (let i = 0; i < 9; i++) { const b = hash(i * 1.3) * TAU, v = 8 + hash(i * 5.1) * 24; c.globalAlpha = fade * .85; c.beginPath(); dotPath(c, x + Math.cos(b) * v * e, y + Math.sin(b) * v * e, (2.5 + hash(i) * 4) * (.6 + e * .6)); c.fill(); }
@@ -4813,10 +5339,7 @@ function drawKillPreview(c, key, x, y, t) {
 function drawGearIcon(c, slot, key, x, y, now) {
   c.save(); c.lineCap = 'round';
   const torp = (tx, ty, a, s) => {
-    c.save(); c.translate(tx, ty); c.rotate(a); c.scale(s, s); c.fillStyle = C['pen-2']; c.globalAlpha = 1;
-    c.beginPath(); c.moveTo(-11, -3); c.lineTo(6, -3); c.arc(6, 0, 3, -Math.PI / 2, Math.PI / 2); c.lineTo(-11, 3); c.closePath(); c.fill();
-    c.strokeStyle = C['pen-2']; c.lineWidth = 1.2; c.beginPath(); c.moveTo(-11, -3); c.lineTo(-15, -6); c.moveTo(-11, 3); c.lineTo(-15, 6); c.stroke();
-    c.restore();
+    c.save(); c.translate(tx, ty); c.rotate(a); c.scale(s, s); torpSkin(c, look('torpskin'), a); c.restore();
   };
   if (key === 'torpedo') { drawDottedLine(c, x - 60, y + 10, x - 18, y + 2, 5, C['pen-2'], .5); torp(x, y, -.2, 2); }
   else if (key === 'swarm') { for (const [dx, dy, a] of [[-14, -16, -.5], [4, 2, -.15], [-12, 20, .25]]) torp(x + dx, y + dy, a, 1.2); }
@@ -5314,7 +5837,8 @@ addEventListener('keydown', e => {
     else if (e.key === 'Enter' && logTab === 'letters') startRun(sel, 'drill');
   } else if (screen === 'dock') {
     if (e.key === 'Escape' || k === 'd') closeDock();
-    else if (/^[1-5]$/.test(e.key)) { dockTab = DOCK_TABS[+e.key - 1][0]; renderDock(); sfx.ui(); }
+    else if (/^[1-6]$/.test(e.key)) { dockTab = DOCK_TABS[+e.key - 1][0]; renderDock(); sfx.ui(); }
+    else if (k === 's' && !$('#dkShow').hidden) surpriseMe();
   } else if (screen === 'pick') {
     if (/^[1-3]$/.test(e.key)) takeCard(+e.key - 1);
   } else if (screen === 'chart') {
@@ -5368,6 +5892,7 @@ $('#btnLogBack').onclick = closeLog;
 $('#togAdaptive').onclick = toggleAdaptive;
 $('#togAdapt2').onclick = toggleAdaptive;
 $('#btnDockBack').onclick = closeDock;
+$('#btnSurprise').onclick = surpriseMe;
 document.querySelectorAll('[data-game]').forEach(b => b.onclick = () => setGame(b.dataset.game));
 // window controls exist only inside the installed app (see sonar-type-app/preload.js)
 if (window.sonarShell) {

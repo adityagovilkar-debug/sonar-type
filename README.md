@@ -53,6 +53,14 @@ Every letter fires a tracer, and the score rewards hard words, fast typing and d
   (two endings, each with its own log and scope colour). The **Gauntlet** mode is all four leviathans back to
   back, with medals per difficulty; it opens once each leviathan has been destroyed.
 
+- **Dry Dock cosmetics** (v4.8): tracers that fly their own paths (Boomerang, Corkscrew, Paper plane, Skipping
+  stone, Bumblebee, Letterpress, Slingshot, Heartbeat), torpedo skins (Shark, Rubber duck, Pencil, Paper boat,
+  Narwhal), scope colours (Sakura, Mint, Sepia chart, Prism), sweep styles (Lighthouse, Ticking clock,
+  Afterimage), kill effects (Confetti, Fireworks, School of fish, Type slugs, Fizz, Sweethearts), companions that
+  sit on the scope's rim and react to the run (duck, octopus, pufferfish, anglerfish, crab, jellyfish, ship's
+  cat) and typing sound packs (Typewriter, Marimba, Bubbles, Chiptune, Squeaky toy). The Dock has a live
+  showroom of the fitted look and a Surprise me button. Looks change nothing about play.
+
 ## Tests
 
 `tests/` drives the game in headless Edge with a throwaway profile, so no real save is touched.
